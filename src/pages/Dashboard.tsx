@@ -1,8 +1,29 @@
 import { useMemo } from 'react';
-import { Users, UserCheck, UserX, UserMinus, Cake } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { funcionariosMock, chartDataHeadcount, chartDataCrescimento, chartDataStatus } from '@/data/mockData';
+import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { funcionariosMock, chartDataCrescimento, chartDataStatus } from '@/data/mockData';
 import { Link } from 'react-router-dom';
+import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+const deptIcons: Record<string, React.ReactNode> = {
+  'Tecnologia': <Monitor className="w-5 h-5" />,
+  'Financeiro': <DollarSign className="w-5 h-5" />,
+  'Comercial': <Target className="w-5 h-5" />,
+  'Recursos Humanos': <UserCog className="w-5 h-5" />,
+  'Marketing': <BarChart3 className="w-5 h-5" />,
+  'Operações': <Package className="w-5 h-5" />,
+  'Jurídico': <Scale className="w-5 h-5" />,
+};
+
+function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md' }) {
+  const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('');
+  const cls = size === 'md' ? 'w-10 h-10 text-sm' : 'w-8 h-8 text-xs';
+  return (
+    <div className={`${cls} rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary shrink-0`}>
+      {initials}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const stats = useMemo(() => {
@@ -18,10 +39,27 @@ export default function Dashboard() {
   []);
 
   const aniversariantes = useMemo(() => {
-    const mesAtual = 3; // March
+    const mesAtual = 3;
     return funcionariosMock.filter(f => {
       const mes = parseInt(f.dataNascimento.split('-')[1]);
       return mes === mesAtual && f.status !== 'Desligado';
+    });
+  }, []);
+
+  // Build sector data
+  const setores = useMemo(() => {
+    const deptMap = new Map<string, typeof funcionariosMock>();
+    funcionariosMock.forEach(f => {
+      if (!deptMap.has(f.departamento)) deptMap.set(f.departamento, []);
+      deptMap.get(f.departamento)!.push(f);
+    });
+
+    return Array.from(deptMap.entries()).map(([dept, members]) => {
+      // Leader = highest salary or manager-like title
+      const leader = members.find(m => /gerente|coordenador|diretor|líder/i.test(m.cargo)) || null;
+      const ativos = members.filter(m => m.status === 'Ativo').length;
+      const inativos = members.filter(m => m.status !== 'Ativo').length;
+      return { dept, members, leader, ativos, inativos, total: members.length };
     });
   }, []);
 
@@ -29,7 +67,7 @@ export default function Dashboard() {
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Inativos', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
-    { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-gray-100 text-gray-600' },
+    { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
 
   return (
@@ -49,22 +87,92 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Quadro de Setores */}
+      <div>
+        <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Quadro de Setores</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {setores.map(setor => (
+            <div key={setor.dept} className="kpi-card flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    {deptIcons[setor.dept] || <Users className="w-5 h-5" />}
+                  </div>
+                  <h4 className="font-heading font-bold text-foreground">{setor.dept}</h4>
+                </div>
+                <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-1 rounded-full">
+                  {setor.total} funcionário{setor.total !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {/* Leader */}
+              <div className="mb-4">
+                <p className="text-xs text-muted-foreground mb-2">Líder do Setor</p>
+                {setor.leader ? (
+                  <div className="flex items-center gap-3">
+                    <AvatarInitials name={setor.leader.nome} size="md" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{setor.leader.nome}</p>
+                      <p className="text-xs text-muted-foreground">{setor.leader.cargo}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <UserX className="w-4 h-4" />
+                    <span className="text-sm">Sem líder definido</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Team avatars */}
+              <div className="mb-4">
+                <p className="text-xs text-muted-foreground mb-2">Equipe</p>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex -space-x-2 cursor-default">
+                      {setor.members.slice(0, 5).map(m => (
+                        <div key={m.id} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-card flex items-center justify-center text-[10px] font-semibold text-primary">
+                          {m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                        </div>
+                      ))}
+                      {setor.members.length > 5 && (
+                        <div className="w-8 h-8 rounded-full bg-muted border-2 border-card flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
+                          +{setor.members.length - 5}
+                        </div>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[200px]">
+                    <div className="space-y-0.5">
+                      {setor.members.map(m => (
+                        <p key={m.id} className="text-xs">{m.nome}</p>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </UITooltip>
+              </div>
+
+              {/* Footer stats */}
+              <div className="flex items-center gap-4 pt-3 border-t border-border mt-auto">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-muted-foreground">Ativos:</span>
+                  <span className="font-semibold text-foreground">{setor.ativos}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <UserX className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-muted-foreground">Inativos:</span>
+                  <span className="font-semibold text-foreground">{setor.inativos}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Bar Chart */}
-        <div className="kpi-card">
-          <h3 className="font-heading font-semibold text-foreground mb-4">Headcount por Departamento</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartDataHeadcount}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 32% 91%)" />
-              <XAxis dataKey="departamento" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="total" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
         {/* Line Chart */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Crescimento do Quadro (6 meses)</h3>
@@ -78,9 +186,7 @@ export default function Dashboard() {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Donut Chart */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Distribuição por Status</h3>
@@ -101,16 +207,16 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Últimos Funcionários */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Últimos Adicionados</h3>
           <div className="space-y-3">
             {ultimosAdicionados.map((f) => (
               <Link to={`/funcionarios/${f.id}`} key={f.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
-                  {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                </div>
+                <AvatarInitials name={f.nome} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{f.nome}</p>
                   <p className="text-xs text-muted-foreground">{f.cargo}</p>
