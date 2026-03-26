@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
+import { useApp } from '@/contexts/AppContext';
 
 const steps = ['Dados Pessoais', 'Dados Profissionais', 'Documentos', 'Revisão'];
 
 export default function NewEmployee() {
   const navigate = useNavigate();
+  const { logAction } = useApp();
   const [currentStep, setCurrentStep] = useState(0);
   const [form, setForm] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
@@ -27,6 +29,7 @@ export default function NewEmployee() {
   };
 
   const handleSubmit = () => {
+    logAction('Cadastro', form.nome, `Cadastrou novo funcionário ${form.nome} como ${form.cargo || 'sem cargo definido'}`);
     toast({ title: 'Funcionário cadastrado com sucesso!', description: `${form.nome} foi adicionado ao sistema.` });
     navigate('/funcionarios');
   };
