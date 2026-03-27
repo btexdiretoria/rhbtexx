@@ -16,6 +16,7 @@ export default function NewEmployee() {
   const [currentStep, setCurrentStep] = useState(0);
   const [form, setForm] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
+    chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
     cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '',
   });
@@ -78,6 +79,16 @@ export default function NewEmployee() {
                 </Select>
               </div>
               <div><Label>Telefone</Label><Input value={form.telefone} onChange={e => update('telefone', e.target.value)} placeholder="(00) 00000-0000" /></div>
+              <div><Label>Chave PIX</Label><Input value={form.chavePix} onChange={e => update('chavePix', e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatória" /></div>
+              <div>
+                <Label>Tipo de Chave PIX</Label>
+                <Select value={form.tipoChavePix} onValueChange={v => update('tipoChavePix', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {['CPF', 'CNPJ', 'E-mail', 'Telefone', 'Chave Aleatória'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="sm:col-span-2"><Label>E-mail Pessoal</Label><Input type="email" value={form.emailPessoal} onChange={e => update('emailPessoal', e.target.value)} /></div>
             </div>
             <h4 className="font-heading font-medium text-foreground pt-2">Endereço</h4>

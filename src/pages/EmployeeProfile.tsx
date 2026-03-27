@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Briefcase, FileText, History, User, Plus, Pencil, Save, X, Trash2, Info } from 'lucide-react';
-import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero } from '@/data/mockData';
+import { ArrowLeft, Star, Briefcase, FileText, History, User, Plus, Pencil, Save, X, Trash2, Info, Copy, Check } from 'lucide-react';
+import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero, TipoChavePix } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -87,6 +88,11 @@ const statusOptions: { label: string; value: string }[] = [
   { label: 'Ativo', value: 'Ativo' }, { label: 'Inativo', value: 'Inativo' },
   { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' },
 ];
+const tiposChavePix: { label: string; value: string }[] = [
+  { label: 'CPF', value: 'CPF' }, { label: 'CNPJ', value: 'CNPJ' },
+  { label: 'E-mail', value: 'E-mail' }, { label: 'Telefone', value: 'Telefone' },
+  { label: 'Chave Aleatória', value: 'Chave Aleatória' },
+];
 
 export default function EmployeeProfile() {
   const { id } = useParams();
@@ -101,6 +107,7 @@ export default function EmployeeProfile() {
   const [editingAvId, setEditingAvId] = useState<string | null>(null);
   const [editAvData, setEditAvData] = useState<Avaliacao | null>(null);
   const [func, setFunc] = useState<Funcionario | undefined>(funcOriginal);
+  const [pixCopied, setPixCopied] = useState(false);
 
   if (!func) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -153,13 +160,13 @@ export default function EmployeeProfile() {
   const doSave = () => {
     if (!editData || !func) return;
 
-    // Log changed fields
     const fieldLabels: Record<string, string> = {
       nome: 'Nome', cpf: 'CPF', rg: 'RG', dataNascimento: 'Data de Nascimento', genero: 'Gênero',
       telefone: 'Telefone', emailPessoal: 'E-mail Pessoal', cargo: 'Cargo', departamento: 'Departamento',
       centroCusto: 'Centro de Custo', tipoContrato: 'Tipo de Contrato', salario: 'Salário',
       cargaHoraria: 'Carga Horária', emailCorporativo: 'E-mail Corporativo', gestorDireto: 'Gestor Direto',
       status: 'Status', dataDesligamento: 'Data de Desligamento', motivoDesligamento: 'Motivo do Desligamento',
+      chavePix: 'Chave PIX', tipoChavePix: 'Tipo de Chave PIX',
     };
     const simpleFields = Object.keys(fieldLabels);
     simpleFields.forEach(field => {
@@ -172,7 +179,6 @@ export default function EmployeeProfile() {
       }
     });
 
-    // Log address changes
     const addrFields = ['rua', 'numero', 'bairro', 'cidade', 'estado', 'cep'];
     addrFields.forEach(f => {
       if (func.endereco[f as keyof typeof func.endereco] !== editData.endereco[f as keyof typeof editData.endereco]) {
@@ -185,7 +191,6 @@ export default function EmployeeProfile() {
       }
     });
 
-    // Update the mock data source too
     const idx = funcionariosMock.findIndex(f => f.id === id);
     if (idx !== -1) Object.assign(funcionariosMock[idx], editData);
 
@@ -199,7 +204,6 @@ export default function EmployeeProfile() {
     if (!validate()) return;
     if (!editData || !func) return;
 
-    // Check if status changed to Desligado
     if (editData.status === 'Desligado' && func.status !== 'Desligado') {
       setShowDesligamentoDialog(true);
       return;
@@ -210,6 +214,17 @@ export default function EmployeeProfile() {
   const confirmDesligamento = () => {
     setShowDesligamentoDialog(false);
     doSave();
+  };
+
+  const copyPixKey = () => {
+    const key = func.chavePix;
+    if (!key) {
+      toast({ title: '⚠️ Nenhuma chave PIX cadastrada', variant: 'destructive' });
+      return;
+    }
+    navigator.clipboard.writeText(key);
+    setPixCopied(true);
+    setTimeout(() => setPixCopied(false), 2000);
   };
 
   const d = editing ? editData! : func;
@@ -322,6 +337,38 @@ export default function EmployeeProfile() {
             <EditableRow label="Data de Nascimento" value={editing ? d.dataNascimento : new Date(d.dataNascimento).toLocaleDateString('pt-BR')} editing={editing} onChange={v => updateField('dataNascimento', v)} type="date" />
             <EditableRow label="Gênero" value={d.genero} editing={editing} onChange={v => updateField('genero', v)} options={generos} />
             <EditableRow label="Telefone" value={d.telefone} editing={editing} onChange={v => updateField('telefone', v)} />
+            
+            {/* Chave PIX */}
+            <div className="py-2">
+              <p className="text-xs text-muted-foreground mb-0.5">Chave PIX</p>
+              {editing ? (
+                <div className="space-y-2">
+                  <Input className="h-9" value={d.chavePix || ''} onChange={e => updateField('chavePix', e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatória" />
+                  <Select value={d.tipoChavePix || ''} onValueChange={v => updateField('tipoChavePix', v)}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Tipo de Chave" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposChavePix.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">{d.chavePix || '—'}</p>
+                  {d.chavePix && <span className="text-xs text-muted-foreground">({d.tipoChavePix})</span>}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={copyPixKey}>
+                        {pixCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{pixCopied ? 'Copiado!' : 'Copiar chave PIX'}</TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+
             <EditableRow label="E-mail Pessoal" value={d.emailPessoal} editing={editing} onChange={v => updateField('emailPessoal', v)} type="email" error={errors.emailPessoal} />
             {editing ? (
               <>
@@ -505,7 +552,6 @@ export default function EmployeeProfile() {
         </TabsContent>
       </Tabs>
 
-      {/* Desligamento confirmation dialog */}
       <AlertDialog open={showDesligamentoDialog} onOpenChange={setShowDesligamentoDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
