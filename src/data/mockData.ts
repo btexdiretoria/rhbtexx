@@ -67,6 +67,10 @@ export interface Funcionario {
   status: StatusFuncionario;
   dataDesligamento?: string;
   motivoDesligamento?: string;
+  valorRescisao?: number;
+  dataPagamentoRescisao?: string;
+  pagamentoConfirmado?: boolean;
+  contratoAssinado?: boolean;
   avaliacoes: Avaliacao[];
   historico: HistoricoItem[];
   documentos: Documento[];
@@ -155,6 +159,7 @@ export const funcionariosMock: Funcionario[] = [
     centroCusto: 'CC-COM-001', dataAdmissao: '2021-03-22', tipoContrato: 'CLT', salario: 9000, cargaHoraria: 40,
     emailCorporativo: 'felipe.souza@gestapeople.com', gestorDireto: 'Gerente Comercial', status: 'Desligado',
     dataDesligamento: '2026-03-10', motivoDesligamento: 'Pedido de demissão',
+    valorRescisao: 18500, dataPagamentoRescisao: '2026-03-25', pagamentoConfirmado: true, contratoAssinado: true,
     avaliacoes: [], historico: [{ id: 'h10', tipo: 'admissao', data: '2021-03-22', descricao: 'Admissão como Executivo de Vendas', responsavel: 'RH' }, { id: 'h11', tipo: 'desligamento', data: '2026-03-10', descricao: 'Desligamento por pedido de demissão', responsavel: 'RH' }],
     documentos: [],
   },
@@ -183,6 +188,7 @@ export const funcionariosMock: Funcionario[] = [
     centroCusto: 'CC-COM-002', dataAdmissao: '2022-07-11', tipoContrato: 'PJ', salario: 10000, cargaHoraria: 40,
     emailCorporativo: 'isabela.rocha@gestapeople.com', gestorDireto: 'Gerente Comercial', status: 'Desligado',
     dataDesligamento: '2026-03-18', motivoDesligamento: 'Fim de contrato PJ',
+    valorRescisao: 22000, dataPagamentoRescisao: '2026-04-05', pagamentoConfirmado: false, contratoAssinado: true,
     avaliacoes: [], historico: [{ id: 'h14', tipo: 'admissao', data: '2022-07-11', descricao: 'Admissão como Consultora PJ', responsavel: 'RH' }, { id: 'h15', tipo: 'desligamento', data: '2026-03-18', descricao: 'Fim de contrato PJ', responsavel: 'RH' }],
     documentos: [],
   },
@@ -221,6 +227,7 @@ export const funcionariosMock: Funcionario[] = [
     centroCusto: 'CC-OPS-002', dataAdmissao: '2024-06-10', tipoContrato: 'Temporário', salario: 4500, cargaHoraria: 40,
     emailCorporativo: 'natalia.gomes@gestapeople.com', gestorDireto: 'Gerente de Operações', status: 'Desligado',
     dataDesligamento: '2026-03-22', motivoDesligamento: 'Término de contrato temporário',
+    valorRescisao: 9500, dataPagamentoRescisao: '2026-04-10', pagamentoConfirmado: false, contratoAssinado: false,
     avaliacoes: [], historico: [{ id: 'h21', tipo: 'admissao', data: '2024-06-10', descricao: 'Admissão como Assistente Administrativo Temporário', responsavel: 'RH' }, { id: 'h22', tipo: 'desligamento', data: '2026-03-22', descricao: 'Término de contrato temporário', responsavel: 'RH' }],
     documentos: [],
   },

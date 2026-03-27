@@ -152,7 +152,11 @@ export default function EmployeeProfile() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.emailCorporativo)) e.emailCorporativo = 'E-mail inválido';
     if (editData.emailPessoal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.emailPessoal)) e.emailPessoal = 'E-mail inválido';
     if (!editData.status) e.status = 'Status é obrigatório';
-    if (editData.status === 'Desligado' && !editData.dataDesligamento) e.dataDesligamento = 'Data de desligamento é obrigatória';
+    if (editData.status === 'Desligado') {
+      if (!editData.dataDesligamento) e.dataDesligamento = 'Data de desligamento é obrigatória';
+      if (!editData.valorRescisao && editData.valorRescisao !== 0) e.valorRescisao = 'Valor da rescisão é obrigatório';
+      if (!editData.dataPagamentoRescisao) e.dataPagamentoRescisao = 'Data de pagamento é obrigatória';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -167,6 +171,7 @@ export default function EmployeeProfile() {
       cargaHoraria: 'Carga Horária', emailCorporativo: 'E-mail Corporativo', gestorDireto: 'Gestor Direto',
       status: 'Status', dataDesligamento: 'Data de Desligamento', motivoDesligamento: 'Motivo do Desligamento',
       chavePix: 'Chave PIX', tipoChavePix: 'Tipo de Chave PIX',
+      valorRescisao: 'Valor da Rescisão', dataPagamentoRescisao: 'Data de Pagamento da Rescisão',
     };
     const simpleFields = Object.keys(fieldLabels);
     simpleFields.forEach(field => {
@@ -405,6 +410,8 @@ export default function EmployeeProfile() {
               <>
                 <EditableRow label="Data de Desligamento" value={editing ? (d.dataDesligamento || '') : (d.dataDesligamento ? new Date(d.dataDesligamento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataDesligamento', v)} type="date" error={errors.dataDesligamento} />
                 <EditableRow label="Motivo do Desligamento" value={d.motivoDesligamento} editing={editing} onChange={v => updateField('motivoDesligamento', v)} type="textarea" />
+                <EditableRow label="Valor da Rescisão (R$)" value={editing ? (d.valorRescisao ?? '') : (d.valorRescisao != null ? `R$ ${d.valorRescisao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—')} editing={editing} onChange={v => updateField('valorRescisao', Number(v.replace(/[^\d.,]/g, '').replace(',', '.')))} type="number" error={errors.valorRescisao} placeholder="0.00" />
+                <EditableRow label="Data de Pagamento da Rescisão" value={editing ? (d.dataPagamentoRescisao || '') : (d.dataPagamentoRescisao ? new Date(d.dataPagamentoRescisao).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataPagamentoRescisao', v)} type="date" error={errors.dataPagamentoRescisao} />
               </>
             )}
           </div>
