@@ -3,7 +3,6 @@ import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { funcionariosMock, chartDataCrescimento, chartDataStatus } from '@/data/mockData';
 import { Link } from 'react-router-dom';
-import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const deptIcons: Record<string, React.ReactNode> = {
   'Tecnologia': <Monitor className="w-5 h-5" />,
@@ -24,6 +23,13 @@ function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md
     </div>
   );
 }
+
+const statusDot: Record<string, string> = {
+  'Ativo': 'bg-emerald-500',
+  'Inativo': 'bg-destructive',
+  'Afastado': 'bg-warning',
+  'Desligado': 'bg-muted-foreground',
+};
 
 export default function Dashboard() {
   const stats = useMemo(() => {
@@ -46,7 +52,6 @@ export default function Dashboard() {
     });
   }, []);
 
-  // Build sector data
   const setores = useMemo(() => {
     const deptMap = new Map<string, typeof funcionariosMock>();
     funcionariosMock.forEach(f => {
@@ -55,7 +60,6 @@ export default function Dashboard() {
     });
 
     return Array.from(deptMap.entries()).map(([dept, members]) => {
-      // Leader = highest salary or manager-like title
       const leader = members.find(m => /gerente|coordenador|diretor|líder/i.test(m.cargo)) || null;
       const ativos = members.filter(m => m.status === 'Ativo').length;
       const inativos = members.filter(m => m.status !== 'Ativo').length;
@@ -90,7 +94,7 @@ export default function Dashboard() {
       {/* Quadro de Setores */}
       <div>
         <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Quadro de Setores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {setores.map(setor => (
             <div key={setor.dept} className="kpi-card flex flex-col">
               {/* Header */}
@@ -125,32 +129,34 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Team avatars */}
+              {/* Vertical Employee List */}
               <div className="mb-4">
-                <p className="text-xs text-muted-foreground mb-2">Equipe</p>
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex -space-x-2 cursor-default">
-                      {setor.members.slice(0, 5).map(m => (
-                        <div key={m.id} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-card flex items-center justify-center text-[10px] font-semibold text-primary">
-                          {m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                        </div>
-                      ))}
-                      {setor.members.length > 5 && (
-                        <div className="w-8 h-8 rounded-full bg-muted border-2 border-card flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
-                          +{setor.members.length - 5}
-                        </div>
-                      )}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-[200px]">
-                    <div className="space-y-0.5">
-                      {setor.members.map(m => (
-                        <p key={m.id} className="text-xs">{m.nome}</p>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </UITooltip>
+                <div className="border-t border-border pt-3 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">Funcionários do Setor</p>
+                </div>
+                <div className="space-y-1 max-h-[320px] overflow-y-auto">
+                  {setor.members.slice(0, 8).map(m => (
+                    <Link
+                      to={`/funcionarios/${m.id}`}
+                      key={m.id}
+                      className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">
+                        {m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground break-words leading-tight">{m.nome}</p>
+                        <p className="text-xs text-muted-foreground">{m.cargo}</p>
+                      </div>
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${statusDot[m.status] || 'bg-muted-foreground'}`} />
+                    </Link>
+                  ))}
+                </div>
+                {setor.members.length > 8 && (
+                  <Link to="/funcionarios" className="text-xs text-primary hover:underline mt-2 inline-block">
+                    Ver todos ({setor.members.length})
+                  </Link>
+                )}
               </div>
 
               {/* Footer stats */}
@@ -173,7 +179,6 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Line Chart */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Crescimento do Quadro (6 meses)</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -187,7 +192,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Donut Chart */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Distribuição por Status</h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -210,7 +214,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Últimos Funcionários */}
         <div className="kpi-card">
           <h3 className="font-heading font-semibold text-foreground mb-4">Últimos Adicionados</h3>
           <div className="space-y-3">
@@ -227,7 +230,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Aniversariantes */}
         <div className="kpi-card">
           <div className="flex items-center gap-2 mb-4">
             <Cake className="w-5 h-5 text-warning" />

@@ -16,6 +16,7 @@ export default function NewEmployee() {
   const [currentStep, setCurrentStep] = useState(0);
   const [form, setForm] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
+    chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
     cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '',
   });

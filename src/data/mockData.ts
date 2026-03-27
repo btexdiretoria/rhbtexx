@@ -32,6 +32,8 @@ export interface Documento {
   tamanho: string;
 }
 
+export type TipoChavePix = 'CPF' | 'CNPJ' | 'E-mail' | 'Telefone' | 'Chave Aleatória';
+
 export interface Funcionario {
   id: string;
   foto: string;
@@ -49,6 +51,8 @@ export interface Funcionario {
     cep: string;
   };
   telefone: string;
+  chavePix?: string;
+  tipoChavePix?: TipoChavePix;
   emailPessoal: string;
   matricula: string;
   cargo: string;
