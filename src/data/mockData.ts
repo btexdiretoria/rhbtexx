@@ -67,6 +67,10 @@ export interface Funcionario {
   status: StatusFuncionario;
   dataDesligamento?: string;
   motivoDesligamento?: string;
+  valorRescisao?: number;
+  dataPagamentoRescisao?: string;
+  pagamentoConfirmado?: boolean;
+  contratoAssinado?: boolean;
   avaliacoes: Avaliacao[];
   historico: HistoricoItem[];
   documentos: Documento[];
