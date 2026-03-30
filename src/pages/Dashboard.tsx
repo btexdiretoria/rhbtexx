@@ -228,7 +228,7 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-foreground truncate">{f.nome}</p>
                   <p className="text-xs text-muted-foreground">{f.cargo}</p>
                 </div>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                <span className={`status-badge status-${f.status.toLowerCase()}`}>{getStatusLabel(f.status)}</span>
               </Link>
             ))}
           </div>

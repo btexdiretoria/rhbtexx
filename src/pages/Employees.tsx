@@ -184,7 +184,7 @@ export default function Employees() {
                 <span className={`text-xs px-2 py-0.5 rounded-full ${deptColors[f.departamento] || 'bg-muted text-muted-foreground'}`}>
                   {f.departamento}
                 </span>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Desde {new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}
