@@ -407,7 +407,8 @@ export default function EmployeeProfile() {
             <EditableRow label="Carga Horária" value={editing ? d.cargaHoraria : `${d.cargaHoraria}h/semana`} editing={editing} onChange={v => updateField('cargaHoraria', Number(v))} type="number" />
             <EditableRow label="E-mail Corporativo" value={d.emailCorporativo} editing={editing} onChange={v => updateField('emailCorporativo', v)} type="email" error={errors.emailCorporativo} />
             <EditableRow label="Gestor Direto" value={d.gestorDireto} editing={editing} onChange={v => updateField('gestorDireto', v)} options={activeEmployees.map(e => ({ label: e.nome, value: e.nome }))} />
-            <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} error={errors.status} />
+            <EditableRow label="Status" value={editing ? d.status : (statusDisplayLabel[d.status as StatusFuncionario] || d.status)} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} error={errors.status} />
+            <EditableRow label="Fim do Período de Experiência" value={editing ? (d.dataFimExperiencia || '') : (d.dataFimExperiencia ? new Date(d.dataFimExperiencia).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataFimExperiencia', v)} type="date" />
             {(d.status === 'Desligado' || (editing && editData?.status === 'Desligado')) && (
               <>
                 <EditableRow label="Data de Desligamento" value={editing ? (d.dataDesligamento || '') : (d.dataDesligamento ? new Date(d.dataDesligamento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataDesligamento', v)} type="date" error={errors.dataDesligamento} />
