@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Star, Briefcase, FileText, History, User, Plus, Pencil, Save, X, Trash2, Info, Copy, Check } from 'lucide-react';
-import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero, TipoChavePix } from '@/data/mockData';
+import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero, TipoChavePix, statusDisplayLabel } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
