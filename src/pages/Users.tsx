@@ -104,7 +104,7 @@ export default function Users() {
                 </td>
                 <td className="text-muted-foreground">{u.cargo}</td>
                 <td><span className={`status-badge ${nivelBadge[u.nivelAcesso]}`}>{u.nivelAcesso}</span></td>
-                <td><span className={`status-badge ${u.status === 'Ativo' ? 'status-ativo' : 'status-inativo'}`}>{u.status}</span></td>
+                <td><span className={`status-badge ${u.status === 'Ativo' ? 'status-ativo' : 'status-inativo'}`}>{u.status === 'Inativo' ? 'Em Licença' : u.status}</span></td>
                 <td className="text-muted-foreground text-sm">{new Date(u.ultimoAcesso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                 <td><Button variant="ghost" size="sm" onClick={() => openEdit(u)}><Edit className="w-4 h-4" /></Button></td>
               </tr>
