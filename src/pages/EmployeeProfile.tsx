@@ -173,6 +173,7 @@ export default function EmployeeProfile() {
       status: 'Status', dataDesligamento: 'Data de Desligamento', motivoDesligamento: 'Motivo do Desligamento',
       chavePix: 'Chave PIX', tipoChavePix: 'Tipo de Chave PIX',
       valorRescisao: 'Valor da Rescisão', dataPagamentoRescisao: 'Data de Pagamento da Rescisão',
+      dataFimExperiencia: 'Data Fim do Período de Experiência',
     };
     const simpleFields = Object.keys(fieldLabels);
     simpleFields.forEach(field => {
