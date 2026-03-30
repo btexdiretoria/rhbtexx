@@ -78,6 +78,7 @@ export interface Funcionario {
   dataPagamentoRescisao?: string;
   pagamentoConfirmado?: boolean;
   contratoAssinado?: boolean;
+  dataFimExperiencia?: string;
   avaliacoes: Avaliacao[];
   historico: HistoricoItem[];
   documentos: Documento[];
