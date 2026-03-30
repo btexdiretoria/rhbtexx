@@ -1,8 +1,7 @@
-export type StatusFuncionario = 'Ativo' | 'Inativo' | 'Afastado' | 'Desligado';
+export type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado';
 
 export const statusDisplayLabel: Record<StatusFuncionario, string> = {
   'Ativo': 'Ativo',
-  'Inativo': 'Em Licença',
   'Afastado': 'Afastado',
   'Desligado': 'Desligado',
 };
