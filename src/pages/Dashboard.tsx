@@ -78,6 +78,21 @@ export default function Dashboard() {
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
 
+  const experienciaAlerts = useMemo(() => {
+    const hoje = new Date('2026-03-30');
+    const em30dias = new Date(hoje);
+    em30dias.setDate(em30dias.getDate() + 30);
+    return funcionariosMock
+      .filter(f => f.dataFimExperiencia && f.status !== 'Desligado')
+      .map(f => {
+        const dataFim = new Date(f.dataFimExperiencia!);
+        const diffDays = Math.ceil((dataFim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return { ...f, dataFim, diffDays };
+      })
+      .filter(f => f.diffDays <= 30)
+      .sort((a, b) => a.diffDays - b.diffDays);
+  }, []);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* KPI Cards */}
