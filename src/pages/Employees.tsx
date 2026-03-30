@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil } from 'lucide-react';
-import { funcionariosMock, type StatusFuncionario } from '@/data/mockData';
+import { funcionariosMock, type StatusFuncionario, statusDisplayLabel } from '@/data/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
