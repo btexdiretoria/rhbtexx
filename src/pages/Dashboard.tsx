@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, AlertTriangle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { funcionariosMock, chartDataCrescimento, chartDataStatus, statusDisplayLabel, StatusFuncionario } from '@/data/mockData';
 import { Link } from 'react-router-dom';
