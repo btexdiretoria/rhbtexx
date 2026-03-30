@@ -218,6 +218,7 @@ export const funcionariosMock: Funcionario[] = [
     telefone: '(11) 98765-4321', emailPessoal: 'larissa.barbosa@email.com', matricula: 'MAT011', cargo: 'Designer UX/UI', departamento: 'Tecnologia',
     centroCusto: 'CC-TEC-004', dataAdmissao: '2024-01-15', tipoContrato: 'CLT', salario: 9500, cargaHoraria: 40,
     emailCorporativo: 'larissa.barbosa@gestapeople.com', gestorDireto: 'Bruno Oliveira Santos', status: 'Ativo',
+    dataFimExperiencia: '2026-03-20',
     avaliacoes: [], historico: [{ id: 'h18', tipo: 'admissao', data: '2024-01-15', descricao: 'Admissão como Designer UX/UI', responsavel: 'RH' }],
     documentos: [],
   },
