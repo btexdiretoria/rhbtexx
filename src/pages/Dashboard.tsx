@@ -172,7 +172,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                   <UserX className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-muted-foreground">Inativos:</span>
+                  <span className="text-muted-foreground">Em Licença:</span>
                   <span className="font-semibold text-foreground">{setor.inativos}</span>
                 </div>
               </div>
