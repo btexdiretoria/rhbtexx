@@ -74,7 +74,7 @@ export default function Dashboard() {
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Inativos', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
+    { label: 'Em Licença', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
 
