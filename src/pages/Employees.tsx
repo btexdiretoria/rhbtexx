@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 'Comercial', 'Marketing', 'Operações'];
-const statusOptions: ('Todos' | StatusFuncionario)[] = ['Todos', 'Ativo', 'Inativo', 'Afastado', 'Desligado'];
+const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Ativo', label: 'Ativo' },
+  { value: 'Inativo', label: 'Em Licença' },
+  { value: 'Afastado', label: 'Afastado' },
+  { value: 'Desligado', label: 'Desligado' },
+];
 const pageSizeOptions = [10, 25, 50, 100];
 
 const deptColors: Record<string, string> = {
