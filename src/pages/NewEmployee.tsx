@@ -18,7 +18,7 @@ export default function NewEmployee() {
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
     chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '',
+    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '', dataFimExperiencia: '',
   });
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -133,6 +133,7 @@ export default function NewEmployee() {
               <div><Label>Carga Horária (h/semana)</Label><Input type="number" value={form.cargaHoraria} onChange={e => update('cargaHoraria', e.target.value)} /></div>
               <div><Label>E-mail Corporativo</Label><Input type="email" value={form.emailCorporativo} onChange={e => update('emailCorporativo', e.target.value)} /></div>
               <div><Label>Gestor Direto</Label><Input value={form.gestorDireto} onChange={e => update('gestorDireto', e.target.value)} /></div>
+              <div><Label>Fim do Período de Experiência</Label><Input type="date" value={form.dataFimExperiencia} onChange={e => update('dataFimExperiencia', e.target.value)} /></div>
             </div>
           </div>
         )}

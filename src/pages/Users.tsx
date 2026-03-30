@@ -52,7 +52,7 @@ export default function Users() {
       if (editing.nivelAcesso !== form.nivelAcesso) {
         logAction('Usuário', form.nome, `Alterou nível de acesso de ${editing.nivelAcesso} para ${form.nivelAcesso}`, { fieldChanged: 'nivelAcesso', oldValue: editing.nivelAcesso, newValue: form.nivelAcesso });
       } else if (editing.status !== form.status) {
-        logAction('Usuário', form.nome, `${form.status === 'Inativo' ? 'Desativou' : 'Reativou'} o usuário`, { fieldChanged: 'status', oldValue: editing.status, newValue: form.status });
+        logAction('Usuário', form.nome, `${form.status === 'Inativo' ? 'Colocou em licença' : 'Reativou'} o usuário`, { fieldChanged: 'status', oldValue: editing.status, newValue: form.status });
       } else {
         logAction('Usuário', form.nome, `Editou dados do usuário (${changes.join(', ') || 'sem alterações significativas'})`);
       }
@@ -104,7 +104,7 @@ export default function Users() {
                 </td>
                 <td className="text-muted-foreground">{u.cargo}</td>
                 <td><span className={`status-badge ${nivelBadge[u.nivelAcesso]}`}>{u.nivelAcesso}</span></td>
-                <td><span className={`status-badge ${u.status === 'Ativo' ? 'status-ativo' : 'status-inativo'}`}>{u.status}</span></td>
+                <td><span className={`status-badge ${u.status === 'Ativo' ? 'status-ativo' : 'status-inativo'}`}>{u.status === 'Inativo' ? 'Em Licença' : u.status}</span></td>
                 <td className="text-muted-foreground text-sm">{new Date(u.ultimoAcesso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                 <td><Button variant="ghost" size="sm" onClick={() => openEdit(u)}><Edit className="w-4 h-4" /></Button></td>
               </tr>
@@ -173,7 +173,7 @@ export default function Users() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Ativo">Ativo</SelectItem>
-                    <SelectItem value="Inativo">Inativo</SelectItem>
+                    <SelectItem value="Inativo">Em Licença</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

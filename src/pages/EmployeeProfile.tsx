@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Star, Briefcase, FileText, History, User, Plus, Pencil, Save, X, Trash2, Info, Copy, Check } from 'lucide-react';
-import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero, TipoChavePix } from '@/data/mockData';
+import { funcionariosMock, Funcionario, Avaliacao, StatusFuncionario, TipoContrato, Genero, TipoChavePix, statusDisplayLabel } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 function StatusBadge({ status }: { status: string }) {
-  return <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>;
+  const label = statusDisplayLabel[status as StatusFuncionario] || status;
+  return <span className={`status-badge status-${status.toLowerCase()}`}>{label}</span>;
 }
 
 function StarRating({ value, interactive, onChange }: { value: number; interactive?: boolean; onChange?: (v: number) => void }) {
@@ -85,7 +86,7 @@ const tiposContrato: { label: string; value: string }[] = [
   { label: 'Estágio', value: 'Estágio' }, { label: 'Temporário', value: 'Temporário' },
 ];
 const statusOptions: { label: string; value: string }[] = [
-  { label: 'Ativo', value: 'Ativo' }, { label: 'Inativo', value: 'Inativo' },
+  { label: 'Ativo', value: 'Ativo' }, { label: 'Em Licença', value: 'Inativo' },
   { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' },
 ];
 const tiposChavePix: { label: string; value: string }[] = [
@@ -172,6 +173,7 @@ export default function EmployeeProfile() {
       status: 'Status', dataDesligamento: 'Data de Desligamento', motivoDesligamento: 'Motivo do Desligamento',
       chavePix: 'Chave PIX', tipoChavePix: 'Tipo de Chave PIX',
       valorRescisao: 'Valor da Rescisão', dataPagamentoRescisao: 'Data de Pagamento da Rescisão',
+      dataFimExperiencia: 'Data Fim do Período de Experiência',
     };
     const simpleFields = Object.keys(fieldLabels);
     simpleFields.forEach(field => {
@@ -405,7 +407,8 @@ export default function EmployeeProfile() {
             <EditableRow label="Carga Horária" value={editing ? d.cargaHoraria : `${d.cargaHoraria}h/semana`} editing={editing} onChange={v => updateField('cargaHoraria', Number(v))} type="number" />
             <EditableRow label="E-mail Corporativo" value={d.emailCorporativo} editing={editing} onChange={v => updateField('emailCorporativo', v)} type="email" error={errors.emailCorporativo} />
             <EditableRow label="Gestor Direto" value={d.gestorDireto} editing={editing} onChange={v => updateField('gestorDireto', v)} options={activeEmployees.map(e => ({ label: e.nome, value: e.nome }))} />
-            <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} error={errors.status} />
+            <EditableRow label="Status" value={editing ? d.status : (statusDisplayLabel[d.status as StatusFuncionario] || d.status)} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} error={errors.status} />
+            <EditableRow label="Fim do Período de Experiência" value={editing ? (d.dataFimExperiencia || '') : (d.dataFimExperiencia ? new Date(d.dataFimExperiencia).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataFimExperiencia', v)} type="date" />
             {(d.status === 'Desligado' || (editing && editData?.status === 'Desligado')) && (
               <>
                 <EditableRow label="Data de Desligamento" value={editing ? (d.dataDesligamento || '') : (d.dataDesligamento ? new Date(d.dataDesligamento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('dataDesligamento', v)} type="date" error={errors.dataDesligamento} />

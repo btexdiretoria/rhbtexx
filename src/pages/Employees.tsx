@@ -1,13 +1,19 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil } from 'lucide-react';
-import { funcionariosMock, type StatusFuncionario } from '@/data/mockData';
+import { funcionariosMock, type StatusFuncionario, statusDisplayLabel } from '@/data/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 'Comercial', 'Marketing', 'Operações'];
-const statusOptions: ('Todos' | StatusFuncionario)[] = ['Todos', 'Ativo', 'Inativo', 'Afastado', 'Desligado'];
+const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Ativo', label: 'Ativo' },
+  { value: 'Inativo', label: 'Em Licença' },
+  { value: 'Afastado', label: 'Afastado' },
+  { value: 'Desligado', label: 'Desligado' },
+];
 const pageSizeOptions = [10, 25, 50, 100];
 
 const deptColors: Record<string, string> = {
@@ -61,7 +67,7 @@ export default function Employees() {
           </div>
           <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1); }}>
             <SelectTrigger className="w-full md:w-40"><Filter className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
-            <SelectContent>{statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            <SelectContent>{statusOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={deptFilter} onValueChange={v => { setDeptFilter(v); setPage(1); }}>
             <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
@@ -127,7 +133,7 @@ export default function Employees() {
                     <td className="text-muted-foreground">{f.cargo}</td>
                     <td className="text-muted-foreground">{f.departamento}</td>
                     <td className="text-muted-foreground">{new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}</td>
-                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span></td>
+                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span></td>
                     <td>
                       <Link to={`/funcionarios/${f.id}`}>
                         <Button variant="ghost" size="sm"><Eye className="w-4 h-4" /></Button>
@@ -151,7 +157,7 @@ export default function Employees() {
                     <p className="font-medium text-foreground truncate">{f.nome}</p>
                     <p className="text-sm text-muted-foreground">{f.cargo}</p>
                   </div>
-                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
                 </div>
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span>{f.departamento}</span>
@@ -178,7 +184,7 @@ export default function Employees() {
                 <span className={`text-xs px-2 py-0.5 rounded-full ${deptColors[f.departamento] || 'bg-muted text-muted-foreground'}`}>
                   {f.departamento}
                 </span>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Desde {new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}

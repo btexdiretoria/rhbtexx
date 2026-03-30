@@ -1,4 +1,11 @@
 export type StatusFuncionario = 'Ativo' | 'Inativo' | 'Afastado' | 'Desligado';
+
+export const statusDisplayLabel: Record<StatusFuncionario, string> = {
+  'Ativo': 'Ativo',
+  'Inativo': 'Em Licença',
+  'Afastado': 'Afastado',
+  'Desligado': 'Desligado',
+};
 export type TipoContrato = 'CLT' | 'PJ' | 'Estágio' | 'Temporário';
 export type Genero = 'Masculino' | 'Feminino' | 'Outro';
 
@@ -71,6 +78,7 @@ export interface Funcionario {
   dataPagamentoRescisao?: string;
   pagamentoConfirmado?: boolean;
   contratoAssinado?: boolean;
+  dataFimExperiencia?: string;
   avaliacoes: Avaliacao[];
   historico: HistoricoItem[];
   documentos: Documento[];
@@ -101,6 +109,7 @@ export const funcionariosMock: Funcionario[] = [
     emailCorporativo: 'ana.silva@gestapeople.com',
     gestorDireto: 'Carlos Mendes',
     status: 'Ativo',
+    dataFimExperiencia: '2026-04-15',
     avaliacoes: [
       { id: 'av1', periodo: 'Q4 2025', data: '2025-12-15', produtividade: 5, comunicacao: 4, trabalhoEquipe: 5, proatividade: 4, lideranca: 4, resultados: 5, pontosFortes: 'Excelente capacidade técnica e liderança.', pontosMelhoria: 'Delegar mais tarefas operacionais.' },
       { id: 'av2', periodo: 'Q3 2025', data: '2025-09-15', produtividade: 4, comunicacao: 4, trabalhoEquipe: 4, proatividade: 5, lideranca: 3, resultados: 4, pontosFortes: 'Proativa e colaborativa.', pontosMelhoria: 'Melhorar apresentações para stakeholders.' },
@@ -169,6 +178,7 @@ export const funcionariosMock: Funcionario[] = [
     telefone: '(11) 93333-5678', emailPessoal: 'gabriela.dias@email.com', matricula: 'MAT007', cargo: 'Estagiária de TI', departamento: 'Tecnologia',
     centroCusto: 'CC-TEC-003', dataAdmissao: '2025-06-01', tipoContrato: 'Estágio', salario: 2500, cargaHoraria: 30,
     emailCorporativo: 'gabriela.dias@gestapeople.com', gestorDireto: 'Ana Carolina Silva', status: 'Ativo',
+    dataFimExperiencia: '2026-04-01',
     avaliacoes: [], historico: [{ id: 'h12', tipo: 'admissao', data: '2025-06-01', descricao: 'Admissão como Estagiária de TI', responsavel: 'RH' }],
     documentos: [],
   },
@@ -208,6 +218,7 @@ export const funcionariosMock: Funcionario[] = [
     telefone: '(11) 98765-4321', emailPessoal: 'larissa.barbosa@email.com', matricula: 'MAT011', cargo: 'Designer UX/UI', departamento: 'Tecnologia',
     centroCusto: 'CC-TEC-004', dataAdmissao: '2024-01-15', tipoContrato: 'CLT', salario: 9500, cargaHoraria: 40,
     emailCorporativo: 'larissa.barbosa@gestapeople.com', gestorDireto: 'Bruno Oliveira Santos', status: 'Ativo',
+    dataFimExperiencia: '2026-03-20',
     avaliacoes: [], historico: [{ id: 'h18', tipo: 'admissao', data: '2024-01-15', descricao: 'Admissão como Designer UX/UI', responsavel: 'RH' }],
     documentos: [],
   },
@@ -262,7 +273,7 @@ export const chartDataCrescimento = [
 
 export const chartDataStatus = [
   { name: 'Ativo', value: 8, color: '#10B981' },
-  { name: 'Inativo', value: 1, color: '#EF4444' },
+  { name: 'Em Licença', value: 1, color: '#EF4444' },
   { name: 'Afastado', value: 1, color: '#F97316' },
   { name: 'Desligado', value: 3, color: '#9CA3AF' },
 ];

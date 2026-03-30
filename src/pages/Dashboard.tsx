@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, AlertTriangle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { funcionariosMock, chartDataCrescimento, chartDataStatus } from '@/data/mockData';
+import { funcionariosMock, chartDataCrescimento, chartDataStatus, statusDisplayLabel, StatusFuncionario } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 
 const deptIcons: Record<string, React.ReactNode> = {
@@ -30,6 +30,10 @@ const statusDot: Record<string, string> = {
   'Afastado': 'bg-warning',
   'Desligado': 'bg-muted-foreground',
 };
+
+function getStatusLabel(status: string) {
+  return statusDisplayLabel[status as StatusFuncionario] || status;
+}
 
 export default function Dashboard() {
   const stats = useMemo(() => {
@@ -70,9 +74,24 @@ export default function Dashboard() {
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Inativos', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
+    { label: 'Em Licença', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
+
+  const experienciaAlerts = useMemo(() => {
+    const hoje = new Date('2026-03-30');
+    const em30dias = new Date(hoje);
+    em30dias.setDate(em30dias.getDate() + 30);
+    return funcionariosMock
+      .filter(f => f.dataFimExperiencia && f.status !== 'Desligado')
+      .map(f => {
+        const dataFim = new Date(f.dataFimExperiencia!);
+        const diffDays = Math.ceil((dataFim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return { ...f, dataFim, diffDays };
+      })
+      .filter(f => f.diffDays <= 30)
+      .sort((a, b) => a.diffDays - b.diffDays);
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -90,6 +109,48 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Probation Period Alerts */}
+      {experienciaAlerts.length > 0 && (
+        <div className="kpi-card">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-5 h-5 text-warning" />
+            <h3 className="font-heading font-semibold text-foreground">Períodos de Experiência Expirando</h3>
+            <span className="text-xs font-medium bg-warning/10 text-warning px-2 py-0.5 rounded-full">{experienciaAlerts.length}</span>
+          </div>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {experienciaAlerts.map(f => (
+              <Link
+                to={`/funcionarios/${f.id}`}
+                key={f.id}
+                className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${
+                  f.diffDays <= 0 ? 'bg-destructive/10' : 'bg-warning/5'
+                } hover:bg-muted/50`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
+                    f.diffDays <= 0 ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'
+                  }`}>
+                    {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{f.nome}</p>
+                    <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-warning'}`}>
+                    {f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {f.dataFim.toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quadro de Setores */}
       <div>
@@ -168,7 +229,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                   <UserX className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-muted-foreground">Inativos:</span>
+                  <span className="text-muted-foreground">Em Licença:</span>
                   <span className="font-semibold text-foreground">{setor.inativos}</span>
                 </div>
               </div>
@@ -224,7 +285,7 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-foreground truncate">{f.nome}</p>
                   <p className="text-xs text-muted-foreground">{f.cargo}</p>
                 </div>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                <span className={`status-badge status-${f.status.toLowerCase()}`}>{getStatusLabel(f.status)}</span>
               </Link>
             ))}
           </div>
