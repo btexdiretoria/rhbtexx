@@ -157,7 +157,7 @@ export default function Employees() {
                     <p className="font-medium text-foreground truncate">{f.nome}</p>
                     <p className="text-sm text-muted-foreground">{f.cargo}</p>
                   </div>
-                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span>
+                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
                 </div>
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span>{f.departamento}</span>
