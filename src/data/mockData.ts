@@ -109,6 +109,7 @@ export const funcionariosMock: Funcionario[] = [
     emailCorporativo: 'ana.silva@gestapeople.com',
     gestorDireto: 'Carlos Mendes',
     status: 'Ativo',
+    dataFimExperiencia: '2026-04-15',
     avaliacoes: [
       { id: 'av1', periodo: 'Q4 2025', data: '2025-12-15', produtividade: 5, comunicacao: 4, trabalhoEquipe: 5, proatividade: 4, lideranca: 4, resultados: 5, pontosFortes: 'Excelente capacidade técnica e liderança.', pontosMelhoria: 'Delegar mais tarefas operacionais.' },
       { id: 'av2', periodo: 'Q3 2025', data: '2025-09-15', produtividade: 4, comunicacao: 4, trabalhoEquipe: 4, proatividade: 5, lideranca: 3, resultados: 4, pontosFortes: 'Proativa e colaborativa.', pontosMelhoria: 'Melhorar apresentações para stakeholders.' },
