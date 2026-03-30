@@ -52,7 +52,7 @@ export default function Users() {
       if (editing.nivelAcesso !== form.nivelAcesso) {
         logAction('Usuário', form.nome, `Alterou nível de acesso de ${editing.nivelAcesso} para ${form.nivelAcesso}`, { fieldChanged: 'nivelAcesso', oldValue: editing.nivelAcesso, newValue: form.nivelAcesso });
       } else if (editing.status !== form.status) {
-        logAction('Usuário', form.nome, `${form.status === 'Inativo' ? 'Desativou' : 'Reativou'} o usuário`, { fieldChanged: 'status', oldValue: editing.status, newValue: form.status });
+        logAction('Usuário', form.nome, `${form.status === 'Inativo' ? 'Colocou em licença' : 'Reativou'} o usuário`, { fieldChanged: 'status', oldValue: editing.status, newValue: form.status });
       } else {
         logAction('Usuário', form.nome, `Editou dados do usuário (${changes.join(', ') || 'sem alterações significativas'})`);
       }
