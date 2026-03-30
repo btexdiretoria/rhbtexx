@@ -270,7 +270,7 @@ export const chartDataCrescimento = [
 
 export const chartDataStatus = [
   { name: 'Ativo', value: 8, color: '#10B981' },
-  { name: 'Inativo', value: 1, color: '#EF4444' },
+  { name: 'Em Licença', value: 1, color: '#EF4444' },
   { name: 'Afastado', value: 1, color: '#F97316' },
   { name: 'Desligado', value: 3, color: '#9CA3AF' },
 ];
