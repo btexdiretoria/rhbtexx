@@ -246,7 +246,7 @@ export const funcionariosMock: Funcionario[] = [
     endereco: { rua: 'Rua Estados Unidos', numero: '100', bairro: 'Jardins', cidade: 'São Paulo', estado: 'SP', cep: '01427-000' },
     telefone: '(11) 96543-2109', emailPessoal: 'pedro.araujo@email.com', matricula: 'MAT014', cargo: 'Analista de Marketing Digital', departamento: 'Marketing',
     centroCusto: 'CC-MKT-002', dataAdmissao: '2023-09-18', tipoContrato: 'CLT', salario: 7800, cargaHoraria: 40,
-    emailCorporativo: 'pedro.araujo@gestapeople.com', gestorDireto: 'Elisa Martins Almeida', status: 'Inativo',
+    emailCorporativo: 'pedro.araujo@gestapeople.com', gestorDireto: 'Elisa Martins Almeida', status: 'Ativo',
     avaliacoes: [], historico: [{ id: 'h23', tipo: 'admissao', data: '2023-09-18', descricao: 'Admissão como Analista de Marketing Digital', responsavel: 'RH' }],
     documentos: [],
   },
