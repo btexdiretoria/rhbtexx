@@ -1,4 +1,11 @@
 export type StatusFuncionario = 'Ativo' | 'Inativo' | 'Afastado' | 'Desligado';
+
+export const statusDisplayLabel: Record<StatusFuncionario, string> = {
+  'Ativo': 'Ativo',
+  'Inativo': 'Em Licença',
+  'Afastado': 'Afastado',
+  'Desligado': 'Desligado',
+};
 export type TipoContrato = 'CLT' | 'PJ' | 'Estágio' | 'Temporário';
 export type Genero = 'Masculino' | 'Feminino' | 'Outro';
 
