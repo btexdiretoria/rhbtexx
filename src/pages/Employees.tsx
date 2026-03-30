@@ -67,7 +67,7 @@ export default function Employees() {
           </div>
           <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1); }}>
             <SelectTrigger className="w-full md:w-40"><Filter className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
-            <SelectContent>{statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            <SelectContent>{statusOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={deptFilter} onValueChange={v => { setDeptFilter(v); setPage(1); }}>
             <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
