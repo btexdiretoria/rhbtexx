@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 function StatusBadge({ status }: { status: string }) {
-  return <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>;
+  const label = statusDisplayLabel[status as StatusFuncionario] || status;
+  return <span className={`status-badge status-${status.toLowerCase()}`}>{label}</span>;
 }
 
 function StarRating({ value, interactive, onChange }: { value: number; interactive?: boolean; onChange?: (v: number) => void }) {
