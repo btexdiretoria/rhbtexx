@@ -178,6 +178,7 @@ export const funcionariosMock: Funcionario[] = [
     telefone: '(11) 93333-5678', emailPessoal: 'gabriela.dias@email.com', matricula: 'MAT007', cargo: 'Estagiária de TI', departamento: 'Tecnologia',
     centroCusto: 'CC-TEC-003', dataAdmissao: '2025-06-01', tipoContrato: 'Estágio', salario: 2500, cargaHoraria: 30,
     emailCorporativo: 'gabriela.dias@gestapeople.com', gestorDireto: 'Ana Carolina Silva', status: 'Ativo',
+    dataFimExperiencia: '2026-04-01',
     avaliacoes: [], historico: [{ id: 'h12', tipo: 'admissao', data: '2025-06-01', descricao: 'Admissão como Estagiária de TI', responsavel: 'RH' }],
     documentos: [],
   },
