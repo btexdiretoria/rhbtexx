@@ -31,6 +31,10 @@ const statusDot: Record<string, string> = {
   'Desligado': 'bg-muted-foreground',
 };
 
+function getStatusLabel(status: string) {
+  return statusDisplayLabel[status as StatusFuncionario] || status;
+}
+
 export default function Dashboard() {
   const stats = useMemo(() => {
     const total = funcionariosMock.length;
