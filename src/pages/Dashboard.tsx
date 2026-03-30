@@ -110,6 +110,48 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Probation Period Alerts */}
+      {experienciaAlerts.length > 0 && (
+        <div className="kpi-card">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-5 h-5 text-warning" />
+            <h3 className="font-heading font-semibold text-foreground">Períodos de Experiência Expirando</h3>
+            <span className="text-xs font-medium bg-warning/10 text-warning px-2 py-0.5 rounded-full">{experienciaAlerts.length}</span>
+          </div>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {experienciaAlerts.map(f => (
+              <Link
+                to={`/funcionarios/${f.id}`}
+                key={f.id}
+                className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${
+                  f.diffDays <= 0 ? 'bg-destructive/10' : 'bg-warning/5'
+                } hover:bg-muted/50`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
+                    f.diffDays <= 0 ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'
+                  }`}>
+                    {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{f.nome}</p>
+                    <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-warning'}`}>
+                    {f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {f.dataFim.toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Quadro de Setores */}
       <div>
         <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Quadro de Setores</h3>
