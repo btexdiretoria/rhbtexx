@@ -86,7 +86,7 @@ const tiposContrato: { label: string; value: string }[] = [
   { label: 'Estágio', value: 'Estágio' }, { label: 'Temporário', value: 'Temporário' },
 ];
 const statusOptions: { label: string; value: string }[] = [
-  { label: 'Ativo', value: 'Ativo' }, { label: 'Em Licença', value: 'Inativo' },
+  { label: 'Ativo', value: 'Ativo' },
   { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' },
 ];
 const tiposChavePix: { label: string; value: string }[] = [

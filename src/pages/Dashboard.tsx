@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
-import { Users, UserCheck, UserX, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, AlertTriangle, Clock } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { funcionariosMock, chartDataCrescimento, chartDataStatus, statusDisplayLabel, StatusFuncionario } from '@/data/mockData';
 import { Link } from 'react-router-dom';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const deptIcons: Record<string, React.ReactNode> = {
   'Tecnologia': <Monitor className="w-5 h-5" />,
@@ -26,7 +28,6 @@ function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md
 
 const statusDot: Record<string, string> = {
   'Ativo': 'bg-emerald-500',
-  'Inativo': 'bg-destructive',
   'Afastado': 'bg-warning',
   'Desligado': 'bg-muted-foreground',
 };
@@ -36,13 +37,32 @@ function getStatusLabel(status: string) {
 }
 
 export default function Dashboard() {
+  const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('probation_acknowledged') || '[]');
+    } catch { return []; }
+  });
+
+  const [kpiModal, setKpiModal] = useState<{ label: string; employees: typeof funcionariosMock } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('probation_acknowledged', JSON.stringify(acknowledgedIds));
+  }, [acknowledgedIds]);
+
   const stats = useMemo(() => {
     const total = funcionariosMock.length;
     const ativos = funcionariosMock.filter(f => f.status === 'Ativo').length;
-    const inativos = funcionariosMock.filter(f => f.status === 'Inativo').length;
+    const afastados = funcionariosMock.filter(f => f.status === 'Afastado').length;
     const desligadosMes = funcionariosMock.filter(f => f.status === 'Desligado' && f.dataDesligamento?.startsWith('2026-03')).length;
-    return { total, ativos, inativos, desligadosMes };
+    return { total, ativos, afastados, desligadosMes };
   }, []);
+
+  const kpiEmployees = useMemo(() => ({
+    'Total de Funcionários': funcionariosMock,
+    'Ativos': funcionariosMock.filter(f => f.status === 'Ativo'),
+    'Afastados': funcionariosMock.filter(f => f.status === 'Afastado'),
+    'Desligados no Mês': funcionariosMock.filter(f => f.status === 'Desligado' && f.dataDesligamento?.startsWith('2026-03')),
+  }), []);
 
   const ultimosAdicionados = useMemo(() =>
     [...funcionariosMock].sort((a, b) => b.dataAdmissao.localeCompare(a.dataAdmissao)).slice(0, 5),
@@ -66,15 +86,15 @@ export default function Dashboard() {
     return Array.from(deptMap.entries()).map(([dept, members]) => {
       const leader = members.find(m => /gerente|coordenador|diretor|líder/i.test(m.cargo)) || null;
       const ativos = members.filter(m => m.status === 'Ativo').length;
-      const inativos = members.filter(m => m.status !== 'Ativo').length;
-      return { dept, members, leader, ativos, inativos, total: members.length };
+      const outros = members.filter(m => m.status !== 'Ativo').length;
+      return { dept, members, leader, ativos, outros, total: members.length };
     });
   }, []);
 
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Em Licença', value: stats.inativos, icon: UserX, color: 'bg-red-50 text-red-600' },
+    { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
 
@@ -89,16 +109,28 @@ export default function Dashboard() {
         const diffDays = Math.ceil((dataFim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
         return { ...f, dataFim, diffDays };
       })
-      .filter(f => f.diffDays <= 30)
+      .filter(f => f.diffDays <= 30 && !acknowledgedIds.includes(f.id))
       .sort((a, b) => a.diffDays - b.diffDays);
-  }, []);
+  }, [acknowledgedIds]);
+
+  const handleAcknowledge = (id: string, checked: boolean) => {
+    if (checked) {
+      setAcknowledgedIds(prev => [...prev, id]);
+    } else {
+      setAcknowledgedIds(prev => prev.filter(i => i !== id));
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
+          <div
+            key={kpi.label}
+            className="kpi-card cursor-pointer"
+            onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${kpi.color}`}>
                 <kpi.icon className="w-5 h-5" />
@@ -110,6 +142,36 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* KPI Modal */}
+      <Dialog open={!!kpiModal} onOpenChange={() => setKpiModal(null)}>
+        <DialogContent className="max-w-lg max-h-[70vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{kpiModal?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 space-y-1">
+            {kpiModal?.employees.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">Nenhum funcionário nesta categoria.</p>
+            ) : (
+              kpiModal?.employees.map(f => (
+                <Link
+                  to={`/funcionarios/${f.id}`}
+                  key={f.id}
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors"
+                  onClick={() => setKpiModal(null)}
+                >
+                  <AvatarInitials name={f.nome} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{f.nome}</p>
+                    <p className="text-xs text-muted-foreground">{f.cargo}</p>
+                  </div>
+                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{getStatusLabel(f.status)}</span>
+                </Link>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Probation Period Alerts */}
       {experienciaAlerts.length > 0 && (
         <div className="kpi-card">
@@ -120,14 +182,13 @@ export default function Dashboard() {
           </div>
           <div className="space-y-2 max-h-[200px] overflow-y-auto">
             {experienciaAlerts.map(f => (
-              <Link
-                to={`/funcionarios/${f.id}`}
+              <div
                 key={f.id}
                 className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${
                   f.diffDays <= 0 ? 'bg-destructive/10' : 'bg-warning/5'
                 } hover:bg-muted/50`}
               >
-                <div className="flex items-center gap-2.5">
+                <Link to={`/funcionarios/${f.id}`} className="flex items-center gap-2.5 flex-1 min-w-0">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
                     f.diffDays <= 0 ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'
                   }`}>
@@ -137,16 +198,25 @@ export default function Dashboard() {
                     <p className="text-sm font-medium text-foreground">{f.nome}</p>
                     <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
                   </div>
+                </Link>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-warning'}`}>
+                      {f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {f.dataFim.toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer" onClick={e => e.stopPropagation()}>
+                    <Checkbox
+                      checked={false}
+                      onCheckedChange={(c) => handleAcknowledge(f.id, !!c)}
+                    />
+                    Ciente
+                  </label>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-warning'}`}>
-                    {f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {f.dataFim.toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -184,7 +254,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <UserX className="w-4 h-4" />
+                    <Users className="w-4 h-4" />
                     <span className="text-sm">Sem líder definido</span>
                   </div>
                 )}
@@ -228,9 +298,9 @@ export default function Dashboard() {
                   <span className="font-semibold text-foreground">{setor.ativos}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
-                  <UserX className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-muted-foreground">Em Licença:</span>
-                  <span className="font-semibold text-foreground">{setor.inativos}</span>
+                  <UserMinus className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-muted-foreground">Outros:</span>
+                  <span className="font-semibold text-foreground">{setor.outros}</span>
                 </div>
               </div>
             </div>
