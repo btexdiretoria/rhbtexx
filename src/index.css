@@ -101,9 +101,6 @@
   .status-ativo {
     @apply bg-emerald-100 text-emerald-700;
   }
-  .status-inativo, .status-em\ licença {
-    @apply bg-red-100 text-red-700;
-  }
   .status-afastado {
     @apply bg-orange-100 text-orange-700;
   }

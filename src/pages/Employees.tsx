@@ -10,7 +10,6 @@ const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 
 const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
   { value: 'Todos', label: 'Todos' },
   { value: 'Ativo', label: 'Ativo' },
-  { value: 'Inativo', label: 'Em Licença' },
   { value: 'Afastado', label: 'Afastado' },
   { value: 'Desligado', label: 'Desligado' },
 ];
