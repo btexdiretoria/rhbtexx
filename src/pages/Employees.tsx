@@ -133,7 +133,7 @@ export default function Employees() {
                     <td className="text-muted-foreground">{f.cargo}</td>
                     <td className="text-muted-foreground">{f.departamento}</td>
                     <td className="text-muted-foreground">{new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}</td>
-                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{f.status}</span></td>
+                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span></td>
                     <td>
                       <Link to={`/funcionarios/${f.id}`}>
                         <Button variant="ghost" size="sm"><Eye className="w-4 h-4" /></Button>
