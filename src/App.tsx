@@ -14,6 +14,7 @@ import Reports from "@/pages/Reports";
 import SettingsPage from "@/pages/SettingsPage";
 import Users from "@/pages/Users";
 import AuditLog from "@/pages/AuditLog";
+import Salaries from "@/pages/Salaries";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
