@@ -34,6 +34,15 @@ const sidebarGroups: SidebarGroup[] = [
     items: [
       { label: 'Salário (Bruto)', icon: DollarSign, path: '/salarios' },
       { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
+      { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
+    ],
+  },
+  {
+    label: 'Configurações',
+    icon: Settings,
+    items: [
+      { label: 'Usuários', icon: UserCog, path: '/usuarios' },
+      { label: 'Configurações', icon: Settings, path: '/configuracoes' },
     ],
   },
 ];
