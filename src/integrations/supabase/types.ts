@@ -14,7 +14,495 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          description: string
+          field_changed: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          target: string
+          target_id: string | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          target: string
+          target_id?: string | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          target?: string
+          target_id?: string | null
+          user_id?: string
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
+      employee_documents: {
+        Row: {
+          created_at: string
+          data_upload: string
+          employee_id: string
+          id: string
+          nome: string
+          tamanho: string | null
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          data_upload?: string
+          employee_id: string
+          id?: string
+          nome: string
+          tamanho?: string | null
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          data_upload?: string
+          employee_id?: string
+          id?: string
+          nome?: string
+          tamanho?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_history: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          employee_id: string
+          id: string
+          responsavel: string | null
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          descricao: string
+          employee_id: string
+          id?: string
+          responsavel?: string | null
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          employee_id?: string
+          id?: string
+          responsavel?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          carga_horaria: number | null
+          cargo: string
+          centro_custo: string | null
+          chave_pix: string | null
+          contrato_assinado: boolean | null
+          cpf: string
+          created_at: string
+          data_admissao: string
+          data_desligamento: string | null
+          data_fim_experiencia: string | null
+          data_nascimento: string | null
+          data_pagamento_rescisao: string | null
+          departamento: string
+          email_corporativo: string | null
+          email_pessoal: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_estado: string | null
+          endereco_numero: string | null
+          endereco_rua: string | null
+          foto: string | null
+          genero: string | null
+          gestor_direto: string | null
+          id: string
+          matricula: string
+          motivo_desligamento: string | null
+          nome: string
+          pagamento_confirmado: boolean | null
+          rg: string | null
+          salario: number
+          status: string
+          telefone: string | null
+          tipo_chave_pix: string | null
+          tipo_contrato: string
+          updated_at: string
+          user_id: string | null
+          valor_rescisao: number | null
+        }
+        Insert: {
+          carga_horaria?: number | null
+          cargo: string
+          centro_custo?: string | null
+          chave_pix?: string | null
+          contrato_assinado?: boolean | null
+          cpf: string
+          created_at?: string
+          data_admissao: string
+          data_desligamento?: string | null
+          data_fim_experiencia?: string | null
+          data_nascimento?: string | null
+          data_pagamento_rescisao?: string | null
+          departamento: string
+          email_corporativo?: string | null
+          email_pessoal?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          foto?: string | null
+          genero?: string | null
+          gestor_direto?: string | null
+          id?: string
+          matricula: string
+          motivo_desligamento?: string | null
+          nome: string
+          pagamento_confirmado?: boolean | null
+          rg?: string | null
+          salario?: number
+          status?: string
+          telefone?: string | null
+          tipo_chave_pix?: string | null
+          tipo_contrato?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_rescisao?: number | null
+        }
+        Update: {
+          carga_horaria?: number | null
+          cargo?: string
+          centro_custo?: string | null
+          chave_pix?: string | null
+          contrato_assinado?: boolean | null
+          cpf?: string
+          created_at?: string
+          data_admissao?: string
+          data_desligamento?: string | null
+          data_fim_experiencia?: string | null
+          data_nascimento?: string | null
+          data_pagamento_rescisao?: string | null
+          departamento?: string
+          email_corporativo?: string | null
+          email_pessoal?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          foto?: string | null
+          genero?: string | null
+          gestor_direto?: string | null
+          id?: string
+          matricula?: string
+          motivo_desligamento?: string | null
+          nome?: string
+          pagamento_confirmado?: boolean | null
+          rg?: string | null
+          salario?: number
+          status?: string
+          telefone?: string | null
+          tipo_chave_pix?: string | null
+          tipo_contrato?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_rescisao?: number | null
+        }
+        Relationships: []
+      }
+      evaluations: {
+        Row: {
+          comunicacao: number
+          created_at: string
+          data: string
+          employee_id: string
+          id: string
+          lideranca: number
+          periodo: string
+          pontos_fortes: string | null
+          pontos_melhoria: string | null
+          proatividade: number
+          produtividade: number
+          resultados: number
+          trabalho_equipe: number
+        }
+        Insert: {
+          comunicacao?: number
+          created_at?: string
+          data: string
+          employee_id: string
+          id?: string
+          lideranca?: number
+          periodo: string
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          proatividade?: number
+          produtividade?: number
+          resultados?: number
+          trabalho_equipe?: number
+        }
+        Update: {
+          comunicacao?: number
+          created_at?: string
+          data?: string
+          employee_id?: string
+          id?: string
+          lideranca?: number
+          periodo?: string
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          proatividade?: number
+          produtividade?: number
+          resultados?: number
+          trabalho_equipe?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_categories: {
+        Row: {
+          created_at: string
+          forecast: number
+          id: string
+          month: number
+          name: string
+          sort_order: number | null
+          spent: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          forecast?: number
+          id?: string
+          month: number
+          name: string
+          sort_order?: number | null
+          spent?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          forecast?: number
+          id?: string
+          month?: number
+          name?: string
+          sort_order?: number | null
+          spent?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      food_voucher_entries: {
+        Row: {
+          created_at: string
+          delivery_method: string
+          employee_id: string
+          id: string
+          month: number
+          value: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          delivery_method?: string
+          employee_id: string
+          id?: string
+          month: number
+          value?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          delivery_method?: string
+          employee_id?: string
+          id?: string
+          month?: number
+          value?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_voucher_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      net_salary_columns: {
+        Row: {
+          column_id: string
+          created_at: string
+          id: string
+          month: number
+          name: string
+          sort_order: number | null
+          type: string
+          year: number
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          id?: string
+          month: number
+          name: string
+          sort_order?: number | null
+          type: string
+          year: number
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          id?: string
+          month?: number
+          name?: string
+          sort_order?: number | null
+          type?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      net_salary_values: {
+        Row: {
+          column_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          month: number
+          value: number
+          year: number
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          month: number
+          value?: number
+          year: number
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          month?: number
+          value?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "net_salary_values_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_voucher_entries: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          month: number
+          payment1_date: string | null
+          payment1_value: number
+          payment2_date: string | null
+          payment2_value: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          month: number
+          payment1_date?: string | null
+          payment1_value?: number
+          payment2_date?: string | null
+          payment2_value?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          month?: number
+          payment1_date?: string | null
+          payment1_value?: number
+          payment2_date?: string | null
+          payment2_value?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_voucher_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
