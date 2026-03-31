@@ -1,10 +1,9 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useCallback, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { Plus, Trash2, DollarSign, TrendingDown, Wallet, Clock } from 'lucide-react';
+import { Plus, Trash2, Clock } from 'lucide-react';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -109,10 +108,6 @@ export default function ExpenseControl() {
     setEditValue('');
   };
 
-  const totalForecast = useMemo(() => data.categories.reduce((s, c) => s + c.forecast, 0), [data.categories]);
-  const totalSpent = useMemo(() => data.categories.reduce((s, c) => s + c.spent, 0), [data.categories]);
-  const totalRemaining = totalForecast - totalSpent;
-  const globalPct = totalForecast > 0 ? Math.round((totalSpent / totalForecast) * 100) : 0;
 
   const formatLastUpdated = (iso: string | null) => {
     if (!iso) return 'Nunca';
@@ -145,60 +140,6 @@ export default function ExpenseControl() {
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-primary">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="w-4 h-4" /> Previsão Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-bold text-foreground">{formatCurrency(totalForecast)}</span>
-            <p className="text-xs text-muted-foreground mt-1">{data.categories.length} categoria(s)</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingDown className="w-4 h-4" /> Total Gasto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-bold text-foreground">{formatCurrency(totalSpent)}</span>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Wallet className="w-4 h-4" /> Saldo Restante
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className={`text-2xl font-bold ${totalRemaining < 0 ? 'text-destructive' : 'text-foreground'}`}>
-              {formatCurrency(totalRemaining)}
-            </span>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Global progress bar */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Progresso Geral</span>
-            <span className={`text-sm font-bold ${getProgressTextColor(globalPct)}`}>{globalPct}%</span>
-          </div>
-          <div className="relative h-4 w-full overflow-hidden rounded-full bg-secondary">
-            <div
-              className={`h-full transition-all duration-300 rounded-full ${getProgressColor(globalPct)}`}
-              style={{ width: `${Math.min(globalPct, 100)}%` }}
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Add category button */}
       <div className="flex justify-end">
