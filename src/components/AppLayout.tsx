@@ -32,7 +32,8 @@ const sidebarGroups: SidebarGroup[] = [
     label: 'Financeiro',
     icon: Landmark,
     items: [
-      { label: 'Salários', icon: DollarSign, path: '/salarios' },
+      { label: 'Salário (Bruto)', icon: DollarSign, path: '/salarios' },
+      { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
     ],
   },
 ];

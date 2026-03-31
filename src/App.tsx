@@ -37,6 +37,7 @@ const App = () => (
             <Route path="/usuarios" element={<AppLayout><Users /></AppLayout>} />
             <Route path="/historico" element={<AppLayout><AuditLog /></AppLayout>} />
             <Route path="/salarios" element={<AppLayout><Salaries /></AppLayout>} />
+            <Route path="/salario-liquido" element={<AppLayout><NetSalary /></AppLayout>} />
             <Route path="/configuracoes" element={<AppLayout><SettingsPage /></AppLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
