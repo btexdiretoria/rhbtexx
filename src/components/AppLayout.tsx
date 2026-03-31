@@ -71,6 +71,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentUser, setCurrentUser, usuarios } = useApp();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   // Accordion: find which group contains the active route and default-open it
   const activeGroupIndex = sidebarGroups.findIndex(g =>
