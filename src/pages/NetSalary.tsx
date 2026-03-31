@@ -378,9 +378,11 @@ export default function NetSalary() {
                           {emp.nome}
                         </td>
                         <td className="px-3 py-2">
-                          <Badge variant={emp.status === 'Ativo' ? 'default' : emp.status === 'Desligado' ? 'destructive' : 'secondary'}>
-                            {emp.status}
-                          </Badge>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            emp.status === 'Ativo' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' :
+                            emp.status === 'Afastado' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
+                          }`}>{emp.status}</span>
                         </td>
                         {earningCols.map(col => (
                           <td key={col.id} className="px-1 py-1 bg-emerald-50/20 dark:bg-emerald-950/10 border-x border-border/50">
