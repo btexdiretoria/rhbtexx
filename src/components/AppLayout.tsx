@@ -170,6 +170,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </div>
+
+          {/* Logout */}
+          <div className="pt-2 border-t border-sidebar-border mt-2">
+            <button
+              onClick={handleLogout}
+              className="sidebar-item w-full text-left hover:!bg-destructive/20 hover:!text-destructive"
+            >
+              <Power className="w-5 h-5 flex-shrink-0" />
+              <span>Sair</span>
+            </button>
+          </div>
         </nav>
 
         <div className="px-4 py-4 border-t border-sidebar-border">
