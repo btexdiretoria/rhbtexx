@@ -40,9 +40,7 @@ const sidebarGroups: SidebarGroup[] = [
 
 const standaloneItems: SidebarItem[] = [
   { label: 'Relatórios', icon: FileText, path: '/relatorios' },
-  { label: 'Usuários', icon: UserCog, path: '/usuarios' },
   { label: 'Histórico', icon: ClipboardList, path: '/historico' },
-  { label: 'Configurações', icon: Settings, path: '/configuracoes' },
 ];
 
 const allItems = [...sidebarGroups.flatMap(g => g.items), ...standaloneItems];
