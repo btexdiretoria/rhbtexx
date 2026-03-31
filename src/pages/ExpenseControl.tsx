@@ -108,10 +108,6 @@ export default function ExpenseControl() {
     setEditValue('');
   };
 
-  const totalForecast = useMemo(() => data.categories.reduce((s, c) => s + c.forecast, 0), [data.categories]);
-  const totalSpent = useMemo(() => data.categories.reduce((s, c) => s + c.spent, 0), [data.categories]);
-  const totalRemaining = totalForecast - totalSpent;
-  const globalPct = totalForecast > 0 ? Math.round((totalSpent / totalForecast) * 100) : 0;
 
   const formatLastUpdated = (iso: string | null) => {
     if (!iso) return 'Nunca';
