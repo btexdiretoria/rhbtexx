@@ -69,7 +69,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
           </button>
-          <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
+          <div className="hidden lg:flex items-center">
+            <TopNavbar />
+          </div>
+          <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1 lg:hidden">
             {menuItems.find(i => i.path === location.pathname || (i.path !== '/' && location.pathname.startsWith(i.path)))?.label || 'GestãoPeople'}
           </h1>
 
