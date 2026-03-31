@@ -15,6 +15,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import Users from "@/pages/Users";
 import AuditLog from "@/pages/AuditLog";
 import Salaries from "@/pages/Salaries";
+import NetSalary from "@/pages/NetSalary";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/usuarios" element={<AppLayout><Users /></AppLayout>} />
             <Route path="/historico" element={<AppLayout><AuditLog /></AppLayout>} />
             <Route path="/salarios" element={<AppLayout><Salaries /></AppLayout>} />
+            <Route path="/salario-liquido" element={<AppLayout><NetSalary /></AppLayout>} />
             <Route path="/configuracoes" element={<AppLayout><SettingsPage /></AppLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
