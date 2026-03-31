@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown, ChevronRight, DollarSign, Briefcase, Landmark, Receipt } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface SidebarItem {
@@ -70,6 +71,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentUser, setCurrentUser, usuarios } = useApp();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   // Accordion: find which group contains the active route and default-open it
   const activeGroupIndex = sidebarGroups.findIndex(g =>
@@ -161,6 +169,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+          </div>
+
+          {/* Logout */}
+          <div className="pt-2 border-t border-sidebar-border mt-2">
+            <button
+              onClick={handleLogout}
+              className="sidebar-item w-full text-left hover:!bg-destructive/20 hover:!text-destructive"
+            >
+              <Power className="w-5 h-5 flex-shrink-0" />
+              <span>Sair</span>
+            </button>
           </div>
         </nav>
 

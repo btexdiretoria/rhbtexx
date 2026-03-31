@@ -3,7 +3,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider } from "@/contexts/AppContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Employees from "@/pages/Employees";
 import EmployeeProfile from "@/pages/EmployeeProfile";
@@ -23,31 +26,40 @@ import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const ProtectedPage = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
-        <AppProvider>
-          <Routes>
-            <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-            <Route path="/funcionarios" element={<AppLayout><Employees /></AppLayout>} />
-            <Route path="/funcionarios/:id" element={<AppLayout><EmployeeProfile /></AppLayout>} />
-            <Route path="/novo-funcionario" element={<AppLayout><NewEmployee /></AppLayout>} />
-            <Route path="/avaliacoes" element={<AppLayout><Evaluations /></AppLayout>} />
-            <Route path="/desligamentos" element={<AppLayout><Terminations /></AppLayout>} />
-            <Route path="/relatorios" element={<AppLayout><Reports /></AppLayout>} />
-            <Route path="/usuarios" element={<AppLayout><Users /></AppLayout>} />
-            <Route path="/historico" element={<AppLayout><AuditLog /></AppLayout>} />
-            <Route path="/salarios" element={<AppLayout><Salaries /></AppLayout>} />
-            <Route path="/salario-liquido" element={<AppLayout><NetSalary /></AppLayout>} />
-            <Route path="/vale-alimentacao" element={<AppLayout><FoodVoucher /></AppLayout>} />
-            <Route path="/vale-transporte" element={<AppLayout><TransportationVoucher /></AppLayout>} />
-            <Route path="/controle-despesas" element={<AppLayout><ExpenseControl /></AppLayout>} />
-            <Route path="/configuracoes" element={<AppLayout><SettingsPage /></AppLayout>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
+              <Route path="/funcionarios" element={<ProtectedPage><Employees /></ProtectedPage>} />
+              <Route path="/funcionarios/:id" element={<ProtectedPage><EmployeeProfile /></ProtectedPage>} />
+              <Route path="/novo-funcionario" element={<ProtectedPage><NewEmployee /></ProtectedPage>} />
+              <Route path="/avaliacoes" element={<ProtectedPage><Evaluations /></ProtectedPage>} />
+              <Route path="/desligamentos" element={<ProtectedPage><Terminations /></ProtectedPage>} />
+              <Route path="/relatorios" element={<ProtectedPage><Reports /></ProtectedPage>} />
+              <Route path="/usuarios" element={<ProtectedPage><Users /></ProtectedPage>} />
+              <Route path="/historico" element={<ProtectedPage><AuditLog /></ProtectedPage>} />
+              <Route path="/salarios" element={<ProtectedPage><Salaries /></ProtectedPage>} />
+              <Route path="/salario-liquido" element={<ProtectedPage><NetSalary /></ProtectedPage>} />
+              <Route path="/vale-alimentacao" element={<ProtectedPage><FoodVoucher /></ProtectedPage>} />
+              <Route path="/vale-transporte" element={<ProtectedPage><TransportationVoucher /></ProtectedPage>} />
+              <Route path="/controle-despesas" element={<ProtectedPage><ExpenseControl /></ProtectedPage>} />
+              <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
