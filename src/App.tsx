@@ -16,6 +16,7 @@ import Users from "@/pages/Users";
 import AuditLog from "@/pages/AuditLog";
 import Salaries from "@/pages/Salaries";
 import NetSalary from "@/pages/NetSalary";
+import TransportationVoucher from "@/pages/TransportationVoucher";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/historico" element={<AppLayout><AuditLog /></AppLayout>} />
             <Route path="/salarios" element={<AppLayout><Salaries /></AppLayout>} />
             <Route path="/salario-liquido" element={<AppLayout><NetSalary /></AppLayout>} />
+            <Route path="/vale-transporte" element={<AppLayout><TransportationVoucher /></AppLayout>} />
             <Route path="/configuracoes" element={<AppLayout><SettingsPage /></AppLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
