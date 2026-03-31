@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import TopNavbar from '@/components/TopNavbar';
 
 const menuItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
