@@ -182,34 +182,48 @@ export default function NetSalary() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {earningCols.map(col => (
-          <Card key={col.id} className="border-l-4 border-l-emerald-500">
-            <CardHeader className="pb-1 pt-3 px-4">
-              <CardTitle className="text-xs font-medium text-muted-foreground truncate">{col.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-3">
-              <span className="text-lg font-bold text-foreground">{formatCurrency(columnSums[col.id] || 0)}</span>
-            </CardContent>
-          </Card>
-        ))}
-        {deductionCols.map(col => (
-          <Card key={col.id} className="border-l-4 border-l-destructive">
-            <CardHeader className="pb-1 pt-3 px-4">
-              <CardTitle className="text-xs font-medium text-muted-foreground truncate">{col.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-3">
-              <span className="text-lg font-bold text-foreground">{formatCurrency(columnSums[col.id] || 0)}</span>
-            </CardContent>
-          </Card>
-        ))}
-        <Card className="border-l-4 border-l-primary">
+      {/* Summary Cards — Earnings left, Deductions right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Earnings */}
+        <div>
+          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 uppercase tracking-wider">Proventos</p>
+          <div className="flex flex-wrap gap-2">
+            {earningCols.map(col => (
+              <Card key={col.id} className="border-l-4 border-l-emerald-500 flex-1 min-w-[140px] max-w-[200px]">
+                <CardContent className="px-3 py-2.5">
+                  <p className="text-[11px] font-medium text-muted-foreground truncate mb-0.5">{col.name}</p>
+                  <span className="text-sm font-bold text-foreground">{formatCurrency(columnSums[col.id] || 0)}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        {/* Deductions */}
+        <div>
+          <p className="text-xs font-semibold text-destructive mb-2 uppercase tracking-wider">Descontos</p>
+          <div className="flex flex-wrap gap-2 justify-end">
+            {deductionCols.map(col => (
+              <Card key={col.id} className="border-l-4 border-l-destructive flex-1 min-w-[140px] max-w-[200px]">
+                <CardContent className="px-3 py-2.5">
+                  <p className="text-[11px] font-medium text-muted-foreground truncate mb-0.5">{col.name}</p>
+                  <span className="text-sm font-bold text-foreground">{formatCurrency(columnSums[col.id] || 0)}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Net Total — centered below */}
+      <div className="flex justify-center">
+        <Card className="border-l-4 border-l-primary w-full max-w-sm">
           <CardHeader className="pb-1 pt-3 px-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Líquido Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground text-center">Líquido Total</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-3">
-            <span className="text-lg font-bold text-primary">{formatCurrency(columnSums['_net'] || 0)}</span>
+            <div className="flex items-center justify-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary" />
+              <span className="text-xl font-bold text-primary">{formatCurrency(columnSums['_net'] || 0)}</span>
+            </div>
           </CardContent>
         </Card>
       </div>

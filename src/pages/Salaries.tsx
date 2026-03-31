@@ -126,9 +126,18 @@ export default function Salaries() {
         </Select>
       </div>
 
-      {/* Main Total - Centered */}
-      <div className="flex justify-center">
-        <Card className="border-l-4 border-l-primary w-full max-w-md">
+      {/* Top row: FGTS | Total Payroll | 13th */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_1fr] gap-4 items-stretch">
+        <Card className="border-dashed">
+          <CardContent className="pt-4 pb-3 flex flex-col justify-center h-full">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">FGTS Estimado (8%)</span>
+            </div>
+            <span className="text-base font-semibold text-foreground">{formatCurrency(fgts)}</span>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Folha Total (Mês Atual)</CardTitle>
           </CardHeader>
@@ -137,6 +146,15 @@ export default function Salaries() {
               <DollarSign className="w-5 h-5 text-primary" />
               <span className="text-2xl font-bold text-foreground">{formatCurrency(totalPayroll)}</span>
             </div>
+          </CardContent>
+        </Card>
+        <Card className="border-dashed">
+          <CardContent className="pt-4 pb-3 flex flex-col justify-center h-full">
+            <div className="flex items-center gap-2 mb-1">
+              <Gift className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">13º Estimado (÷12)</span>
+            </div>
+            <span className="text-base font-semibold text-foreground">{formatCurrency(decimoTerceiro)}</span>
           </CardContent>
         </Card>
       </div>
@@ -156,28 +174,6 @@ export default function Salaries() {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* FGTS & 13th - smaller secondary cards */}
-      <div className="flex flex-wrap justify-center gap-4">
-        <Card className="w-full sm:w-[240px] border-dashed">
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">FGTS Estimado (8%)</span>
-            </div>
-            <span className="text-base font-semibold text-foreground">{formatCurrency(fgts)}</span>
-          </CardContent>
-        </Card>
-        <Card className="w-full sm:w-[240px] border-dashed">
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Gift className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">13º Estimado (÷12)</span>
-            </div>
-            <span className="text-base font-semibold text-foreground">{formatCurrency(decimoTerceiro)}</span>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
