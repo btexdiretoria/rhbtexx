@@ -15,6 +15,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import Users from "@/pages/Users";
 import AuditLog from "@/pages/AuditLog";
 import Salaries from "@/pages/Salaries";
+import NetSalary from "@/pages/NetSalary";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
