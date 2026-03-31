@@ -17,6 +17,7 @@ import AuditLog from "@/pages/AuditLog";
 import Salaries from "@/pages/Salaries";
 import NetSalary from "@/pages/NetSalary";
 import TransportationVoucher from "@/pages/TransportationVoucher";
+import FoodVoucher from "@/pages/FoodVoucher";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
