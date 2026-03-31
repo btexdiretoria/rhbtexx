@@ -1,26 +1,69 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown, ChevronRight, DollarSign, Briefcase, Landmark } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import TopNavbar from '@/components/TopNavbar';
 
-const menuItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { label: 'Funcionários', icon: Users, path: '/funcionarios' },
-  { label: 'Novo Funcionário', icon: UserPlus, path: '/novo-funcionario' },
-  { label: 'Avaliações', icon: BarChart3, path: '/avaliacoes' },
-  { label: 'Desligamentos', icon: LogOut, path: '/desligamentos' },
+interface SidebarItem {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+}
+
+interface SidebarGroup {
+  label: string;
+  icon: React.ElementType;
+  items: SidebarItem[];
+}
+
+const sidebarGroups: SidebarGroup[] = [
+  {
+    label: 'Recursos Humanos',
+    icon: Briefcase,
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { label: 'Funcionários', icon: Users, path: '/funcionarios' },
+      { label: 'Novo Funcionário', icon: UserPlus, path: '/novo-funcionario' },
+      { label: 'Avaliações', icon: BarChart3, path: '/avaliacoes' },
+      { label: 'Desligamentos', icon: LogOut, path: '/desligamentos' },
+    ],
+  },
+  {
+    label: 'Financeiro',
+    icon: Landmark,
+    items: [
+      { label: 'Salários', icon: DollarSign, path: '/salarios' },
+    ],
+  },
+];
+
+const standaloneItems: SidebarItem[] = [
   { label: 'Relatórios', icon: FileText, path: '/relatorios' },
   { label: 'Usuários', icon: UserCog, path: '/usuarios' },
   { label: 'Histórico', icon: ClipboardList, path: '/historico' },
   { label: 'Configurações', icon: Settings, path: '/configuracoes' },
 ];
 
+const allItems = [...sidebarGroups.flatMap(g => g.items), ...standaloneItems];
+
+function isPathActive(pathname: string, path: string) {
+  return pathname === path || (path !== '/' && pathname.startsWith(path));
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentUser, setCurrentUser, usuarios } = useApp();
+
+  // Accordion: find which group contains the active route and default-open it
+  const activeGroupIndex = sidebarGroups.findIndex(g =>
+    g.items.some(i => isPathActive(location.pathname, i.path))
+  );
+  const [openGroup, setOpenGroup] = useState<number | null>(activeGroupIndex >= 0 ? activeGroupIndex : 0);
+
+  const toggleGroup = (idx: number) => {
+    setOpenGroup(prev => (prev === idx ? null : idx));
+  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -40,15 +83,69 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+          {/* Collapsible groups */}
+          {sidebarGroups.map((group, idx) => {
+            const isOpen = openGroup === idx;
+            const groupActive = group.items.some(i => isPathActive(location.pathname, i.path));
+
             return (
-              <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)} className={`sidebar-item ${isActive ? 'active' : ''}`}>
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </Link>
+              <div key={group.label} className="mb-1">
+                <button
+                  onClick={() => toggleGroup(idx)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    groupActive ? 'text-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
+                  }`}
+                >
+                  <group.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="flex-1 text-left">{group.label}</span>
+                  <ChevronRight
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                  />
+                </button>
+
+                <div
+                  className={`overflow-hidden transition-all duration-200 ${
+                    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="ml-3 pl-3 border-l border-sidebar-border space-y-0.5 py-1">
+                    {group.items.map(item => {
+                      const isActive = isPathActive(location.pathname, item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`sidebar-item ${isActive ? 'active' : ''}`}
+                        >
+                          <item.icon className="w-4 h-4 flex-shrink-0" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             );
           })}
+
+          {/* Standalone items */}
+          <div className="pt-2 border-t border-sidebar-border mt-2 space-y-0.5">
+            {standaloneItems.map(item => {
+              const isActive = isPathActive(location.pathname, item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`sidebar-item ${isActive ? 'active' : ''}`}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="px-4 py-4 border-t border-sidebar-border">
@@ -69,11 +166,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
           </button>
-          <div className="hidden lg:flex items-center">
-            <TopNavbar />
-          </div>
-          <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1 lg:hidden">
-            {menuItems.find(i => i.path === location.pathname || (i.path !== '/' && location.pathname.startsWith(i.path)))?.label || 'GestãoPeople'}
+          <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
+            {allItems.find(i => isPathActive(location.pathname, i.path))?.label || 'GestãoPeople'}
           </h1>
 
           {/* User switcher */}
