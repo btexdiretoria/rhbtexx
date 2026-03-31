@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown, ChevronRight, DollarSign, Briefcase, Landmark } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronDown, ChevronRight, DollarSign, Briefcase, Landmark, Receipt } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -36,6 +36,13 @@ const sidebarGroups: SidebarGroup[] = [
       { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
       { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
       { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
+    ],
+  },
+  {
+    label: 'Despesas',
+    icon: Receipt,
+    items: [
+      { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     ],
   },
   {

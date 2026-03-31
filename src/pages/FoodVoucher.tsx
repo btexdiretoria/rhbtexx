@@ -139,16 +139,16 @@ export default function FoodVoucher() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_1fr] gap-4 items-stretch">
         <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CreditCard className="w-4 h-4" /> Total Alelo
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <CreditCard className="w-3.5 h-3.5" /> Total Alelo
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <span className="text-xl font-bold text-foreground">{formatCurrency(totalAlelo)}</span>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-4 pb-3">
+            <span className="text-base font-bold text-foreground">{formatCurrency(totalAlelo)}</span>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {data.entries.filter(e => e.deliveryMethod === 'Alelo').length} funcionário(s)
             </p>
           </CardContent>
@@ -167,14 +167,14 @@ export default function FoodVoucher() {
         </Card>
 
         <Card className="border-l-4 border-l-orange-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Package className="w-4 h-4" /> Total Cesta Básica
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5" /> Total Cesta Básica
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <span className="text-xl font-bold text-foreground">{formatCurrency(totalCesta)}</span>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-4 pb-3">
+            <span className="text-base font-bold text-foreground">{formatCurrency(totalCesta)}</span>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {data.entries.filter(e => e.deliveryMethod === 'Cesta Básica').length} funcionário(s)
             </p>
           </CardContent>
