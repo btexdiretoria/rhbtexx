@@ -18,6 +18,7 @@ import Salaries from "@/pages/Salaries";
 import NetSalary from "@/pages/NetSalary";
 import TransportationVoucher from "@/pages/TransportationVoucher";
 import FoodVoucher from "@/pages/FoodVoucher";
+import ExpenseControl from "@/pages/ExpenseControl";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
