@@ -39,6 +39,13 @@ const sidebarGroups: SidebarGroup[] = [
     ],
   },
   {
+    label: 'Despesas',
+    icon: Receipt,
+    items: [
+      { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
+    ],
+  },
+  {
     label: 'Configurações',
     icon: Settings,
     items: [
