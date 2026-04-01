@@ -24,6 +24,41 @@ const DEFAULT_COLUMNS = [
 
 let colCounter = 100;
 
+// ─── Célula isolada com estado local ───────────────────────────────────────
+// Cada célula gerencia seu próprio valor localmente.
+// O Supabase só é chamado quando o usuário sai do campo (onBlur),
+// eliminando 1 requisição por tecla digitada.
+interface SalaryCellProps {
+  initialValue: number;
+  onCommit: (val: number) => void;
+}
+
+function SalaryCell({ initialValue, onCommit }: SalaryCellProps) {
+  const [localValue, setLocalValue] = useState<string>(initialValue === 0 ? '' : String(initialValue));
+
+  // Sincroniza se o valor externo mudar (ex: mudança de mês)
+  useEffect(() => {
+    setLocalValue(initialValue === 0 ? '' : String(initialValue));
+  }, [initialValue]);
+
+  const handleBlur = () => {
+    const num = Number(localValue) || 0;
+    onCommit(num);
+  };
+
+  return (
+    <Input
+      type="number"
+      className="h-7 text-xs text-right w-24"
+      value={localValue}
+      onChange={e => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      placeholder="0"
+    />
+  );
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 export default function NetSalary() {
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -89,6 +124,7 @@ export default function NetSalary() {
 
   const getCellValue = (empId: string, colId: string) => valuesMap[empId]?.[colId] || 0;
 
+  // Só salva no Supabase quando chamado (no onBlur da célula)
   const setCellValue = useCallback((empId: string, colId: string, val: number) => {
     upsertValue.mutate({ employee_id: empId, column_id: colId, value: val, year: selectedYear, month: selectedMonth });
   }, [upsertValue, selectedYear, selectedMonth]);
@@ -232,13 +268,19 @@ export default function NetSalary() {
                   <td className="px-3 py-2"><Badge variant={emp.status === 'Ativo' ? 'default' : 'secondary'} className="text-xs">{emp.status}</Badge></td>
                   {earningCols.map(col => (
                     <td key={col.id} className="px-2 py-1 bg-emerald-50/30 dark:bg-emerald-950/10 border-x border-border">
-                      <Input type="number" className="h-7 text-xs text-right w-24" value={getCellValue(emp.id, col.column_id) || ''} onChange={e => setCellValue(emp.id, col.column_id, Number(e.target.value) || 0)} placeholder="0" />
+                      <SalaryCell
+                        initialValue={getCellValue(emp.id, col.column_id)}
+                        onCommit={val => setCellValue(emp.id, col.column_id, val)}
+                      />
                     </td>
                   ))}
                   <td className="border-r border-border" />
                   {deductionCols.map(col => (
                     <td key={col.id} className="px-2 py-1 bg-red-50/30 dark:bg-red-950/10 border-x border-border">
-                      <Input type="number" className="h-7 text-xs text-right w-24" value={getCellValue(emp.id, col.column_id) || ''} onChange={e => setCellValue(emp.id, col.column_id, Number(e.target.value) || 0)} placeholder="0" />
+                      <SalaryCell
+                        initialValue={getCellValue(emp.id, col.column_id)}
+                        onCommit={val => setCellValue(emp.id, col.column_id, val)}
+                      />
                     </td>
                   ))}
                   <td className="border-r border-border" />
