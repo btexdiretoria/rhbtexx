@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useApp, type AuditLogEntry, type TipoAcao } from '@/contexts/AppContext';
+import { useApp, type TipoAcao } from '@/contexts/AppContext';
+import { useAuditLog } from '@/hooks/useFinancial';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 20;
 
-const actionBadge: Record<TipoAcao, string> = {
+const actionBadge: Record<string, string> = {
   Cadastro: 'bg-emerald-100 text-emerald-700',
   Edição: 'bg-blue-100 text-blue-700',
   Exclusão: 'bg-red-100 text-red-700',
@@ -29,21 +30,37 @@ function timeAgo(dateStr: string) {
   return `${days}d atrás`;
 }
 
+interface AuditEntry {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_role: string;
+  action: string;
+  target: string;
+  target_id: string | null;
+  description: string;
+  field_changed: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
 export default function AuditLog() {
-  const { auditLog, usuarios } = useApp();
+  const { usuarios } = useApp();
+  const { data: auditLog = [], isLoading } = useAuditLog();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [userFilter, setUserFilter] = useState('Todos');
   const [actionFilter, setActionFilter] = useState('Todos');
   const [searchTarget, setSearchTarget] = useState('');
   const [page, setPage] = useState(1);
-  const [detailEntry, setDetailEntry] = useState<AuditLogEntry | null>(null);
+  const [detailEntry, setDetailEntry] = useState<AuditEntry | null>(null);
 
   const filtered = useMemo(() => {
-    return auditLog.filter(e => {
-      if (dateFrom && e.timestamp < dateFrom) return false;
-      if (dateTo && e.timestamp > dateTo + 'T23:59:59') return false;
-      if (userFilter !== 'Todos' && e.userId !== userFilter) return false;
+    return auditLog.filter((e: AuditEntry) => {
+      if (dateFrom && e.created_at < dateFrom) return false;
+      if (dateTo && e.created_at > dateTo + 'T23:59:59') return false;
+      if (userFilter !== 'Todos' && e.user_id !== userFilter) return false;
       if (actionFilter !== 'Todos' && e.action !== actionFilter) return false;
       if (searchTarget && !e.target.toLowerCase().includes(searchTarget.toLowerCase())) return false;
       return true;
@@ -56,13 +73,13 @@ export default function AuditLog() {
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const today = new Date().toISOString().split('T')[0];
-  const alteracoesHoje = auditLog.filter(e => e.timestamp.startsWith(today)).length;
-  const userCounts = auditLog.reduce<Record<string, number>>((acc, e) => { acc[e.userName] = (acc[e.userName] || 0) + 1; return acc; }, {});
+  const alteracoesHoje = auditLog.filter((e: AuditEntry) => e.created_at.startsWith(today)).length;
+  const userCounts = auditLog.reduce<Record<string, number>>((acc, e: AuditEntry) => { acc[e.user_name] = (acc[e.user_name] || 0) + 1; return acc; }, {});
   const mostActive = Object.entries(userCounts).sort((a, b) => b[1] - a[1])[0];
 
   const handleExport = () => {
     const csv = ['Data/Hora,Usuário,Tipo,Funcionário,Descrição',
-      ...filtered.map(e => `"${new Date(e.timestamp).toLocaleString('pt-BR')}","${e.userName}","${e.action}","${e.target}","${e.description}"`)
+      ...filtered.map((e: AuditEntry) => `"${new Date(e.created_at).toLocaleString('pt-BR')}","${e.user_name}","${e.action}","${e.target}","${e.description}"`)
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -71,11 +88,14 @@ export default function AuditLog() {
     URL.revokeObjectURL(url);
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando histórico...</p></div>;
+  }
+
   return (
     <div className="space-y-4 animate-fade-in">
       <h2 className="font-heading text-xl font-bold text-foreground">Histórico de Alterações</h2>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="kpi-card">
           <div className="flex items-center gap-2 text-muted-foreground mb-1"><Activity className="w-4 h-4" /><span className="text-xs">Total de Alterações</span></div>
@@ -92,21 +112,14 @@ export default function AuditLog() {
         </div>
         <div className="kpi-card">
           <div className="flex items-center gap-2 text-muted-foreground mb-1"><Clock className="w-4 h-4" /><span className="text-xs">Última Alteração</span></div>
-          <p className="text-lg font-heading font-bold text-foreground">{auditLog[0] ? timeAgo(auditLog[0].timestamp) : '—'}</p>
+          <p className="text-lg font-heading font-bold text-foreground">{auditLog[0] ? timeAgo((auditLog[0] as AuditEntry).created_at) : '—'}</p>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="kpi-card">
         <div className="flex flex-col md:flex-row gap-3 flex-wrap">
-          <div>
-            <label className="text-xs text-muted-foreground">De:</label>
-            <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} className="w-40" />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Até:</label>
-            <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} className="w-40" />
-          </div>
+          <div><label className="text-xs text-muted-foreground">De:</label><Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} className="w-40" /></div>
+          <div><label className="text-xs text-muted-foreground">Até:</label><Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} className="w-40" /></div>
           <div>
             <label className="text-xs text-muted-foreground">Usuário:</label>
             <Select value={userFilter} onValueChange={v => { setUserFilter(v); setPage(1); }}>
@@ -140,32 +153,27 @@ export default function AuditLog() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="kpi-card overflow-hidden p-0 hidden md:block">
         <table className="data-table">
-          <thead>
-            <tr><th>Data/Hora</th><th>Usuário</th><th>Tipo</th><th>Funcionário</th><th>Descrição</th><th></th></tr>
-          </thead>
+          <thead><tr><th>Data/Hora</th><th>Usuário</th><th>Tipo</th><th>Funcionário</th><th>Descrição</th><th></th></tr></thead>
           <tbody>
-            {paginated.map(e => (
+            {paginated.map((e: AuditEntry) => (
               <tr key={e.id}>
-                <td className="text-muted-foreground whitespace-nowrap text-sm">{new Date(e.timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                <td className="text-muted-foreground whitespace-nowrap text-sm">{new Date(e.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">
-                      {e.userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                    </div>
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">{e.user_name.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">{e.userName}</p>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${e.userRole === 'Administrador' ? 'bg-red-100 text-red-600' : e.userRole === 'Gestor' ? 'bg-yellow-100 text-yellow-600' : 'bg-emerald-100 text-emerald-600'}`}>{e.userRole}</span>
+                      <p className="text-sm font-medium text-foreground">{e.user_name}</p>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${e.user_role === 'Administrador' ? 'bg-red-100 text-red-600' : e.user_role === 'Gestor' ? 'bg-yellow-100 text-yellow-600' : 'bg-emerald-100 text-emerald-600'}`}>{e.user_role}</span>
                     </div>
                   </div>
                 </td>
-                <td><span className={`status-badge ${actionBadge[e.action]}`}>{e.action}</span></td>
-                <td className="text-foreground text-sm">{e.target}{e.targetId && <span className="text-muted-foreground text-xs ml-1">#{e.targetId}</span>}</td>
+                <td><span className={`status-badge ${actionBadge[e.action] || 'bg-gray-100 text-gray-700'}`}>{e.action}</span></td>
+                <td className="text-foreground text-sm">{e.target}{e.target_id && <span className="text-muted-foreground text-xs ml-1">#{e.target_id}</span>}</td>
                 <td className="text-muted-foreground text-sm max-w-xs truncate">{e.description}</td>
                 <td>
-                  {(e.fieldChanged || e.oldValue) && (
+                  {(e.field_changed || e.old_value) && (
                     <Button variant="ghost" size="sm" onClick={() => setDetailEntry(e)}><Eye className="w-4 h-4" /></Button>
                   )}
                 </td>
@@ -175,22 +183,20 @@ export default function AuditLog() {
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {paginated.map(e => (
-          <div key={e.id} className="kpi-card" onClick={() => (e.fieldChanged || e.oldValue) && setDetailEntry(e)}>
+        {paginated.map((e: AuditEntry) => (
+          <div key={e.id} className="kpi-card" onClick={() => (e.field_changed || e.old_value) && setDetailEntry(e)}>
             <div className="flex items-center justify-between mb-1">
-              <span className={`status-badge ${actionBadge[e.action]}`}>{e.action}</span>
-              <span className="text-xs text-muted-foreground">{new Date(e.timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className={`status-badge ${actionBadge[e.action] || 'bg-gray-100 text-gray-700'}`}>{e.action}</span>
+              <span className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
             <p className="text-sm font-medium text-foreground">{e.target}</p>
             <p className="text-xs text-muted-foreground mt-1">{e.description}</p>
-            <p className="text-xs text-muted-foreground mt-1">por {e.userName}</p>
+            <p className="text-xs text-muted-foreground mt-1">por {e.user_name}</p>
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-4 h-4" /></Button>
@@ -199,30 +205,23 @@ export default function AuditLog() {
         </div>
       )}
 
-      {/* Detail modal */}
       <Dialog open={!!detailEntry} onOpenChange={() => setDetailEntry(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle className="font-heading">Detalhes da Alteração</DialogTitle></DialogHeader>
           {detailEntry && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground">Data/Hora:</span><p className="font-medium text-foreground">{new Date(detailEntry.timestamp).toLocaleString('pt-BR')}</p></div>
-                <div><span className="text-muted-foreground">Usuário:</span><p className="font-medium text-foreground">{detailEntry.userName} ({detailEntry.userRole})</p></div>
-                <div><span className="text-muted-foreground">Ação:</span><p><span className={`status-badge ${actionBadge[detailEntry.action]}`}>{detailEntry.action}</span></p></div>
+                <div><span className="text-muted-foreground">Data/Hora:</span><p className="font-medium text-foreground">{new Date(detailEntry.created_at).toLocaleString('pt-BR')}</p></div>
+                <div><span className="text-muted-foreground">Usuário:</span><p className="font-medium text-foreground">{detailEntry.user_name} ({detailEntry.user_role})</p></div>
+                <div><span className="text-muted-foreground">Ação:</span><p><span className={`status-badge ${actionBadge[detailEntry.action] || ''}`}>{detailEntry.action}</span></p></div>
                 <div><span className="text-muted-foreground">Funcionário:</span><p className="font-medium text-foreground">{detailEntry.target}</p></div>
               </div>
-              {detailEntry.fieldChanged && (
+              {detailEntry.field_changed && (
                 <div className="border border-border rounded-lg p-4 space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Campo Alterado: <span className="text-foreground">{detailEntry.fieldChanged}</span></p>
+                  <p className="text-xs text-muted-foreground font-medium">Campo Alterado: <span className="text-foreground">{detailEntry.field_changed}</span></p>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-red-50 rounded-lg p-3">
-                      <p className="text-xs text-red-500 mb-1">Valor Anterior</p>
-                      <p className="text-sm font-medium text-red-700">{detailEntry.oldValue || '—'}</p>
-                    </div>
-                    <div className="bg-emerald-50 rounded-lg p-3">
-                      <p className="text-xs text-emerald-500 mb-1">Valor Novo</p>
-                      <p className="text-sm font-medium text-emerald-700">{detailEntry.newValue || '—'}</p>
-                    </div>
+                    <div className="bg-red-50 rounded-lg p-3"><p className="text-xs text-red-500 mb-1">Valor Anterior</p><p className="text-sm font-medium text-red-700">{detailEntry.old_value || '—'}</p></div>
+                    <div className="bg-emerald-50 rounded-lg p-3"><p className="text-xs text-emerald-500 mb-1">Valor Novo</p><p className="text-sm font-medium text-emerald-700">{detailEntry.new_value || '—'}</p></div>
                   </div>
                 </div>
               )}
