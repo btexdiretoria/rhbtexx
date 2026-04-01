@@ -1,98 +1,34 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Clock } from 'lucide-react';
+import { useExpenseCategories, useCreateExpenseCategory, useUpdateExpenseCategory, useDeleteExpenseCategory } from '@/hooks/useFinancial';
 
-const MONTHS = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const formatCurrency = (v: number) =>
-  v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-interface ExpenseCategory {
-  id: string;
-  name: string;
-  forecast: number;
-  spent: number;
-}
-
-interface MonthExpenseData {
-  categories: ExpenseCategory[];
-  lastUpdated: string | null;
-}
-
-function getStorageKey(year: number, month: number) {
-  return `expense-control-${year}-${month}`;
-}
-
-function loadData(year: number, month: number): MonthExpenseData {
-  try {
-    const raw = localStorage.getItem(getStorageKey(year, month));
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return { categories: [], lastUpdated: null };
-}
-
-function saveData(year: number, month: number, data: MonthExpenseData) {
-  localStorage.setItem(getStorageKey(year, month), JSON.stringify(data));
-}
-
-function getProgressColor(pct: number) {
-  if (pct >= 100) return 'bg-destructive';
-  if (pct >= 75) return 'bg-amber-500';
-  return 'bg-emerald-500';
-}
-
-function getProgressTextColor(pct: number) {
-  if (pct >= 100) return 'text-destructive';
-  if (pct >= 75) return 'text-amber-600';
-  return 'text-emerald-600';
-}
+function getProgressColor(pct: number) { if (pct >= 100) return 'bg-destructive'; if (pct >= 75) return 'bg-amber-500'; return 'bg-emerald-500'; }
+function getProgressTextColor(pct: number) { if (pct >= 100) return 'text-destructive'; if (pct >= 75) return 'text-amber-600'; return 'text-emerald-600'; }
 
 export default function ExpenseControl() {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [data, setData] = useState<MonthExpenseData>(() => loadData(now.getFullYear(), now.getMonth()));
   const [editingField, setEditingField] = useState<{ id: string; field: 'name' | 'forecast' | 'spent' } | null>(null);
   const [editValue, setEditValue] = useState('');
 
-  useEffect(() => {
-    setData(loadData(selectedYear, selectedMonth));
-  }, [selectedYear, selectedMonth]);
-
-  const persist = useCallback((newData: MonthExpenseData) => {
-    const updated = { ...newData, lastUpdated: new Date().toISOString() };
-    setData(updated);
-    saveData(selectedYear, selectedMonth, updated);
-  }, [selectedYear, selectedMonth]);
+  const { data: categories = [], isLoading } = useExpenseCategories(selectedYear, selectedMonth);
+  const createCategory = useCreateExpenseCategory();
+  const updateCategory = useUpdateExpenseCategory();
+  const deleteCategory = useDeleteExpenseCategory();
 
   const addCategory = () => {
-    const newCat: ExpenseCategory = {
-      id: crypto.randomUUID(),
-      name: 'Nova Categoria',
-      forecast: 0,
-      spent: 0,
-    };
-    persist({ ...data, categories: [...data.categories, newCat] });
+    createCategory.mutate({ name: 'Nova Categoria', forecast: 0, spent: 0, year: selectedYear, month: selectedMonth, sort_order: categories.length });
   };
 
-  const removeCategory = (id: string) => {
-    persist({ ...data, categories: data.categories.filter(c => c.id !== id) });
-  };
-
-  const updateCategory = (id: string, field: keyof ExpenseCategory, value: string | number) => {
-    persist({
-      ...data,
-      categories: data.categories.map(c =>
-        c.id === id ? { ...c, [field]: value } : c
-      ),
-    });
-  };
+  const removeCategory = (id: string) => deleteCategory.mutate(id);
 
   const startEdit = (id: string, field: 'name' | 'forecast' | 'spent', currentValue: string | number) => {
     setEditingField({ id, field });
@@ -103,11 +39,14 @@ export default function ExpenseControl() {
     if (!editingField) return;
     const { id, field } = editingField;
     const val = field === 'name' ? editValue : Number(editValue) || 0;
-    updateCategory(id, field, val);
+    updateCategory.mutate({ id, [field]: val });
     setEditingField(null);
     setEditValue('');
   };
 
+  const lastUpdated = categories.length > 0
+    ? categories.reduce((latest, cat) => cat.updated_at > latest ? cat.updated_at : latest, categories[0].updated_at)
+    : null;
 
   const formatLastUpdated = (iso: string | null) => {
     if (!iso) return 'Nunca';
@@ -115,161 +54,57 @@ export default function ExpenseControl() {
     return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  if (isLoading) return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando...</p></div>;
+
   return (
     <div className="space-y-6">
-      {/* Month picker + last updated */}
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-2xl font-bold text-foreground">
-          {MONTHS[selectedMonth]} {selectedYear}
-        </h2>
-        <Select value={String(selectedMonth)} onValueChange={v => setSelectedMonth(Number(v))}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={String(selectedYear)} onValueChange={v => setSelectedYear(Number(v))}>
-          <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          Última atualização: {formatLastUpdated(data.lastUpdated)}
-        </div>
+        <h2 className="text-2xl font-bold text-foreground">{MONTHS[selectedMonth]} {selectedYear}</h2>
+        <Select value={String(selectedMonth)} onValueChange={v => setSelectedMonth(Number(v))}><SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent></Select>
+        <Select value={String(selectedYear)} onValueChange={v => setSelectedYear(Number(v))}><SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger><SelectContent>{[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent></Select>
+        <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground"><Clock className="w-3.5 h-3.5" />Última atualização: {formatLastUpdated(lastUpdated)}</div>
       </div>
 
+      <div className="flex justify-end"><Button onClick={addCategory} className="gap-2"><Plus className="w-4 h-4" />Adicionar Categoria</Button></div>
 
-      {/* Add category button */}
-      <div className="flex justify-end">
-        <Button onClick={addCategory} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Adicionar Categoria
-        </Button>
-      </div>
-
-      {/* Category list */}
       <div className="space-y-3">
-        {data.categories.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              Nenhuma categoria de despesa cadastrada para este mês.
-            </CardContent>
-          </Card>
-        ) : (
-          data.categories.map(cat => {
-            const pct = cat.forecast > 0 ? Math.round((cat.spent / cat.forecast) * 100) : 0;
-            const remaining = cat.forecast - cat.spent;
-            const isEditing = (field: string) => editingField?.id === cat.id && editingField?.field === field;
+        {categories.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma categoria de despesa cadastrada para este mês.</CardContent></Card>
+        ) : categories.map(cat => {
+          const pct = cat.forecast > 0 ? Math.round((cat.spent / cat.forecast) * 100) : 0;
+          const remaining = cat.forecast - cat.spent;
+          const isEditing = (field: string) => editingField?.id === cat.id && editingField?.field === field;
 
-            return (
-              <Card key={cat.id} className="overflow-hidden">
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* Category name */}
-                    <div className="flex-1 min-w-0">
-                      {isEditing('name') ? (
-                        <Input
-                          autoFocus
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={commitEdit}
-                          onKeyDown={e => e.key === 'Enter' && commitEdit()}
-                          className="h-8 text-sm font-semibold"
-                        />
-                      ) : (
-                        <button
-                          onClick={() => startEdit(cat.id, 'name', cat.name)}
-                          className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left"
-                        >
-                          {cat.name}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Forecast */}
-                    <div className="text-center min-w-[120px]">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Previsão</p>
-                      {isEditing('forecast') ? (
-                        <Input
-                          autoFocus
-                          type="number"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={commitEdit}
-                          onKeyDown={e => e.key === 'Enter' && commitEdit()}
-                          className="h-7 text-sm text-right w-28"
-                        />
-                      ) : (
-                        <button
-                          onClick={() => startEdit(cat.id, 'forecast', cat.forecast)}
-                          className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                        >
-                          {formatCurrency(cat.forecast)}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Spent */}
-                    <div className="text-center min-w-[120px]">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Gasto</p>
-                      {isEditing('spent') ? (
-                        <Input
-                          autoFocus
-                          type="number"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onBlur={commitEdit}
-                          onKeyDown={e => e.key === 'Enter' && commitEdit()}
-                          className="h-7 text-sm text-right w-28"
-                        />
-                      ) : (
-                        <button
-                          onClick={() => startEdit(cat.id, 'spent', cat.spent)}
-                          className={`text-sm font-medium hover:text-primary transition-colors ${getProgressTextColor(pct)}`}
-                        >
-                          {formatCurrency(cat.spent)}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Remaining */}
-                    <div className="text-center min-w-[120px]">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Restante</p>
-                      <span className={`text-sm font-medium ${remaining < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                        {formatCurrency(remaining)}
-                      </span>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="min-w-[140px] flex items-center gap-2">
-                      <div className="flex-1 relative h-2.5 overflow-hidden rounded-full bg-secondary">
-                        <div
-                          className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`}
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                        />
-                      </div>
-                      <span className={`text-xs font-bold min-w-[36px] text-right ${getProgressTextColor(pct)}`}>
-                        {pct}%
-                      </span>
-                    </div>
-
-                    {/* Remove */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeCategory(cat.id)}
-                      className="text-destructive hover:text-destructive shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
+          return (
+            <Card key={cat.id} className="overflow-hidden"><CardContent className="pt-4 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  {isEditing('name') ? <Input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-8 text-sm font-semibold" />
+                  : <button onClick={() => startEdit(cat.id, 'name', cat.name)} className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left">{cat.name}</button>}
+                </div>
+                <div className="text-center min-w-[120px]">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Previsão</p>
+                  {isEditing('forecast') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-28" />
+                  : <button onClick={() => startEdit(cat.id, 'forecast', cat.forecast)} className="text-sm font-medium text-foreground hover:text-primary transition-colors">{formatCurrency(cat.forecast)}</button>}
+                </div>
+                <div className="text-center min-w-[120px]">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Gasto</p>
+                  {isEditing('spent') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-28" />
+                  : <button onClick={() => startEdit(cat.id, 'spent', cat.spent)} className={`text-sm font-medium hover:text-primary transition-colors ${getProgressTextColor(pct)}`}>{formatCurrency(cat.spent)}</button>}
+                </div>
+                <div className="text-center min-w-[120px]">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Restante</p>
+                  <span className={`text-sm font-medium ${remaining < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(remaining)}</span>
+                </div>
+                <div className="min-w-[140px] flex items-center gap-2">
+                  <div className="flex-1 relative h-2.5 overflow-hidden rounded-full bg-secondary"><div className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
+                  <span className={`text-xs font-bold min-w-[36px] text-right ${getProgressTextColor(pct)}`}>{pct}%</span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeCategory(cat.id)} className="text-destructive hover:text-destructive shrink-0"><Trash2 className="w-4 h-4" /></Button>
+              </div>
+            </CardContent></Card>
+          );
+        })}
       </div>
     </div>
   );
