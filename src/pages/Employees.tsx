@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil } from 'lucide-react';
-import { funcionariosMock, type StatusFuncionario, statusDisplayLabel } from '@/data/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useEmployees } from '@/hooks/useEmployees';
+
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado' };
 
 const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 'Comercial', 'Marketing', 'Operações'];
 const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
@@ -34,6 +37,7 @@ const deptBorderColors: Record<string, string> = {
 };
 
 export default function Employees() {
+  const { data: employees = [], isLoading } = useEmployees();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [deptFilter, setDeptFilter] = useState('Todos');
@@ -42,18 +46,22 @@ export default function Employees() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const filtered = useMemo(() => {
-    return funcionariosMock.filter(f => {
+    return employees.filter(f => {
       const matchSearch = f.nome.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'Todos' || f.status === statusFilter;
       const matchDept = deptFilter === 'Todos' || f.departamento === deptFilter;
       return matchSearch && matchStatus && matchDept;
     });
-  }, [search, statusFilter, deptFilter]);
+  }, [employees, search, statusFilter, deptFilter]);
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
   const startItem = (page - 1) * pageSize + 1;
   const endItem = Math.min(page * pageSize, filtered.length);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando funcionários...</p></div>;
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -77,23 +85,11 @@ export default function Employees() {
             <SelectContent>{pageSizeOptions.map(n => <SelectItem key={n} value={String(n)}>{n} por página</SelectItem>)}</SelectContent>
           </Select>
           <div className="flex border border-border rounded-md overflow-hidden">
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-none gap-1.5 h-10"
-              onClick={() => setViewMode('list')}
-            >
-              <LayoutList className="w-4 h-4" />
-              <span className="hidden sm:inline">Lista</span>
+            <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" className="rounded-none gap-1.5 h-10" onClick={() => setViewMode('list')}>
+              <LayoutList className="w-4 h-4" /><span className="hidden sm:inline">Lista</span>
             </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-none gap-1.5 h-10"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">Quadro</span>
+            <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" className="rounded-none gap-1.5 h-10" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" /><span className="hidden sm:inline">Quadro</span>
             </Button>
           </div>
           <Button variant="outline" className="gap-2"><Download className="w-4 h-4" />Exportar</Button>
@@ -105,18 +101,10 @@ export default function Employees() {
 
       {viewMode === 'list' ? (
         <>
-          {/* Desktop Table */}
           <div className="kpi-card overflow-hidden p-0 hidden md:block">
             <table className="data-table">
               <thead>
-                <tr>
-                  <th>Funcionário</th>
-                  <th>Cargo</th>
-                  <th>Departamento</th>
-                  <th>Admissão</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
+                <tr><th>Funcionário</th><th>Cargo</th><th>Departamento</th><th>Admissão</th><th>Status</th><th>Ações</th></tr>
               </thead>
               <tbody>
                 {paginated.map(f => (
@@ -131,8 +119,8 @@ export default function Employees() {
                     </td>
                     <td className="text-muted-foreground">{f.cargo}</td>
                     <td className="text-muted-foreground">{f.departamento}</td>
-                    <td className="text-muted-foreground">{new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}</td>
-                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span></td>
+                    <td className="text-muted-foreground">{new Date(f.data_admissao).toLocaleDateString('pt-BR')}</td>
+                    <td><span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status as StatusFuncionario] || f.status}</span></td>
                     <td>
                       <Link to={`/funcionarios/${f.id}`}>
                         <Button variant="ghost" size="sm"><Eye className="w-4 h-4" /></Button>
@@ -144,7 +132,6 @@ export default function Employees() {
             </table>
           </div>
 
-          {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {paginated.map(f => (
               <Link to={`/funcionarios/${f.id}`} key={f.id} className="kpi-card block">
@@ -156,69 +143,46 @@ export default function Employees() {
                     <p className="font-medium text-foreground truncate">{f.nome}</p>
                     <p className="text-sm text-muted-foreground">{f.cargo}</p>
                   </div>
-                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
+                  <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status as StatusFuncionario] || f.status}</span>
                 </div>
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span>{f.departamento}</span>
-                  <span>Adm: {new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}</span>
+                  <span>Adm: {new Date(f.data_admissao).toLocaleDateString('pt-BR')}</span>
                 </div>
               </Link>
             ))}
           </div>
         </>
       ) : (
-        /* Card Grid View */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {paginated.map(f => (
-            <div
-              key={f.id}
-              className={`kpi-card border-t-4 ${deptBorderColors[f.departamento] || 'border-t-primary'} hover:shadow-lg transition-shadow duration-200 flex flex-col items-center text-center`}
-            >
+            <div key={f.id} className={`kpi-card border-t-4 ${deptBorderColors[f.departamento] || 'border-t-primary'} hover:shadow-lg transition-shadow duration-200 flex flex-col items-center text-center`}>
               <div className="w-[72px] h-[72px] rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary mb-3">
                 {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
               </div>
               <p className="font-heading font-semibold text-foreground break-words leading-tight">{f.nome}</p>
               <p className="text-sm text-muted-foreground mt-0.5">{f.cargo}</p>
               <div className="flex flex-wrap gap-2 justify-center mt-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${deptColors[f.departamento] || 'bg-muted text-muted-foreground'}`}>
-                  {f.departamento}
-                </span>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status] || f.status}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${deptColors[f.departamento] || 'bg-muted text-muted-foreground'}`}>{f.departamento}</span>
+                <span className={`status-badge status-${f.status.toLowerCase()}`}>{statusDisplayLabel[f.status as StatusFuncionario] || f.status}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Desde {new Date(f.dataAdmissao).toLocaleDateString('pt-BR')}
-              </p>
+              <p className="text-xs text-muted-foreground mt-2">Desde {new Date(f.data_admissao).toLocaleDateString('pt-BR')}</p>
               <div className="flex gap-2 mt-4 pt-3 border-t border-border w-full justify-center">
-                <Link to={`/funcionarios/${f.id}`}>
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Eye className="w-3.5 h-3.5" />Ver Perfil
-                  </Button>
-                </Link>
-                <Link to={`/funcionarios/${f.id}`}>
-                  <Button variant="ghost" size="sm" className="gap-1.5">
-                    <Pencil className="w-3.5 h-3.5" />Editar
-                  </Button>
-                </Link>
+                <Link to={`/funcionarios/${f.id}`}><Button variant="outline" size="sm" className="gap-1.5"><Eye className="w-3.5 h-3.5" />Ver Perfil</Button></Link>
+                <Link to={`/funcionarios/${f.id}`}><Button variant="ghost" size="sm" className="gap-1.5"><Pencil className="w-3.5 h-3.5" />Editar</Button></Link>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+          <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-4 h-4" /></Button>
           {Array.from({ length: totalPages }, (_, i) => (
-            <Button key={i + 1} variant={page === i + 1 ? 'default' : 'outline'} size="sm" onClick={() => setPage(i + 1)}>
-              {i + 1}
-            </Button>
+            <Button key={i + 1} variant={page === i + 1 ? 'default' : 'outline'} size="sm" onClick={() => setPage(i + 1)}>{i + 1}</Button>
           ))}
-          <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+          <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}><ChevronRight className="w-4 h-4" /></Button>
         </div>
       )}
     </div>
