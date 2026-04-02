@@ -332,3 +332,51 @@ export function useCreateAuditLog() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['audit_log'] }),
   });
 }
+
+// ─── System Users ───
+export function useSystemUsers() {
+  return useQuery({
+    queryKey: ['system_users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('system_users')
+        .select('*')
+        .order('nome');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateSystemUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (user: { nome: string; email: string; cargo: string; departamento: string; nivel_acesso: string; status: string }) => {
+      const { data, error } = await supabase
+        .from('system_users')
+        .insert(user)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['system_users'] }),
+  });
+}
+
+export function useUpdateSystemUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; nome?: string; email?: string; cargo?: string; departamento?: string; nivel_acesso?: string; status?: string }) => {
+      const { data, error } = await supabase
+        .from('system_users')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['system_users'] }),
+  });
+}

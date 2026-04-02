@@ -1,72 +1,110 @@
 import { useState } from 'react';
-import { Search, Plus, Edit, UserCog } from 'lucide-react';
+import { Search, Plus, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useApp, type Usuario, type NivelAcesso } from '@/contexts/AppContext';
+import { useSystemUsers, useCreateSystemUser, useUpdateSystemUser } from '@/hooks/useFinancial';
+import { useApp, type NivelAcesso } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 
-const nivelBadge: Record<NivelAcesso, string> = {
+const nivelBadge: Record<string, string> = {
   Administrador: 'bg-red-100 text-red-700',
   Gestor: 'bg-yellow-100 text-yellow-700',
   Visualizador: 'bg-emerald-100 text-emerald-700',
 };
 
+interface FormState {
+  nome: string;
+  email: string;
+  senha: string;
+  confirmarSenha: string;
+  cargo: string;
+  departamento: string;
+  nivelAcesso: string;
+  status: string;
+}
+
+const emptyForm: FormState = { nome: '', email: '', senha: '', confirmarSenha: '', cargo: '', departamento: '', nivelAcesso: 'Visualizador', status: 'Ativo' };
+
 export default function Users() {
-  const { usuarios, setUsuarios, logAction } = useApp();
+  const { logAction } = useApp();
+  const { data: usuarios = [], isLoading } = useSystemUsers();
+  const createUser = useCreateSystemUser();
+  const updateUser = useUpdateSystemUser();
+
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Usuario | null>(null);
-  const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmarSenha: '', cargo: '', departamento: '', nivelAcesso: 'Visualizador' as NivelAcesso, status: 'Ativo' as 'Ativo' | 'Inativo' });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
   const filtered = usuarios.filter(u =>
     u.nome.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
   );
 
   const openNew = () => {
-    setEditing(null);
-    setForm({ nome: '', email: '', senha: '', confirmarSenha: '', cargo: '', departamento: '', nivelAcesso: 'Visualizador', status: 'Ativo' });
+    setEditingId(null);
+    setForm(emptyForm);
     setDialogOpen(true);
   };
 
-  const openEdit = (u: Usuario) => {
-    setEditing(u);
-    setForm({ nome: u.nome, email: u.email, senha: '', confirmarSenha: '', cargo: u.cargo, departamento: u.departamento, nivelAcesso: u.nivelAcesso, status: u.status });
+  const openEdit = (u: typeof usuarios[0]) => {
+    setEditingId(u.id);
+    setForm({ nome: u.nome, email: u.email, senha: '', confirmarSenha: '', cargo: u.cargo, departamento: u.departamento, nivelAcesso: u.nivel_acesso, status: u.status });
     setDialogOpen(true);
   };
 
   const handleSave = () => {
     if (!form.nome || !form.email) { toast({ title: 'Preencha nome e e-mail', variant: 'destructive' }); return; }
-    if (!editing && (!form.senha || form.senha !== form.confirmarSenha)) { toast({ title: 'Senhas não conferem', variant: 'destructive' }); return; }
+    if (!editingId && (!form.senha || form.senha !== form.confirmarSenha)) { toast({ title: 'Senhas não conferem', variant: 'destructive' }); return; }
 
-    if (editing) {
-      const changes: string[] = [];
-      if (editing.nome !== form.nome) changes.push(`nome: ${editing.nome} → ${form.nome}`);
-      if (editing.nivelAcesso !== form.nivelAcesso) changes.push(`nível: ${editing.nivelAcesso} → ${form.nivelAcesso}`);
-      if (editing.status !== form.status) changes.push(`status: ${editing.status} → ${form.status}`);
-
-      setUsuarios(prev => prev.map(u => u.id === editing.id ? { ...u, nome: form.nome, email: form.email, cargo: form.cargo, departamento: form.departamento, nivelAcesso: form.nivelAcesso, status: form.status } : u));
-
-      if (editing.nivelAcesso !== form.nivelAcesso) {
-        logAction('Usuário', form.nome, `Alterou nível de acesso de ${editing.nivelAcesso} para ${form.nivelAcesso}`, { fieldChanged: 'nivelAcesso', oldValue: editing.nivelAcesso, newValue: form.nivelAcesso });
-      } else if (editing.status !== form.status) {
-        logAction('Usuário', form.nome, `${form.status === 'Inativo' ? 'Desativou' : 'Reativou'} o usuário`, { fieldChanged: 'status', oldValue: editing.status, newValue: form.status });
-      } else {
-        logAction('Usuário', form.nome, `Editou dados do usuário (${changes.join(', ') || 'sem alterações significativas'})`);
-      }
-      toast({ title: 'Usuário atualizado' });
+    if (editingId) {
+      const original = usuarios.find(u => u.id === editingId);
+      updateUser.mutate({
+        id: editingId,
+        nome: form.nome,
+        email: form.email,
+        cargo: form.cargo,
+        departamento: form.departamento,
+        nivel_acesso: form.nivelAcesso,
+        status: form.status,
+      }, {
+        onSuccess: () => {
+          if (original && original.nivel_acesso !== form.nivelAcesso) {
+            logAction('Usuário', form.nome, `Alterou nível de acesso de ${original.nivel_acesso} para ${form.nivelAcesso}`, { fieldChanged: 'nivelAcesso', oldValue: original.nivel_acesso, newValue: form.nivelAcesso });
+          }
+          toast({ title: 'Usuário atualizado' });
+          setDialogOpen(false);
+        },
+      });
     } else {
-      const newUser: Usuario = { id: `u${Date.now()}`, nome: form.nome, email: form.email, cargo: form.cargo, departamento: form.departamento, nivelAcesso: form.nivelAcesso, status: form.status, ultimoAcesso: new Date().toISOString() };
-      setUsuarios(prev => [...prev, newUser]);
-      logAction('Usuário', form.nome, `Criou novo usuário com nível ${form.nivelAcesso}`);
-      toast({ title: 'Usuário criado com sucesso!' });
+      createUser.mutate({
+        nome: form.nome,
+        email: form.email,
+        cargo: form.cargo,
+        departamento: form.departamento,
+        nivel_acesso: form.nivelAcesso,
+        status: form.status,
+      }, {
+        onSuccess: () => {
+          logAction('Usuário', form.nome, `Criou novo usuário com nível ${form.nivelAcesso}`);
+          toast({ title: 'Usuário criado com sucesso!' });
+          setDialogOpen(false);
+        },
+      });
     }
-    setDialogOpen(false);
   };
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -103,9 +141,9 @@ export default function Users() {
                   </div>
                 </td>
                 <td className="text-muted-foreground">{u.cargo}</td>
-                <td><span className={`status-badge ${nivelBadge[u.nivelAcesso]}`}>{u.nivelAcesso}</span></td>
+                <td><span className={`status-badge ${nivelBadge[u.nivel_acesso] || ''}`}>{u.nivel_acesso}</span></td>
                 <td><span className={`status-badge ${u.status === 'Ativo' ? 'status-ativo' : 'status-afastado'}`}>{u.status}</span></td>
-                <td className="text-muted-foreground text-sm">{new Date(u.ultimoAcesso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                <td className="text-muted-foreground text-sm">{u.ultimo_acesso ? new Date(u.ultimo_acesso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                 <td><Button variant="ghost" size="sm" onClick={() => openEdit(u)}><Edit className="w-4 h-4" /></Button></td>
               </tr>
             ))}
@@ -125,7 +163,7 @@ export default function Users() {
                 <p className="font-medium text-foreground truncate">{u.nome}</p>
                 <p className="text-xs text-muted-foreground">{u.email}</p>
               </div>
-              <span className={`status-badge ${nivelBadge[u.nivelAcesso]}`}>{u.nivelAcesso}</span>
+              <span className={`status-badge ${nivelBadge[u.nivel_acesso] || ''}`}>{u.nivel_acesso}</span>
             </div>
           </div>
         ))}
@@ -134,13 +172,13 @@ export default function Users() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-heading">{editing ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
+            <DialogTitle className="font-heading">{editingId ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label>Nome Completo *</Label><Input value={form.nome} onChange={e => update('nome', e.target.value)} /></div>
               <div><Label>E-mail *</Label><Input type="email" value={form.email} onChange={e => update('email', e.target.value)} /></div>
-              {!editing && (
+              {!editingId && (
                 <>
                   <div><Label>Senha *</Label><Input type="password" value={form.senha} onChange={e => update('senha', e.target.value)} /></div>
                   <div><Label>Confirmar Senha *</Label><Input type="password" value={form.confirmarSenha} onChange={e => update('confirmarSenha', e.target.value)} /></div>
@@ -180,7 +218,9 @@ export default function Users() {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave}>Salvar</Button>
+              <Button onClick={handleSave} disabled={createUser.isPending || updateUser.isPending}>
+                {(createUser.isPending || updateUser.isPending) ? 'Salvando...' : 'Salvar'}
+              </Button>
             </div>
           </div>
         </DialogContent>
