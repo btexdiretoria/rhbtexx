@@ -459,6 +459,51 @@ export type Database = {
           },
         ]
       }
+      system_users: {
+        Row: {
+          auth_user_id: string | null
+          avatar: string | null
+          cargo: string
+          created_at: string
+          departamento: string
+          email: string
+          id: string
+          nivel_acesso: string
+          nome: string
+          status: string
+          ultimo_acesso: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          avatar?: string | null
+          cargo?: string
+          created_at?: string
+          departamento?: string
+          email: string
+          id?: string
+          nivel_acesso?: string
+          nome: string
+          status?: string
+          ultimo_acesso?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          avatar?: string | null
+          cargo?: string
+          created_at?: string
+          departamento?: string
+          email?: string
+          id?: string
+          nivel_acesso?: string
+          nome?: string
+          status?: string
+          ultimo_acesso?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transport_voucher_entries: {
         Row: {
           created_at: string
