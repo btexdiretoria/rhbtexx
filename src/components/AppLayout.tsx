@@ -218,18 +218,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {usuarios.filter(u => u.status === 'Ativo').map(u => (
-                <DropdownMenuItem key={u.id} onClick={() => setCurrentUser(u)} className={currentUser.id === u.id ? 'bg-muted' : ''}>
+                <DropdownMenuItem key={u.id} onClick={() => setCurrentUser({ id: u.id, nome: u.nome, email: u.email, cargo: u.cargo, departamento: u.departamento, nivelAcesso: u.nivel_acesso as any, status: u.status as any, ultimoAcesso: u.ultimo_acesso || '' })} className={currentUser.id === u.id ? 'bg-muted' : ''}>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">
                       {u.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
                     </div>
                     <div>
                       <p className="text-sm font-medium">{u.nome}</p>
-                      <p className="text-xs text-muted-foreground">{u.nivelAcesso}</p>
+                      <p className="text-xs text-muted-foreground">{u.nivel_acesso}</p>
                     </div>
                   </div>
                 </DropdownMenuItem>
               ))}
+
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
