@@ -70,7 +70,8 @@ function isPathActive(pathname: string, path: string) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { currentUser, setCurrentUser, usuarios } = useApp();
+  const { currentUser, setCurrentUser } = useApp();
+  const { data: usuarios = [] } = useSystemUsers();
   const { signOut } = useAuth();
   const navigate = useNavigate();
 

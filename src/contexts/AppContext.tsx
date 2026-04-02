@@ -72,7 +72,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [currentUser, user, createAuditLog]);
 
   return (
-    <AppContext.Provider value={{ currentUser, setCurrentUser, usuarios, setUsuarios, logAction }}>
+    <AppContext.Provider value={{ currentUser, setCurrentUser, logAction }}>
       {children}
     </AppContext.Provider>
   );

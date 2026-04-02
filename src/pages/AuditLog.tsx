@@ -46,7 +46,7 @@ interface AuditEntry {
 }
 
 export default function AuditLog() {
-  const { usuarios } = useApp();
+  const { data: usuarios = [] } = useSystemUsers();
   const { data: auditLog = [], isLoading } = useAuditLog();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
