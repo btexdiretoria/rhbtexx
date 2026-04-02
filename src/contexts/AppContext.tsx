@@ -33,25 +33,20 @@ export interface AuditLogEntry {
   timestamp: string;
 }
 
-export const mockUsuarios: Usuario[] = [
-  { id: 'u1', nome: 'Ana Souza', email: 'ana.souza@gestapeople.com', cargo: 'Diretora de RH', departamento: 'Recursos Humanos', nivelAcesso: 'Administrador', status: 'Ativo', ultimoAcesso: '2026-03-26T09:30:00' },
-  { id: 'u2', nome: 'Carlos Lima', email: 'carlos.lima@gestapeople.com', cargo: 'Gerente de Tecnologia', departamento: 'Tecnologia', nivelAcesso: 'Gestor', status: 'Ativo', ultimoAcesso: '2026-03-25T16:45:00' },
-  { id: 'u3', nome: 'Fernanda Costa', email: 'fernanda.costa@gestapeople.com', cargo: 'Assistente de RH', departamento: 'Recursos Humanos', nivelAcesso: 'Visualizador', status: 'Ativo', ultimoAcesso: '2026-03-24T11:20:00' },
-];
+const defaultUser: Usuario = {
+  id: 'default', nome: 'Usuário', email: '', cargo: '', departamento: '', nivelAcesso: 'Administrador', status: 'Ativo', ultimoAcesso: new Date().toISOString()
+};
 
 interface AppContextType {
   currentUser: Usuario;
   setCurrentUser: (user: Usuario) => void;
-  usuarios: Usuario[];
-  setUsuarios: React.Dispatch<React.SetStateAction<Usuario[]>>;
   logAction: (action: TipoAcao, target: string, description: string, options?: { targetId?: string; fieldChanged?: string; oldValue?: string; newValue?: string }) => void;
 }
 
 const AppContext = createContext<AppContextType>(null!);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<Usuario>(mockUsuarios[0]);
-  const [usuarios, setUsuarios] = useState<Usuario[]>(mockUsuarios);
+  const [currentUser, setCurrentUser] = useState<Usuario>(defaultUser);
   const createAuditLog = useCreateAuditLog();
   const { user } = useAuth();
 
@@ -77,7 +72,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [currentUser, user, createAuditLog]);
 
   return (
-    <AppContext.Provider value={{ currentUser, setCurrentUser, usuarios, setUsuarios, logAction }}>
+    <AppContext.Provider value={{ currentUser, setCurrentUser, logAction }}>
       {children}
     </AppContext.Provider>
   );
