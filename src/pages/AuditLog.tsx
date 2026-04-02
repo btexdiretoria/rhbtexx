@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useApp, type TipoAcao } from '@/contexts/AppContext';
-import { useAuditLog } from '@/hooks/useFinancial';
+import { useAuditLog, useSystemUsers } from '@/hooks/useFinancial';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 20;
