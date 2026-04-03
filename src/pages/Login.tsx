@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, LogIn, AlertCircle } from 'lucide-react';
+import { useCompanySettings } from '@/hooks/useFinancial';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { data: companySettings } = useCompanySettings();
+
+  const companyName = companySettings?.company_name || 'GestãoPeople';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +41,7 @@ export default function Login() {
           <div className="mx-auto w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
             <Users className="w-6 h-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-heading">GestãoPeople</CardTitle>
+          <CardTitle className="text-2xl font-heading">{companyName}</CardTitle>
           <CardDescription>Faça login para acessar o sistema</CardDescription>
         </CardHeader>
         <CardContent>
@@ -50,25 +54,11 @@ export default function Login() {
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               <LogIn className="w-4 h-4 mr-2" />

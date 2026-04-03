@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEmployees } from '@/hooks/useEmployees';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
 
 const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 'Comercial', 'Marketing', 'Operações'];
 const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
@@ -15,6 +15,7 @@ const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
   { value: 'Ativo', label: 'Ativo' },
   { value: 'Afastado', label: 'Afastado' },
   { value: 'Desligado', label: 'Desligado' },
+  { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },
 ];
 const pageSizeOptions = [10, 25, 50, 100];
 

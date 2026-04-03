@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEmployees, type Employee } from '@/hooks/useEmployees';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
 
 const deptIcons: Record<string, React.ReactNode> = {
   'Tecnologia': <Monitor className="w-5 h-5" />,
@@ -25,7 +25,7 @@ function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md
   return <div className={`${cls} rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary shrink-0`}>{initials}</div>;
 }
 
-const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground' };
+const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground', 'Prestador de Serviço': 'bg-blue-500' };
 function getStatusLabel(status: string) { return statusDisplayLabel[status as StatusFuncionario] || status; }
 
 export default function Dashboard() {
@@ -42,10 +42,11 @@ export default function Dashboard() {
     const total = employees.length;
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
+    const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const desligadosMes = employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)).length;
-    return { total, ativos, afastados, desligadosMes };
+    return { total, ativos, afastados, desligadosMes, prestadores };
   }, [employees]);
 
   const kpiEmployees = useMemo(() => {
@@ -56,6 +57,7 @@ export default function Dashboard() {
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
       'Desligados no Mês': employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)),
+      'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
     };
   }, [employees]);
 
@@ -75,10 +77,12 @@ export default function Dashboard() {
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const desligados = employees.filter(f => f.status === 'Desligado').length;
+    const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
     return [
       { name: 'Ativo', value: ativos, color: '#10B981' },
       { name: 'Afastado', value: afastados, color: '#F97316' },
       { name: 'Desligado', value: desligados, color: '#9CA3AF' },
+      { name: 'Prestador de Serviço', value: prestadores, color: '#3B82F6' },
     ];
   }, [employees]);
 
@@ -101,6 +105,7 @@ export default function Dashboard() {
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
+    { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
   ];
 
   const experienciaAlerts = useMemo(() => {
@@ -121,13 +126,11 @@ export default function Dashboard() {
     else setAcknowledgedIds(prev => prev.filter(i => i !== id));
   };
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando dashboard...</p></div>;
-  }
+  if (isLoading) return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando dashboard...</p></div>;
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="kpi-card cursor-pointer" onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}>
             <div className="flex items-center justify-between mb-3">
@@ -152,7 +155,7 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-foreground">{f.nome}</p>
                   <p className="text-xs text-muted-foreground">{f.cargo}</p>
                 </div>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{getStatusLabel(f.status)}</span>
+                <span className={`status-badge status-${f.status.toLowerCase().replace(/\s+/g, '-')}`}>{getStatusLabel(f.status)}</span>
               </Link>
             ))}
           </div>
@@ -210,10 +213,7 @@ export default function Dashboard() {
                 {setor.leader ? (
                   <div className="flex items-center gap-3">
                     <AvatarInitials name={setor.leader.nome} size="md" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{setor.leader.nome}</p>
-                      <p className="text-xs text-muted-foreground">{setor.leader.cargo}</p>
-                    </div>
+                    <div><p className="text-sm font-medium text-foreground">{setor.leader.nome}</p><p className="text-xs text-muted-foreground">{setor.leader.cargo}</p></div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /><span className="text-sm">Sem líder definido</span></div>
@@ -225,10 +225,7 @@ export default function Dashboard() {
                   {setor.members.slice(0, 8).map(m => (
                     <Link to={`/funcionarios/${m.id}`} key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">{m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground break-words leading-tight">{m.nome}</p>
-                        <p className="text-xs text-muted-foreground">{m.cargo}</p>
-                      </div>
+                      <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground break-words leading-tight">{m.nome}</p><p className="text-xs text-muted-foreground">{m.cargo}</p></div>
                       <div className={`w-2 h-2 rounded-full shrink-0 ${statusDot[m.status] || 'bg-muted-foreground'}`} />
                     </Link>
                   ))}
@@ -271,11 +268,8 @@ export default function Dashboard() {
             {ultimosAdicionados.map((f) => (
               <Link to={`/funcionarios/${f.id}`} key={f.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                 <AvatarInitials name={f.nome} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{f.nome}</p>
-                  <p className="text-xs text-muted-foreground">{f.cargo}</p>
-                </div>
-                <span className={`status-badge status-${f.status.toLowerCase()}`}>{getStatusLabel(f.status)}</span>
+                <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground truncate">{f.nome}</p><p className="text-xs text-muted-foreground">{f.cargo}</p></div>
+                <span className={`status-badge status-${f.status.toLowerCase().replace(/\s+/g, '-')}`}>{getStatusLabel(f.status)}</span>
               </Link>
             ))}
           </div>
@@ -294,10 +288,7 @@ export default function Dashboard() {
             {aniversariantes.map((f) => (
               <div key={f.id} className="flex items-center gap-3 p-2 rounded-lg bg-warning/5">
                 <AvatarInitials name={f.nome} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{f.nome}</p>
-                  <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
-                </div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{f.nome}</p><p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p></div>
                 <p className="text-xs text-muted-foreground">{f.data_nascimento ? new Date(f.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : ''}</p>
               </div>
             ))}

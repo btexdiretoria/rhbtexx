@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -78,26 +78,26 @@ export default function ExpenseControl() {
           return (
             <Card key={cat.id} className="overflow-hidden"><CardContent className="pt-4 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 w-[120px] shrink-0">
                   {isEditing('name') ? <Input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-8 text-sm font-semibold" />
-                  : <button onClick={() => startEdit(cat.id, 'name', cat.name)} className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left">{cat.name}</button>}
+                  : <button onClick={() => startEdit(cat.id, 'name', cat.name)} className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left truncate block w-full">{cat.name}</button>}
                 </div>
-                <div className="text-center min-w-[120px]">
+                <div className="text-center min-w-[100px] shrink-0">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Previsão</p>
-                  {isEditing('forecast') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-28" />
+                  {isEditing('forecast') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-24" />
                   : <button onClick={() => startEdit(cat.id, 'forecast', cat.forecast)} className="text-sm font-medium text-foreground hover:text-primary transition-colors">{formatCurrency(cat.forecast)}</button>}
                 </div>
-                <div className="text-center min-w-[120px]">
+                <div className="text-center min-w-[100px] shrink-0">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Gasto</p>
-                  {isEditing('spent') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-28" />
+                  {isEditing('spent') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-24" />
                   : <button onClick={() => startEdit(cat.id, 'spent', cat.spent)} className={`text-sm font-medium hover:text-primary transition-colors ${getProgressTextColor(pct)}`}>{formatCurrency(cat.spent)}</button>}
                 </div>
-                <div className="text-center min-w-[120px]">
+                <div className="text-center min-w-[90px] shrink-0">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Restante</p>
                   <span className={`text-sm font-medium ${remaining < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(remaining)}</span>
                 </div>
-                <div className="min-w-[140px] flex items-center gap-2">
-                  <div className="flex-1 relative h-2.5 overflow-hidden rounded-full bg-secondary"><div className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
+                <div className="flex-1 flex items-center gap-2 min-w-[200px]">
+                  <div className="flex-1 relative h-3 overflow-hidden rounded-full bg-secondary"><div className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
                   <span className={`text-xs font-bold min-w-[36px] text-right ${getProgressTextColor(pct)}`}>{pct}%</span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => removeCategory(cat.id)} className="text-destructive hover:text-destructive shrink-0"><Trash2 className="w-4 h-4" /></Button>

@@ -6,14 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useEmployee, useUpdateEmployee, useEmployeeDocuments, useEmployeeHistory, useEvaluations, useCreateDocument, useDeleteDocument, useUpdateEvaluation, type Employee } from '@/hooks/useEmployees';
+import { useEmployee, useUpdateEmployee, useEmployeeDocuments, useEmployeeHistory, useEvaluations, useCreateDocument, useDeleteDocument, useUpdateEvaluation, useCreateEvaluation, type Employee } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useFinancial';
 
 function StatusBadge({ status }: { status: string }) {
-  return <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>;
+  return <span className={`status-badge status-${status.toLowerCase().replace(/\s+/g, '-')}`}>{status}</span>;
 }
 
 function StarRating({ value, interactive, onChange }: { value: number; interactive?: boolean; onChange?: (v: number) => void }) {
@@ -53,8 +56,7 @@ function EditableRow({ label, value, editing, onChange, type = 'text', error, op
 }
 
 const timelineIcons: Record<string, string> = { admissao: '🟢', promocao: '⬆️', mudanca_cargo: '🔄', advertencia: '⚠️', desligamento: '🔴', afastamento: '🟡' };
-const departamentos = ['Tecnologia','Recursos Humanos','Financeiro','Comercial','Marketing','Operações'];
-const statusOptions = [{ label: 'Ativo', value: 'Ativo' }, { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' }];
+const statusOptions = [{ label: 'Ativo', value: 'Ativo' }, { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' }, { label: 'Prestador de Serviço', value: 'Prestador de Serviço' }];
 const tiposContrato = [{ label: 'CLT', value: 'CLT' }, { label: 'PJ', value: 'PJ' }, { label: 'Estágio', value: 'Estágio' }, { label: 'Temporário', value: 'Temporário' }];
 const generos = [{ label: 'Masculino', value: 'Masculino' }, { label: 'Feminino', value: 'Feminino' }, { label: 'Outro', value: 'Outro' }];
 const tiposChavePix = [{ label: 'CPF', value: 'CPF' }, { label: 'CNPJ', value: 'CNPJ' }, { label: 'E-mail', value: 'E-mail' }, { label: 'Telefone', value: 'Telefone' }, { label: 'Chave Aleatória', value: 'Chave Aleatória' }];
@@ -67,16 +69,26 @@ export default function EmployeeProfile() {
   const { data: documents = [] } = useEmployeeDocuments(id);
   const { data: history = [] } = useEmployeeHistory(id);
   const { data: evaluations = [] } = useEvaluations(id);
+  const { data: departments = [] } = useDepartments();
   const updateEmployee = useUpdateEmployee();
   const createDoc = useCreateDocument();
   const deleteDoc = useDeleteDocument();
   const updateEval = useUpdateEvaluation();
+  const createEval = useCreateEvaluation();
 
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDesligamentoDialog, setShowDesligamentoDialog] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
+  const [evalDialogOpen, setEvalDialogOpen] = useState(false);
+  const [evalForm, setEvalForm] = useState({
+    periodo: '', data: new Date().toISOString().split('T')[0],
+    produtividade: 3, comunicacao: 3, trabalho_equipe: 3, proatividade: 3, lideranca: 3, resultados: 3,
+    pontos_fortes: '', pontos_melhoria: '',
+  });
+
+  const departmentOptions = departments.map(d => ({ label: d.name, value: d.name }));
 
   if (isLoading) return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando perfil...</p></div>;
   if (!employee) return <div className="flex flex-col items-center justify-center py-20 gap-4"><p className="text-lg text-muted-foreground">Funcionário não encontrado.</p><Link to="/funcionarios"><Button variant="outline">Voltar</Button></Link></div>;
@@ -89,8 +101,7 @@ export default function EmployeeProfile() {
     try {
       await updateEmployee.mutateAsync({ id: employee.id, ...editData });
       logAction('Edição', employee.nome, 'Editou dados do funcionário', { targetId: employee.id });
-      setEditing(false);
-      setEditData({});
+      setEditing(false); setEditData({});
       toast({ title: '✅ Perfil atualizado com sucesso!' });
     } catch (err: any) {
       toast({ title: 'Erro ao salvar', description: err.message, variant: 'destructive' });
@@ -120,22 +131,35 @@ export default function EmployeeProfile() {
 
   const addDocument = () => {
     createDoc.mutate({ employee_id: employee.id, nome: 'Novo Documento', tipo: 'PDF', tamanho: '0 KB' });
-    logAction('Documento', employee.nome, 'Anexou documento', { targetId: employee.id });
     toast({ title: 'Documento adicionado.' });
   };
 
   const removeDocument = (docId: string) => {
-    const doc = documents.find(d => d.id === docId);
     deleteDoc.mutate({ id: docId, employee_id: employee.id });
-    if (doc) logAction('Documento', employee.nome, `Removeu documento: ${doc.nome}`, { targetId: employee.id });
     toast({ title: 'Documento removido.' });
   };
 
   const copyPixKey = () => {
     if (!employee.chave_pix) { toast({ title: '⚠️ Nenhuma chave PIX cadastrada', variant: 'destructive' }); return; }
     navigator.clipboard.writeText(employee.chave_pix);
-    setPixCopied(true);
-    setTimeout(() => setPixCopied(false), 2000);
+    setPixCopied(true); setTimeout(() => setPixCopied(false), 2000);
+  };
+
+  const handleCreateEvaluation = () => {
+    if (!evalForm.periodo) { toast({ title: 'Preencha o período', variant: 'destructive' }); return; }
+    createEval.mutate({
+      employee_id: employee.id, periodo: evalForm.periodo, data: evalForm.data,
+      produtividade: evalForm.produtividade, comunicacao: evalForm.comunicacao,
+      trabalho_equipe: evalForm.trabalho_equipe, proatividade: evalForm.proatividade,
+      lideranca: evalForm.lideranca, resultados: evalForm.resultados,
+      pontos_fortes: evalForm.pontos_fortes, pontos_melhoria: evalForm.pontos_melhoria,
+    }, {
+      onSuccess: () => {
+        logAction('Avaliação', employee.nome, `Criou nova avaliação: ${evalForm.periodo}`, { targetId: employee.id });
+        toast({ title: 'Avaliação criada!' }); setEvalDialogOpen(false);
+        setEvalForm({ periodo: '', data: new Date().toISOString().split('T')[0], produtividade: 3, comunicacao: 3, trabalho_equipe: 3, proatividade: 3, lideranca: 3, resultados: 3, pontos_fortes: '', pontos_melhoria: '' });
+      },
+    });
   };
 
   return (
@@ -209,7 +233,7 @@ export default function EmployeeProfile() {
           <div className="kpi-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
             <EditableRow label="Matrícula" value={d.matricula} editing={false} />
             <EditableRow label="Cargo" value={d.cargo} editing={editing} onChange={v => updateField('cargo', v)} error={errors.cargo} />
-            <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departamentos.map(d => ({ label: d, value: d }))} />
+            <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departmentOptions} />
             <EditableRow label="Centro de Custo" value={d.centro_custo} editing={editing} onChange={v => updateField('centro_custo', v)} />
             <EditableRow label="Tipo de Contrato" value={d.tipo_contrato} editing={editing} onChange={v => updateField('tipo_contrato', v)} options={tiposContrato} />
             <EditableRow label="Data de Admissão" value={editing ? d.data_admissao : new Date(d.data_admissao).toLocaleDateString('pt-BR')} editing={editing} onChange={v => updateField('data_admissao', v)} type="date" />
@@ -253,7 +277,10 @@ export default function EmployeeProfile() {
           <div className="kpi-card">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading font-semibold text-foreground">Avaliações de Desempenho</h3>
-              <div className="flex items-center gap-2"><Star className="w-4 h-4 fill-warning text-warning" /><span className="font-bold text-foreground">{mediaAvaliacao}</span><span className="text-xs text-muted-foreground">Média Geral</span></div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2"><Star className="w-4 h-4 fill-warning text-warning" /><span className="font-bold text-foreground">{mediaAvaliacao}</span><span className="text-xs text-muted-foreground">Média</span></div>
+                <Button size="sm" onClick={() => setEvalDialogOpen(true)} className="gap-1.5"><Plus className="w-4 h-4" />Nova Avaliação</Button>
+              </div>
             </div>
             {evaluations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma avaliação registrada.</p> : (
               <div className="space-y-4">
@@ -307,11 +334,36 @@ export default function EmployeeProfile() {
         </TabsContent>
       </Tabs>
 
+      {/* New Evaluation Dialog */}
+      <Dialog open={evalDialogOpen} onOpenChange={setEvalDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-heading">Nova Avaliação — {employee.nome}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Período *</Label><Input placeholder="Ex: 1º Semestre 2026" value={evalForm.periodo} onChange={e => setEvalForm(p => ({ ...p, periodo: e.target.value }))} /></div>
+              <div><Label>Data</Label><Input type="date" value={evalForm.data} onChange={e => setEvalForm(p => ({ ...p, data: e.target.value }))} /></div>
+            </div>
+            {(['produtividade', 'comunicacao', 'trabalho_equipe', 'proatividade', 'lideranca', 'resultados'] as const).map(field => (
+              <div key={field} className="flex items-center justify-between">
+                <span className="text-sm capitalize">{field.replace('_', ' ')}</span>
+                <StarRating value={evalForm[field]} interactive onChange={v => setEvalForm(p => ({ ...p, [field]: v }))} />
+              </div>
+            ))}
+            <div><Label>Pontos Fortes</Label><Textarea value={evalForm.pontos_fortes} onChange={e => setEvalForm(p => ({ ...p, pontos_fortes: e.target.value }))} /></div>
+            <div><Label>Pontos de Melhoria</Label><Textarea value={evalForm.pontos_melhoria} onChange={e => setEvalForm(p => ({ ...p, pontos_melhoria: e.target.value }))} /></div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEvalDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateEvaluation} disabled={createEval.isPending}>{createEval.isPending ? 'Salvando...' : 'Criar Avaliação'}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={showDesligamentoDialog} onOpenChange={setShowDesligamentoDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Desligamento</AlertDialogTitle>
-            <AlertDialogDescription>Tem certeza que deseja alterar o status deste funcionário para "Desligado"? Esta ação irá registrar o desligamento no sistema.</AlertDialogDescription>
+            <AlertDialogDescription>Tem certeza que deseja alterar o status deste funcionário para "Desligado"?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
