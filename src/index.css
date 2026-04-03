@@ -107,6 +107,9 @@
   .status-desligado {
     @apply bg-gray-100 text-gray-600;
   }
+  .status-prestador-de-serviço {
+    @apply bg-blue-100 text-blue-700;
+  }
 
   .data-table {
     @apply w-full text-sm;
