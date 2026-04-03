@@ -59,6 +59,51 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          cnpj: string
+          company_name: string
+          email: string
+          id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string
+          company_name?: string
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          company_name?: string
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       employee_documents: {
         Row: {
           created_at: string
