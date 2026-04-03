@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, LogIn, AlertCircle } from 'lucide-react';
 import { useCompanySettings } from '@/hooks/useFinancial';
+import { useQuery } from '@tanstack/react-query';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
 export default function Login() {
   const navigate = useNavigate();
