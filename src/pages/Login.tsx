@@ -19,7 +19,7 @@ export default function Login() {
   const { data: companySettings } = useQuery({
     queryKey: ['company_settings_public'],
     queryFn: async () => {
-      const { data } = await supabaseClient.from('company_settings').select('company_name').limit(1).single();
+      const { data } = await supabase.from('company_settings').select('company_name').limit(1).single();
       return data;
     },
     retry: false,
