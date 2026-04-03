@@ -17,7 +17,15 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { data: companySettings } = useCompanySettings();
+  // Use a direct query that gracefully falls back if RLS blocks unauthenticated access
+  const { data: companySettings } = useQuery({
+    queryKey: ['company_settings_public'],
+    queryFn: async () => {
+      const { data } = await supabaseClient.from('company_settings').select('company_name').limit(1).single();
+      return data;
+    },
+    retry: false,
+  });
 
   const companyName = companySettings?.company_name || 'GestãoPeople';
 
