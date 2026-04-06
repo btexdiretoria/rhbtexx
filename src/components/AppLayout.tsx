@@ -115,7 +115,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="px-4 py-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold text-sidebar-foreground">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.nome} className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold text-sidebar-foreground">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser.nome}</p>
               <p className="text-xs text-sidebar-muted truncate">{currentUser.nivelAcesso}</p>
