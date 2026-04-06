@@ -203,7 +203,7 @@ export default function EmployeeProfile() {
             <EditableRow label="RG" value={d.rg} editing={editing} onChange={v => updateField('rg', v)} />
             <EditableRow label="Data de Nascimento" value={editing ? d.data_nascimento : (d.data_nascimento ? new Date(d.data_nascimento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_nascimento', v)} type="date" />
             <EditableRow label="Gênero" value={d.genero} editing={editing} onChange={v => updateField('genero', v)} options={generos} />
-            <EditableRow label="Telefone" value={d.telefone} editing={editing} onChange={v => updateField('telefone', v)} />
+            
             <div className="py-2">
               <p className="text-xs text-muted-foreground mb-0.5">Chave PIX</p>
               {editing ? (
