@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { useSystemUsers, useCompanySettings } from '@/hooks/useFinancial';
+import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
 interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
@@ -47,8 +45,7 @@ function isPathActive(pathname: string, path: string) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { currentUser, setCurrentUser } = useApp();
-  const { data: usuarios = [] } = useSystemUsers();
+  const { currentUser } = useApp();
   const { data: companySettings } = useCompanySettings();
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -118,7 +115,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="px-4 py-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold text-sidebar-foreground">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.nome} className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold text-sidebar-foreground">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser.nome}</p>
               <p className="text-xs text-sidebar-muted truncate">{currentUser.nivelAcesso}</p>
@@ -133,23 +134,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
             {allItems.find(i => isPathActive(location.pathname, i.path))?.label || companyName}
           </h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+          <div className="flex items-center gap-2 px-3 py-1.5">
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.nome} className="w-6 h-6 rounded-full object-cover" />
+            ) : (
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-              <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {usuarios.filter(u => u.status === 'Ativo').map(u => (
-                <DropdownMenuItem key={u.id} onClick={() => setCurrentUser({ id: u.id, nome: u.nome, email: u.email, cargo: u.cargo, departamento: u.departamento, nivelAcesso: u.nivel_acesso as any, status: u.status as any, ultimoAcesso: u.ultimo_acesso || '' })} className={currentUser.id === u.id ? 'bg-muted' : ''}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">{u.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-                    <div><p className="text-sm font-medium">{u.nome}</p><p className="text-xs text-muted-foreground">{u.nivel_acesso}</p></div>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+            <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
+          </div>
         </header>
         <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
       </div>
