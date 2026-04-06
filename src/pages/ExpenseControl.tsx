@@ -79,7 +79,7 @@ export default function ExpenseControl() {
             <Card key={cat.id} className="overflow-hidden"><CardContent className="pt-4 pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="min-w-0 w-[120px] shrink-0">
-                  {isEditing('name') ? <Input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-8 text-sm font-semibold" />
+                  {isEditing('name') ? <Input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-9 text-sm font-semibold" />
                   : <button onClick={() => startEdit(cat.id, 'name', cat.name)} className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left truncate block w-full">{cat.name}</button>}
                 </div>
                 <div className="text-center min-w-[100px] shrink-0">
