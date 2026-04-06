@@ -227,7 +227,7 @@ export default function EmployeeProfile() {
             <EditableRow label="Matrícula" value={d.matricula} editing={editing} onChange={v => updateField('matricula', v)} />
             <EditableRow label="Cargo" value={d.cargo} editing={editing} onChange={v => updateField('cargo', v)} error={errors.cargo} />
             <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departmentOptions} />
-            <EditableRow label="Centro de Custo" value={d.centro_custo} editing={editing} onChange={v => updateField('centro_custo', v)} />
+            
             <EditableRow label="Tipo de Contrato" value={d.tipo_contrato} editing={editing} onChange={v => updateField('tipo_contrato', v)} options={tiposContrato} />
             <EditableRow label="Data de Admissão" value={editing ? d.data_admissao : new Date(d.data_admissao).toLocaleDateString('pt-BR')} editing={editing} onChange={v => updateField('data_admissao', v)} type="date" />
             <EditableRow label="Salário" value={d.salario} editing={editing} onChange={v => updateField('salario', Number(v))} type="number" />
