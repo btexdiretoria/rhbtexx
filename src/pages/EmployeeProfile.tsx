@@ -219,13 +219,6 @@ export default function EmployeeProfile() {
                 </div>
               )}
             </div>
-            <EditableRow label="E-mail Pessoal" value={d.email_pessoal} editing={editing} onChange={v => updateField('email_pessoal', v)} type="email" />
-            <EditableRow label="Rua" value={d.endereco_rua} editing={editing} onChange={v => updateField('endereco_rua', v)} />
-            <EditableRow label="Número" value={d.endereco_numero} editing={editing} onChange={v => updateField('endereco_numero', v)} />
-            <EditableRow label="Bairro" value={d.endereco_bairro} editing={editing} onChange={v => updateField('endereco_bairro', v)} />
-            <EditableRow label="Cidade" value={d.endereco_cidade} editing={editing} onChange={v => updateField('endereco_cidade', v)} />
-            <EditableRow label="Estado" value={d.endereco_estado} editing={editing} onChange={v => updateField('endereco_estado', v)} />
-            <EditableRow label="CEP" value={d.endereco_cep} editing={editing} onChange={v => updateField('endereco_cep', v)} />
           </div>
         </TabsContent>
 
