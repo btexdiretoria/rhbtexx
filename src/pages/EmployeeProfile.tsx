@@ -224,7 +224,7 @@ export default function EmployeeProfile() {
 
         <TabsContent value="profissionais" className="mt-4">
           <div className="kpi-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
-            <EditableRow label="Matrícula" value={d.matricula} editing={false} />
+            <EditableRow label="Matrícula" value={d.matricula} editing={editing} onChange={v => updateField('matricula', v)} />
             <EditableRow label="Cargo" value={d.cargo} editing={editing} onChange={v => updateField('cargo', v)} error={errors.cargo} />
             <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departmentOptions} />
             <EditableRow label="Centro de Custo" value={d.centro_custo} editing={editing} onChange={v => updateField('centro_custo', v)} />
