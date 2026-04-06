@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { useSystemUsers, useCompanySettings } from '@/hooks/useFinancial';
+import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
 interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
