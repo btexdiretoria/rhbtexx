@@ -95,19 +95,8 @@ export default function NewEmployee() {
               <div><Label>RG</Label><Input value={form.rg} onChange={e => update('rg', e.target.value)} /></div>
               <div><Label>Data de Nascimento *</Label><Input type="date" value={form.dataNascimento} onChange={e => update('dataNascimento', e.target.value)} /></div>
               <div><Label>Gênero</Label><Select value={form.genero} onValueChange={v => update('genero', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent><SelectItem value="Masculino">Masculino</SelectItem><SelectItem value="Feminino">Feminino</SelectItem><SelectItem value="Outro">Outro</SelectItem></SelectContent></Select></div>
-              <div><Label>Telefone</Label><Input value={form.telefone} onChange={e => update('telefone', e.target.value)} /></div>
               <div><Label>Chave PIX</Label><Input value={form.chavePix} onChange={e => update('chavePix', e.target.value)} /></div>
               <div><Label>Tipo de Chave PIX</Label><Select value={form.tipoChavePix} onValueChange={v => update('tipoChavePix', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CPF','CNPJ','E-mail','Telefone','Chave Aleatória'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-              <div className="sm:col-span-2"><Label>E-mail Pessoal</Label><Input type="email" value={form.emailPessoal} onChange={e => update('emailPessoal', e.target.value)} /></div>
-            </div>
-            <h4 className="font-heading font-medium text-foreground pt-2">Endereço</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div><Label>Rua</Label><Input value={form.rua} onChange={e => update('rua', e.target.value)} /></div>
-              <div><Label>Número</Label><Input value={form.numero} onChange={e => update('numero', e.target.value)} /></div>
-              <div><Label>Bairro</Label><Input value={form.bairro} onChange={e => update('bairro', e.target.value)} /></div>
-              <div><Label>Cidade</Label><Input value={form.cidade} onChange={e => update('cidade', e.target.value)} /></div>
-              <div><Label>Estado</Label><Input value={form.estado} onChange={e => update('estado', e.target.value)} /></div>
-              <div><Label>CEP</Label><Input value={form.cep} onChange={e => update('cep', e.target.value)} /></div>
             </div>
           </div>
         )}
@@ -120,8 +109,6 @@ export default function NewEmployee() {
               <div><Label>Data de Admissão *</Label><Input type="date" value={form.dataAdmissao} onChange={e => update('dataAdmissao', e.target.value)} /></div>
               <div><Label>Tipo de Contrato</Label><Select value={form.tipoContrato} onValueChange={v => update('tipoContrato', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CLT','PJ','Estágio','Temporário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Salário</Label><Input type="number" value={form.salario} onChange={e => update('salario', e.target.value)} placeholder="0.00" /></div>
-              <div><Label>Carga Horária (h/semana)</Label><Input type="number" value={form.cargaHoraria} onChange={e => update('cargaHoraria', e.target.value)} /></div>
-              <div><Label>E-mail Corporativo</Label><Input type="email" value={form.emailCorporativo} onChange={e => update('emailCorporativo', e.target.value)} /></div>
               <div><Label>Gestor Direto</Label><Input value={form.gestorDireto} onChange={e => update('gestorDireto', e.target.value)} /></div>
               <div><Label>Fim do Período de Experiência</Label><Input type="date" value={form.dataFimExperiencia} onChange={e => update('dataFimExperiencia', e.target.value)} /></div>
             </div>

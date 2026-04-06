@@ -203,7 +203,7 @@ export default function EmployeeProfile() {
             <EditableRow label="RG" value={d.rg} editing={editing} onChange={v => updateField('rg', v)} />
             <EditableRow label="Data de Nascimento" value={editing ? d.data_nascimento : (d.data_nascimento ? new Date(d.data_nascimento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_nascimento', v)} type="date" />
             <EditableRow label="Gênero" value={d.genero} editing={editing} onChange={v => updateField('genero', v)} options={generos} />
-            <EditableRow label="Telefone" value={d.telefone} editing={editing} onChange={v => updateField('telefone', v)} />
+            
             <div className="py-2">
               <p className="text-xs text-muted-foreground mb-0.5">Chave PIX</p>
               {editing ? (
@@ -219,27 +219,18 @@ export default function EmployeeProfile() {
                 </div>
               )}
             </div>
-            <EditableRow label="E-mail Pessoal" value={d.email_pessoal} editing={editing} onChange={v => updateField('email_pessoal', v)} type="email" />
-            <EditableRow label="Rua" value={d.endereco_rua} editing={editing} onChange={v => updateField('endereco_rua', v)} />
-            <EditableRow label="Número" value={d.endereco_numero} editing={editing} onChange={v => updateField('endereco_numero', v)} />
-            <EditableRow label="Bairro" value={d.endereco_bairro} editing={editing} onChange={v => updateField('endereco_bairro', v)} />
-            <EditableRow label="Cidade" value={d.endereco_cidade} editing={editing} onChange={v => updateField('endereco_cidade', v)} />
-            <EditableRow label="Estado" value={d.endereco_estado} editing={editing} onChange={v => updateField('endereco_estado', v)} />
-            <EditableRow label="CEP" value={d.endereco_cep} editing={editing} onChange={v => updateField('endereco_cep', v)} />
           </div>
         </TabsContent>
 
         <TabsContent value="profissionais" className="mt-4">
           <div className="kpi-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
-            <EditableRow label="Matrícula" value={d.matricula} editing={false} />
+            <EditableRow label="Matrícula" value={d.matricula} editing={editing} onChange={v => updateField('matricula', v)} />
             <EditableRow label="Cargo" value={d.cargo} editing={editing} onChange={v => updateField('cargo', v)} error={errors.cargo} />
             <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departmentOptions} />
-            <EditableRow label="Centro de Custo" value={d.centro_custo} editing={editing} onChange={v => updateField('centro_custo', v)} />
+            
             <EditableRow label="Tipo de Contrato" value={d.tipo_contrato} editing={editing} onChange={v => updateField('tipo_contrato', v)} options={tiposContrato} />
             <EditableRow label="Data de Admissão" value={editing ? d.data_admissao : new Date(d.data_admissao).toLocaleDateString('pt-BR')} editing={editing} onChange={v => updateField('data_admissao', v)} type="date" />
             <EditableRow label="Salário" value={d.salario} editing={editing} onChange={v => updateField('salario', Number(v))} type="number" />
-            <EditableRow label="Carga Horária" value={d.carga_horaria} editing={editing} onChange={v => updateField('carga_horaria', Number(v))} type="number" />
-            <EditableRow label="E-mail Corporativo" value={d.email_corporativo} editing={editing} onChange={v => updateField('email_corporativo', v)} type="email" />
             <EditableRow label="Gestor Direto" value={d.gestor_direto} editing={editing} onChange={v => updateField('gestor_direto', v)} />
             <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} />
             <EditableRow label="Fim Experiência" value={editing ? d.data_fim_experiencia : (d.data_fim_experiencia ? new Date(d.data_fim_experiencia).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_fim_experiencia', v)} type="date" />
