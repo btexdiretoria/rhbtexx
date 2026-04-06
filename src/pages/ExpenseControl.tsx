@@ -84,12 +84,12 @@ export default function ExpenseControl() {
                 </div>
                 <div className="text-center min-w-[100px] shrink-0">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Previsão</p>
-                  {isEditing('forecast') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-24" />
+                  {isEditing('forecast') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-9 text-sm text-right w-24" />
                   : <button onClick={() => startEdit(cat.id, 'forecast', cat.forecast)} className="text-sm font-medium text-foreground hover:text-primary transition-colors">{formatCurrency(cat.forecast)}</button>}
                 </div>
                 <div className="text-center min-w-[100px] shrink-0">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Gasto</p>
-                  {isEditing('spent') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-7 text-sm text-right w-24" />
+                  {isEditing('spent') ? <Input autoFocus type="number" value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === 'Enter' && commitEdit()} className="h-9 text-sm text-right w-24" />
                   : <button onClick={() => startEdit(cat.id, 'spent', cat.spent)} className={`text-sm font-medium hover:text-primary transition-colors ${getProgressTextColor(pct)}`}>{formatCurrency(cat.spent)}</button>}
                 </div>
                 <div className="text-center min-w-[90px] shrink-0">
