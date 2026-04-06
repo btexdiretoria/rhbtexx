@@ -134,23 +134,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
             {allItems.find(i => isPathActive(location.pathname, i.path))?.label || companyName}
           </h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+          <div className="flex items-center gap-2 px-3 py-1.5">
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.nome} className="w-6 h-6 rounded-full object-cover" />
+            ) : (
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">{currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-              <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {usuarios.filter(u => u.status === 'Ativo').map(u => (
-                <DropdownMenuItem key={u.id} onClick={() => setCurrentUser({ id: u.id, nome: u.nome, email: u.email, cargo: u.cargo, departamento: u.departamento, nivelAcesso: u.nivel_acesso as any, status: u.status as any, ultimoAcesso: u.ultimo_acesso || '' })} className={currentUser.id === u.id ? 'bg-muted' : ''}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary">{u.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-                    <div><p className="text-sm font-medium">{u.nome}</p><p className="text-xs text-muted-foreground">{u.nivel_acesso}</p></div>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+            <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
+          </div>
         </header>
         <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
       </div>
