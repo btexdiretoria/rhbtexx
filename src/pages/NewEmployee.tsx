@@ -98,17 +98,7 @@ export default function NewEmployee() {
               <div><Label>Telefone</Label><Input value={form.telefone} onChange={e => update('telefone', e.target.value)} /></div>
               <div><Label>Chave PIX</Label><Input value={form.chavePix} onChange={e => update('chavePix', e.target.value)} /></div>
               <div><Label>Tipo de Chave PIX</Label><Select value={form.tipoChavePix} onValueChange={v => update('tipoChavePix', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CPF','CNPJ','E-mail','Telefone','Chave Aleatória'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-              <div className="sm:col-span-2"><Label>E-mail Pessoal</Label><Input type="email" value={form.emailPessoal} onChange={e => update('emailPessoal', e.target.value)} /></div>
-            </div>
-            <h4 className="font-heading font-medium text-foreground pt-2">Endereço</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div><Label>Rua</Label><Input value={form.rua} onChange={e => update('rua', e.target.value)} /></div>
-              <div><Label>Número</Label><Input value={form.numero} onChange={e => update('numero', e.target.value)} /></div>
-              <div><Label>Bairro</Label><Input value={form.bairro} onChange={e => update('bairro', e.target.value)} /></div>
-              <div><Label>Cidade</Label><Input value={form.cidade} onChange={e => update('cidade', e.target.value)} /></div>
-              <div><Label>Estado</Label><Input value={form.estado} onChange={e => update('estado', e.target.value)} /></div>
-              <div><Label>CEP</Label><Input value={form.cep} onChange={e => update('cep', e.target.value)} /></div>
-            </div>
+            
           </div>
         )}
         {currentStep === 1 && (
