@@ -97,7 +97,7 @@ export default function ExpenseControl() {
                   <span className={`text-sm font-medium ${remaining < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(remaining)}</span>
                 </div>
                 <div className="flex-1 flex items-center gap-2 min-w-[200px]">
-                  <div className="flex-1 relative h-3 overflow-hidden rounded-full bg-secondary"><div className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
+                  <div className="flex-1 relative h-2 overflow-hidden rounded-full bg-secondary"><div className={`h-full transition-all duration-300 rounded-full ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} /></div>
                   <span className={`text-xs font-bold min-w-[36px] text-right ${getProgressTextColor(pct)}`}>{pct}%</span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => removeCategory(cat.id)} className="text-destructive hover:text-destructive shrink-0"><Trash2 className="w-4 h-4" /></Button>
