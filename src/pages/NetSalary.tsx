@@ -98,17 +98,21 @@ export default function NetSalary() {
 
   const employees = useMemo(() => {
     let list = allEmployees.filter(f => {
-      if (f.status === 'Ativo' || f.status === 'Afastado') return true;
       if (f.status === 'Desligado' && f.data_desligamento) {
         const d = new Date(f.data_desligamento);
         return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
       }
-      return false;
+      return f.status !== 'Desligado';
     });
     if (search) list = list.filter(f => f.nome.toLowerCase().includes(search.toLowerCase()));
     if (statusFilter !== 'all') list = list.filter(f => f.status === statusFilter);
     return list;
   }, [allEmployees, search, statusFilter, selectedYear, selectedMonth]);
+
+  const availableStatuses = useMemo(() => {
+    const statuses = new Set(allEmployees.map(e => e.status));
+    return Array.from(statuses).sort();
+  }, [allEmployees]);
 
   const earningCols = columns.filter(c => c.type === 'earning');
   const deductionCols = columns.filter(c => c.type === 'deduction');
@@ -203,7 +207,7 @@ export default function NetSalary() {
       <Card><CardContent className="pt-4 pb-4">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Buscar</label><div className="relative"><Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" /><Input className="pl-8" placeholder="Nome do funcionário..." value={search} onChange={e => setSearch(e.target.value)} /></div></div>
-          <div className="w-[160px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="Ativo">Ativo</SelectItem><SelectItem value="Afastado">Afastado</SelectItem><SelectItem value="Desligado">Desligado</SelectItem></SelectContent></Select></div>
+          <div className="w-[160px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem>{availableStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
           {(search || statusFilter !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setStatusFilter('all'); }}><X className="w-4 h-4 mr-1" /> Limpar</Button>}
         </div>
       </CardContent></Card>
