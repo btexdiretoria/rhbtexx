@@ -16,6 +16,7 @@ export default function NewEmployee() {
   const navigate = useNavigate();
   const { logAction } = useApp();
   const createEmployee = useCreateEmployee();
+  const { data: departments = [] } = useDepartments();
   const [currentStep, setCurrentStep] = useState(0);
   const [form, setForm] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
