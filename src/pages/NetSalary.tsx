@@ -98,17 +98,21 @@ export default function NetSalary() {
 
   const employees = useMemo(() => {
     let list = allEmployees.filter(f => {
-      if (f.status === 'Ativo' || f.status === 'Afastado') return true;
       if (f.status === 'Desligado' && f.data_desligamento) {
         const d = new Date(f.data_desligamento);
         return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
       }
-      return false;
+      return f.status !== 'Desligado';
     });
     if (search) list = list.filter(f => f.nome.toLowerCase().includes(search.toLowerCase()));
     if (statusFilter !== 'all') list = list.filter(f => f.status === statusFilter);
     return list;
   }, [allEmployees, search, statusFilter, selectedYear, selectedMonth]);
+
+  const availableStatuses = useMemo(() => {
+    const statuses = new Set(allEmployees.map(e => e.status));
+    return Array.from(statuses).sort();
+  }, [allEmployees]);
 
   const earningCols = columns.filter(c => c.type === 'earning');
   const deductionCols = columns.filter(c => c.type === 'deduction');
