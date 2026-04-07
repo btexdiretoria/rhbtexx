@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
 import { useCreateEmployee } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useFinancial';
 
 const steps = ['Dados Pessoais', 'Dados Profissionais', 'Documentos', 'Revisão'];
 
