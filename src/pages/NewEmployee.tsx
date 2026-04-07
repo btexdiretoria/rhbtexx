@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
 import { useCreateEmployee } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useFinancial';
 
 const steps = ['Dados Pessoais', 'Dados Profissionais', 'Documentos', 'Revisão'];
 
@@ -15,6 +16,7 @@ export default function NewEmployee() {
   const navigate = useNavigate();
   const { logAction } = useApp();
   const createEmployee = useCreateEmployee();
+  const { data: departments = [] } = useDepartments();
   const [currentStep, setCurrentStep] = useState(0);
   const [form, setForm] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
@@ -105,7 +107,7 @@ export default function NewEmployee() {
             <h3 className="font-heading font-semibold text-lg text-foreground">Dados Profissionais</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label>Cargo *</Label><Input value={form.cargo} onChange={e => update('cargo', e.target.value)} /></div>
-              <div><Label>Departamento *</Label><Select value={form.departamento} onValueChange={v => update('departamento', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['Tecnologia','Recursos Humanos','Financeiro','Comercial','Marketing','Operações'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label>Departamento *</Label><Select value={form.departamento} onValueChange={v => update('departamento', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{departments.map(d => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Data de Admissão *</Label><Input type="date" value={form.dataAdmissao} onChange={e => update('dataAdmissao', e.target.value)} /></div>
               <div><Label>Tipo de Contrato</Label><Select value={form.tipoContrato} onValueChange={v => update('tipoContrato', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CLT','PJ','Estágio','Temporário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Salário</Label><Input type="number" value={form.salario} onChange={e => update('salario', e.target.value)} placeholder="0.00" /></div>
