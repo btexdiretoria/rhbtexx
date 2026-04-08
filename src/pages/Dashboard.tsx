@@ -127,9 +127,9 @@ export default function Dashboard() {
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
     { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
-    { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
   ];
 
   const experienciaAlerts = useMemo(() => {
