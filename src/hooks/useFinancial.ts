@@ -494,7 +494,7 @@ export function useDepartmentManagers() {
         .from('department_managers' as any)
         .select('*');
       if (error) throw error;
-      return data as { id: string; department_name: string; employee_id: string }[];
+      return (data as unknown) as { id: string; department_name: string; employee_id: string }[];
     },
   });
 }
