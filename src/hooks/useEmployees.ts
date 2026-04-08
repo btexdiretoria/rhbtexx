@@ -180,7 +180,27 @@ export function useUpdateEvaluation() {
   });
 }
 
+export function useDeleteEmployee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('employees').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['employees'] }),
+  });
+}
+
 export function useDeleteEvaluation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('evaluations').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['evaluations'] }),
+  });
+}
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
