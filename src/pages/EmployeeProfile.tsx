@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Briefcase, FileText, History, User, Plus, Pencil, Save, X, Trash2, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useEmployee, useUpdateEmployee, useEmployeeDocuments, useEmployeeHistory, useEvaluations, useCreateDocument, useDeleteDocument, useUpdateEvaluation, useCreateEvaluation, type Employee } from '@/hooks/useEmployees';
+import { useEmployee, useUpdateEmployee, useEmployeeDocuments, useEmployeeHistory, useEvaluations, useCreateDocument, useDeleteDocument, useUpdateEvaluation, useCreateEvaluation, useDeleteEmployee, type Employee } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
 
 function StatusBadge({ status }: { status: string }) {
@@ -63,14 +63,17 @@ const tiposChavePix = [{ label: 'CPF', value: 'CPF' }, { label: 'CNPJ', value: '
 
 export default function EmployeeProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const { logAction } = useApp();
+  const { logAction, currentUser } = useApp();
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
   const { data: employee, isLoading } = useEmployee(id);
   const { data: documents = [] } = useEmployeeDocuments(id);
   const { data: history = [] } = useEmployeeHistory(id);
   const { data: evaluations = [] } = useEvaluations(id);
   const { data: departments = [] } = useDepartments();
   const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
   const createDoc = useCreateDocument();
   const deleteDoc = useDeleteDocument();
   const updateEval = useUpdateEvaluation();
@@ -80,6 +83,7 @@ export default function EmployeeProfile() {
   const [editData, setEditData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDesligamentoDialog, setShowDesligamentoDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const [evalDialogOpen, setEvalDialogOpen] = useState(false);
   const [evalForm, setEvalForm] = useState({
@@ -124,7 +128,18 @@ export default function EmployeeProfile() {
     doSave();
   };
 
-  const d = editing ? editData : employee;
+   const d = editing ? editData : employee;
+
+  const handleDeleteEmployee = async () => {
+    try {
+      await deleteEmployee.mutateAsync(employee.id);
+      logAction('Exclusão', employee.nome, `Excluiu o funcionário ${employee.nome}`, { targetId: employee.id });
+      toast({ title: 'Funcionário excluído com sucesso!' });
+      navigate('/funcionarios');
+    } catch (err: any) {
+      toast({ title: 'Erro ao excluir', description: err.message, variant: 'destructive' });
+    }
+  };
 
   const mediaAvaliacao = evaluations.length > 0
     ? (evaluations.reduce((acc, a) => acc + (a.produtividade + a.comunicacao + a.trabalho_equipe + a.proatividade + a.lideranca + a.resultados) / 6, 0) / evaluations.length).toFixed(1) : '—';
@@ -241,6 +256,13 @@ export default function EmployeeProfile() {
                 <EditableRow label="Valor Rescisão" value={d.valor_rescisao} editing={editing} onChange={v => updateField('valor_rescisao', Number(v))} type="number" error={errors.valor_rescisao} />
                 <EditableRow label="Data Pgto Rescisão" value={editing ? d.data_pagamento_rescisao : (d.data_pagamento_rescisao ? new Date(d.data_pagamento_rescisao).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_pagamento_rescisao', v)} type="date" error={errors.data_pagamento_rescisao} />
               </>
+            )}
+            {isAdmin && !editing && (
+              <div className="col-span-full pt-4 border-t border-border">
+                <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)} className="gap-1.5">
+                  <Trash2 className="w-4 h-4" />Excluir Funcionário
+                </Button>
+              </div>
             )}
           </div>
         </TabsContent>
@@ -359,6 +381,19 @@ export default function EmployeeProfile() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => { setShowDesligamentoDialog(false); doSave(); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Confirmar Desligamento</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Funcionário</AlertDialogTitle>
+            <AlertDialogDescription>Tem certeza que deseja excluir este funcionário? Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowDeleteDialog(false); handleDeleteEmployee(); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

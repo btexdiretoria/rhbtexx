@@ -22,7 +22,7 @@ export default function NewEmployee() {
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
     chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '', dataFimExperiencia: '',
+    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '',
   });
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -56,7 +56,7 @@ export default function NewEmployee() {
         salario: Number(form.salario) || 0,
         carga_horaria: Number(form.cargaHoraria) || 40,
         email_corporativo: form.emailCorporativo || '',
-        gestor_direto: form.gestorDireto || '',
+        gestor_direto: '',
         data_admissao: form.dataAdmissao,
         data_fim_experiencia: form.dataFimExperiencia || null,
         matricula: `MAT${Date.now().toString().slice(-6)}`,
@@ -111,8 +111,20 @@ export default function NewEmployee() {
               <div><Label>Data de Admissão *</Label><Input type="date" value={form.dataAdmissao} onChange={e => update('dataAdmissao', e.target.value)} /></div>
               <div><Label>Tipo de Contrato</Label><Select value={form.tipoContrato} onValueChange={v => update('tipoContrato', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CLT','PJ','Estágio','Temporário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Salário</Label><Input type="number" value={form.salario} onChange={e => update('salario', e.target.value)} placeholder="0.00" /></div>
-              <div><Label>Gestor Direto</Label><Input value={form.gestorDireto} onChange={e => update('gestorDireto', e.target.value)} /></div>
-              <div><Label>Fim do Período de Experiência</Label><Input type="date" value={form.dataFimExperiencia} onChange={e => update('dataFimExperiencia', e.target.value)} /></div>
+              <div>
+                <Label>Fim do Período de Experiência</Label>
+                <div className="flex gap-2 items-center">
+                  <Input type="date" value={form.dataFimExperiencia} onChange={e => update('dataFimExperiencia', e.target.value)} />
+                  <Button type="button" variant="outline" size="sm" className="whitespace-nowrap text-xs" onClick={() => {
+                    if (!form.dataAdmissao) { toast({ title: 'Preencha a Data de Admissão primeiro', variant: 'destructive' }); return; }
+                    const d = new Date(form.dataAdmissao); d.setDate(d.getDate() + 45); update('dataFimExperiencia', d.toISOString().split('T')[0]);
+                  }}>45 dias</Button>
+                  <Button type="button" variant="outline" size="sm" className="whitespace-nowrap text-xs" onClick={() => {
+                    if (!form.dataAdmissao) { toast({ title: 'Preencha a Data de Admissão primeiro', variant: 'destructive' }); return; }
+                    const d = new Date(form.dataAdmissao); d.setDate(d.getDate() + 90); update('dataFimExperiencia', d.toISOString().split('T')[0]);
+                  }}>90 dias</Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
