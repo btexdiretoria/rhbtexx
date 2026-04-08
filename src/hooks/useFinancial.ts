@@ -484,3 +484,45 @@ export function useUpdateCompanySettings() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['company_settings'] }),
   });
 }
+
+// ─── Department Managers ───
+export function useDepartmentManagers() {
+  return useQuery({
+    queryKey: ['department_managers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('department_managers' as any)
+        .select('*');
+      if (error) throw error;
+      return data as { id: string; department_name: string; employee_id: string }[];
+    },
+  });
+}
+
+export function useUpsertDepartmentManager() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ department_name, employee_id }: { department_name: string; employee_id: string }) => {
+      // Try update first, then insert
+      const { data: existing } = await supabase
+        .from('department_managers' as any)
+        .select('id')
+        .eq('department_name', department_name)
+        .maybeSingle();
+      
+      if (existing) {
+        const { error } = await supabase
+          .from('department_managers' as any)
+          .update({ employee_id, updated_at: new Date().toISOString() })
+          .eq('id', (existing as any).id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('department_managers' as any)
+          .insert({ department_name, employee_id });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['department_managers'] }),
+  });
+}
