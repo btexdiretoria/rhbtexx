@@ -22,7 +22,7 @@ export default function NewEmployee() {
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
     chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', gestorDireto: '', dataAdmissao: '', dataFimExperiencia: '',
+    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '',
   });
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -56,7 +56,7 @@ export default function NewEmployee() {
         salario: Number(form.salario) || 0,
         carga_horaria: Number(form.cargaHoraria) || 40,
         email_corporativo: form.emailCorporativo || '',
-        gestor_direto: form.gestorDireto || '',
+        gestor_direto: '',
         data_admissao: form.dataAdmissao,
         data_fim_experiencia: form.dataFimExperiencia || null,
         matricula: `MAT${Date.now().toString().slice(-6)}`,
