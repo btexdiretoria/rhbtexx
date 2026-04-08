@@ -231,7 +231,7 @@ export default function EmployeeProfile() {
             <EditableRow label="Tipo de Contrato" value={d.tipo_contrato} editing={editing} onChange={v => updateField('tipo_contrato', v)} options={tiposContrato} />
             <EditableRow label="Data de Admissão" value={editing ? d.data_admissao : new Date(d.data_admissao).toLocaleDateString('pt-BR')} editing={editing} onChange={v => updateField('data_admissao', v)} type="date" />
             <EditableRow label="Salário" value={d.salario} editing={editing} onChange={v => updateField('salario', Number(v))} type="number" />
-            <EditableRow label="Gestor Direto" value={d.gestor_direto} editing={editing} onChange={v => updateField('gestor_direto', v)} />
+            
             <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} />
             <EditableRow label="Fim Experiência" value={editing ? d.data_fim_experiencia : (d.data_fim_experiencia ? new Date(d.data_fim_experiencia).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_fim_experiencia', v)} type="date" />
             {d.status === 'Desligado' && (

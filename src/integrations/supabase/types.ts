@@ -86,6 +86,38 @@ export type Database = {
         }
         Relationships: []
       }
+      department_managers: {
+        Row: {
+          created_at: string
+          department_name: string
+          employee_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_name: string
+          employee_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_name?: string
+          employee_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_managers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string

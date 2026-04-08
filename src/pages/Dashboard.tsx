@@ -1,10 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench } from 'lucide-react';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { useEmployees, type Employee } from '@/hooks/useEmployees';
+import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFinancial';
+import { useApp } from '@/contexts/AppContext';
+import { toast } from 'sonner';
 
 type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
@@ -30,13 +35,31 @@ function getStatusLabel(status: string) { return statusDisplayLabel[status as St
 
 export default function Dashboard() {
   const { data: employees = [], isLoading } = useEmployees();
+  const { data: deptManagers = [] } = useDepartmentManagers();
+  const upsertManager = useUpsertDepartmentManager();
+  const { currentUser } = useApp();
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
 
   const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('probation_acknowledged') || '[]'); } catch { return []; }
   });
   const [kpiModal, setKpiModal] = useState<{ label: string; employees: Employee[] } | null>(null);
+  const [managerModal, setManagerModal] = useState<{ dept: string; members: Employee[] } | null>(null);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>('');
 
   useEffect(() => { localStorage.setItem('probation_acknowledged', JSON.stringify(acknowledgedIds)); }, [acknowledgedIds]);
+
+  const managerMap = useMemo(() => {
+    const map = new Map<string, string>();
+    deptManagers.forEach(dm => map.set(dm.department_name, dm.employee_id));
+    return map;
+  }, [deptManagers]);
+
+  const empMap = useMemo(() => {
+    const map = new Map<string, Employee>();
+    employees.forEach(e => map.set(e.id, e));
+    return map;
+  }, [employees]);
 
   const stats = useMemo(() => {
     const total = employees.length;
@@ -93,12 +116,13 @@ export default function Dashboard() {
       deptMap.get(f.departamento)!.push(f);
     });
     return Array.from(deptMap.entries()).map(([dept, members]) => {
-      const leader = members.find(m => /gerente|coordenador|diretor|líder/i.test(m.cargo)) || null;
+      const managerId = managerMap.get(dept);
+      const leader = managerId ? empMap.get(managerId) || null : null;
       const ativos = members.filter(m => m.status === 'Ativo').length;
       const outros = members.filter(m => m.status !== 'Ativo').length;
       return { dept, members, leader, ativos, outros, total: members.length };
     });
-  }, [employees]);
+  }, [employees, managerMap, empMap]);
 
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
@@ -124,6 +148,20 @@ export default function Dashboard() {
   const handleAcknowledge = (id: string, checked: boolean) => {
     if (checked) setAcknowledgedIds(prev => [...prev, id]);
     else setAcknowledgedIds(prev => prev.filter(i => i !== id));
+  };
+
+  const openManagerModal = (dept: string, members: Employee[]) => {
+    const currentManagerId = managerMap.get(dept) || '';
+    setSelectedManagerId(currentManagerId);
+    setManagerModal({ dept, members: members.filter(m => m.status !== 'Desligado') });
+  };
+
+  const saveManager = () => {
+    if (!managerModal || !selectedManagerId) return;
+    upsertManager.mutate({ department_name: managerModal.dept, employee_id: selectedManagerId }, {
+      onSuccess: () => { toast.success('Gestor do setor atualizado!'); setManagerModal(null); },
+      onError: () => toast.error('Erro ao atualizar gestor'),
+    });
   };
 
   if (isLoading) return <div className="flex items-center justify-center py-20"><p className="text-muted-foreground">Carregando dashboard...</p></div>;
@@ -209,7 +247,18 @@ export default function Dashboard() {
                 <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-1 rounded-full">{setor.total} funcionário{setor.total !== 1 ? 's' : ''}</span>
               </div>
               <div className="mb-4">
-                <p className="text-xs text-muted-foreground mb-2">Líder do Setor</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-muted-foreground">Líder do Setor</p>
+                  {isAdmin && (
+                    <button
+                      onClick={() => openManagerModal(setor.dept, setor.members)}
+                      className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      title="Definir Gestor"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
                 {setor.leader ? (
                   <div className="flex items-center gap-3">
                     <AvatarInitials name={setor.leader.nome} size="md" />
@@ -240,6 +289,30 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      {/* Manager assignment modal */}
+      <Dialog open={!!managerModal} onOpenChange={(open) => { if (!open) setManagerModal(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Definir Gestor</DialogTitle>
+            <DialogDescription>Selecione o líder do setor {managerModal?.dept}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={selectedManagerId} onValueChange={setSelectedManagerId}>
+              <SelectTrigger><SelectValue placeholder="Selecione um funcionário" /></SelectTrigger>
+              <SelectContent>
+                {managerModal?.members.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.nome} — {m.cargo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setManagerModal(null)}>Cancelar</Button>
+              <Button size="sm" onClick={saveManager} disabled={!selectedManagerId || upsertManager.isPending}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="kpi-card">
