@@ -36,7 +36,7 @@ export default function FoodVoucher() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const activeEmployees = useMemo(() => allEmployees.filter(f => f.status === 'Ativo'), [allEmployees]);
+  const activeEmployees = useMemo(() => allEmployees.filter(f => f.status !== 'Desligado'), [allEmployees]);
   const availableEmployees = useMemo(() =>
     activeEmployees.filter(e => !entries.some(en => en.employee_id === e.id)).filter(e => e.nome.toLowerCase().includes(search.toLowerCase())),
     [activeEmployees, entries, search]);
