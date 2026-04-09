@@ -47,9 +47,9 @@ function SalaryCell({ initialValue, onCommit }: SalaryCellProps) {
   };
 
   return (
-    <Input
-      type="number"
-      className="h-7 text-xs text-right w-24"
+      <Input
+        type="number"
+        className="h-7 text-xs text-right w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       value={localValue}
       onChange={e => setLocalValue(e.target.value)}
       onBlur={handleBlur}
@@ -212,11 +212,11 @@ export default function NetSalary() {
         </div>
       </CardContent></Card>
 
-      <Card><CardContent className="p-0"><div className="overflow-x-auto">
+      <Card><CardContent className="p-0"><div className="overflow-x-auto" style={{ overflowX: 'scroll' }}>
         <table className="w-full text-sm border-collapse">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr className="border-b border-border">
-              <th className="sticky left-0 z-10 bg-card px-3 py-2 text-left font-medium text-muted-foreground" rowSpan={2} style={{ minWidth: 180 }}>Funcionário</th>
+              <th className="sticky left-0 z-30 bg-card px-3 py-2 text-left font-medium text-muted-foreground" rowSpan={2} style={{ minWidth: 180 }}>Funcionário</th>
               <th className="bg-card px-3 py-2 text-left font-medium text-muted-foreground" rowSpan={2} style={{ minWidth: 100 }}>Status</th>
               <th colSpan={earningCols.length + 1} className="px-3 py-2 text-center font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-x border-border">Proventos</th>
               <th colSpan={deductionCols.length + 1} className="px-3 py-2 text-center font-semibold text-destructive bg-red-50 dark:bg-red-950/30 border-r border-border">Descontos</th>

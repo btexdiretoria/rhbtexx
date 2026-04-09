@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,6 +45,7 @@ function isPathActive(pathname: string, path: string) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { currentUser } = useApp();
   const { data: companySettings } = useCompanySettings();
   const { signOut } = useAuth();
@@ -62,7 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full">
       {sidebarOpen && <div className="fixed inset-0 bg-foreground/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 flex flex-col bg-sidebar transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 flex flex-col bg-sidebar transition-all duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${sidebarCollapsed ? 'lg:-translate-x-full lg:w-0 lg:min-w-0 lg:overflow-hidden' : 'lg:translate-x-0'}`}>
         <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><Users className="w-4 h-4 text-primary-foreground" /></div>
           <span className="font-heading text-lg font-bold text-sidebar-primary-foreground truncate">{companyName}</span>
@@ -131,6 +132,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 bg-card border-b border-border px-4 lg:px-6 h-14 flex items-center gap-4">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}><Menu className="w-6 h-6" /></button>
+          <button className="hidden lg:flex text-foreground hover:text-primary transition-colors" onClick={() => setSidebarCollapsed(c => !c)}>
+            {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </button>
           <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
             {allItems.find(i => isPathActive(location.pathname, i.path))?.label || companyName}
           </h1>

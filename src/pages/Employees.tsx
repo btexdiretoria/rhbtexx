@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useFinancial';
 
 type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
 
-const departamentos = ['Todos', 'Tecnologia', 'Recursos Humanos', 'Financeiro', 'Comercial', 'Marketing', 'Operações'];
+
 const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
   { value: 'Todos', label: 'Todos' },
   { value: 'Ativo', label: 'Ativo' },
@@ -39,6 +40,8 @@ const deptBorderColors: Record<string, string> = {
 
 export default function Employees() {
   const { data: employees = [], isLoading } = useEmployees();
+  const { data: departments = [] } = useDepartments();
+  const departamentos = ['Todos', ...departments.map(d => d.name)];
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [deptFilter, setDeptFilter] = useState('Todos');
