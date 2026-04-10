@@ -17,7 +17,22 @@ export default function Terminations() {
   const { logAction } = useApp();
   const { data: employees = [], isLoading } = useEmployees();
   const updateEmployee = useUpdateEmployee();
-  const [mes, setMes] = useState('2026-03');
+  const dynamicMonths = useMemo(() => {
+    const now = new Date();
+    const result: { value: string; label: string }[] = [];
+    const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    for (let i = -12; i <= 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      result.push({ value: `${y}-${m}`, label: `${monthNames[d.getMonth()]} ${y}` });
+    }
+    return result.reverse();
+  }, []);
+  const [mes, setMes] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [calYear, setCalYear] = useState(2026);
   const [calMonth, setCalMonth] = useState(2);
 
