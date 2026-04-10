@@ -81,9 +81,9 @@ export default function Terminations() {
         <Select value={mes} onValueChange={setMes}>
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="2026-03">Março 2026</SelectItem>
-            <SelectItem value="2026-02">Fevereiro 2026</SelectItem>
-            <SelectItem value="2026-01">Janeiro 2026</SelectItem>
+            {dynamicMonths.map(m => (
+              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
