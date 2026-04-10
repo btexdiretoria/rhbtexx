@@ -196,7 +196,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="kpi-card cursor-pointer" onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}>
             <div className="flex items-center justify-between mb-3">
@@ -227,6 +227,40 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {avisoPrevioAlerts.length > 0 && (
+        <div className="kpi-card">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-5 h-5 text-amber-600" />
+            <h3 className="font-heading font-semibold text-foreground">Aviso Prévio</h3>
+            <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{avisoPrevioAlerts.length}</span>
+          </div>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {avisoPrevioAlerts.map(f => (
+              <div key={f.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${f.diffDays <= 0 ? 'bg-destructive/10' : 'bg-amber-50'} hover:bg-muted/50`}>
+                <Link to={`/funcionarios/${f.id}`} className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${f.diffDays <= 0 ? 'bg-destructive/10 text-destructive' : 'bg-amber-100 text-amber-700'}`}>
+                    {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{f.nome}</p>
+                    <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
+                  </div>
+                </Link>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-amber-600'}`}>{f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}</p>
+                    <p className="text-xs text-muted-foreground">{f.dataFimAviso.toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer" onClick={e => e.stopPropagation()}>
+                    <Checkbox checked={false} onCheckedChange={(c) => handleAcknowledgeAviso(f.id, !!c)} />Ciente
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {experienciaAlerts.length > 0 && (
         <div className="kpi-card">
