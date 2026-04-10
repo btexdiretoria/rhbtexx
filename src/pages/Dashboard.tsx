@@ -11,8 +11,8 @@ import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFi
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Aviso Prévio';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', 'Aviso Prévio': 'Aviso Prévio' };
 
 const deptIcons: Record<string, React.ReactNode> = {
   'Tecnologia': <Monitor className="w-5 h-5" />,
@@ -30,7 +30,7 @@ function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md
   return <div className={`${cls} rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary shrink-0`}>{initials}</div>;
 }
 
-const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground', 'Prestador de Serviço': 'bg-blue-500' };
+const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground', 'Prestador de Serviço': 'bg-blue-500', 'Aviso Prévio': 'bg-amber-500' };
 function getStatusLabel(status: string) { return statusDisplayLabel[status as StatusFuncionario] || status; }
 
 export default function Dashboard() {
@@ -43,11 +43,15 @@ export default function Dashboard() {
   const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('probation_acknowledged') || '[]'); } catch { return []; }
   });
+  const [acknowledgedAvisoIds, setAcknowledgedAvisoIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('aviso_previo_acknowledged') || '[]'); } catch { return []; }
+  });
   const [kpiModal, setKpiModal] = useState<{ label: string; employees: Employee[] } | null>(null);
   const [managerModal, setManagerModal] = useState<{ dept: string; members: Employee[] } | null>(null);
   const [selectedManagerId, setSelectedManagerId] = useState<string>('');
 
   useEffect(() => { localStorage.setItem('probation_acknowledged', JSON.stringify(acknowledgedIds)); }, [acknowledgedIds]);
+  useEffect(() => { localStorage.setItem('aviso_previo_acknowledged', JSON.stringify(acknowledgedAvisoIds)); }, [acknowledgedAvisoIds]);
 
   const managerMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -66,10 +70,11 @@ export default function Dashboard() {
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
+    const avisoPrevio = employees.filter(f => f.status === 'Aviso Prévio').length;
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const desligadosMes = employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)).length;
-    return { total, ativos, afastados, desligadosMes, prestadores };
+    return { total, ativos, afastados, desligadosMes, prestadores, avisoPrevio };
   }, [employees]);
 
   const kpiEmployees = useMemo(() => {
@@ -78,9 +83,10 @@ export default function Dashboard() {
     return {
       'Total de Funcionários': employees,
       'Ativos': employees.filter(f => f.status === 'Ativo'),
-      'Afastados': employees.filter(f => f.status === 'Afastado'),
-      'Desligados no Mês': employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
+      'Afastados': employees.filter(f => f.status === 'Afastado'),
+      'Aviso Prévio': employees.filter(f => f.status === 'Aviso Prévio'),
+      'Desligados no Mês': employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)),
     };
   }, [employees]);
 
@@ -101,9 +107,11 @@ export default function Dashboard() {
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const desligados = employees.filter(f => f.status === 'Desligado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
+    const avisoPrevio = employees.filter(f => f.status === 'Aviso Prévio').length;
     return [
       { name: 'Ativo', value: ativos, color: '#10B981' },
       { name: 'Afastado', value: afastados, color: '#F97316' },
+      { name: 'Aviso Prévio', value: avisoPrevio, color: '#D97706' },
       { name: 'Desligado', value: desligados, color: '#9CA3AF' },
       { name: 'Prestador de Serviço', value: prestadores, color: '#3B82F6' },
     ];
@@ -124,11 +132,31 @@ export default function Dashboard() {
     });
   }, [employees, managerMap, empMap]);
 
+  const avisoPrevioAlerts = useMemo(() => {
+    const hoje = new Date();
+    return employees
+      .filter(f => f.status === 'Aviso Prévio' && (f as any).data_inicio_aviso_previo)
+      .map(f => {
+        const inicio = new Date((f as any).data_inicio_aviso_previo);
+        const fim = new Date(inicio); fim.setDate(fim.getDate() + 30);
+        const diffDays = Math.ceil((fim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return { ...f, dataFimAviso: fim, diffDays };
+      })
+      .filter(f => !acknowledgedAvisoIds.includes(f.id))
+      .sort((a, b) => a.diffDays - b.diffDays);
+  }, [employees, acknowledgedAvisoIds]);
+
+  const handleAcknowledgeAviso = (id: string, checked: boolean) => {
+    if (checked) setAcknowledgedAvisoIds(prev => [...prev, id]);
+    else setAcknowledgedAvisoIds(prev => prev.filter(i => i !== id));
+  };
+
   const kpis = [
     { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
     { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
+    { label: 'Aviso Prévio', value: stats.avisoPrevio, icon: Clock, color: 'bg-amber-50 text-amber-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
 
@@ -168,7 +196,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="kpi-card cursor-pointer" onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}>
             <div className="flex items-center justify-between mb-3">
@@ -199,6 +227,40 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {avisoPrevioAlerts.length > 0 && (
+        <div className="kpi-card">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-5 h-5 text-amber-600" />
+            <h3 className="font-heading font-semibold text-foreground">Aviso Prévio</h3>
+            <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{avisoPrevioAlerts.length}</span>
+          </div>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {avisoPrevioAlerts.map(f => (
+              <div key={f.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${f.diffDays <= 0 ? 'bg-destructive/10' : 'bg-amber-50'} hover:bg-muted/50`}>
+                <Link to={`/funcionarios/${f.id}`} className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${f.diffDays <= 0 ? 'bg-destructive/10 text-destructive' : 'bg-amber-100 text-amber-700'}`}>
+                    {f.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{f.nome}</p>
+                    <p className="text-xs text-muted-foreground">{f.cargo} · {f.departamento}</p>
+                  </div>
+                </Link>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <p className={`text-xs font-semibold ${f.diffDays <= 0 ? 'text-destructive' : 'text-amber-600'}`}>{f.diffDays <= 0 ? 'Expirado' : `${f.diffDays} dia${f.diffDays !== 1 ? 's' : ''}`}</p>
+                    <p className="text-xs text-muted-foreground">{f.dataFimAviso.toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer" onClick={e => e.stopPropagation()}>
+                    <Checkbox checked={false} onCheckedChange={(c) => handleAcknowledgeAviso(f.id, !!c)} />Ciente
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {experienciaAlerts.length > 0 && (
         <div className="kpi-card">

@@ -56,7 +56,7 @@ function EditableRow({ label, value, editing, onChange, type = 'text', error, op
 }
 
 const timelineIcons: Record<string, string> = { admissao: '🟢', promocao: '⬆️', mudanca_cargo: '🔄', advertencia: '⚠️', desligamento: '🔴', afastamento: '🟡' };
-const statusOptions = [{ label: 'Ativo', value: 'Ativo' }, { label: 'Afastado', value: 'Afastado' }, { label: 'Desligado', value: 'Desligado' }, { label: 'Prestador de Serviço', value: 'Prestador de Serviço' }];
+const statusOptions = [{ label: 'Ativo', value: 'Ativo' }, { label: 'Afastado', value: 'Afastado' }, { label: 'Aviso Prévio', value: 'Aviso Prévio' }, { label: 'Desligado', value: 'Desligado' }, { label: 'Prestador de Serviço', value: 'Prestador de Serviço' }];
 const tiposContrato = [{ label: 'CLT', value: 'CLT' }, { label: 'PJ', value: 'PJ' }, { label: 'Estágio', value: 'Estágio' }, { label: 'Temporário', value: 'Temporário' }];
 const generos = [{ label: 'Masculino', value: 'Masculino' }, { label: 'Feminino', value: 'Feminino' }, { label: 'Outro', value: 'Outro' }];
 const tiposChavePix = [{ label: 'CPF', value: 'CPF' }, { label: 'CNPJ', value: 'CNPJ' }, { label: 'E-mail', value: 'E-mail' }, { label: 'Telefone', value: 'Telefone' }, { label: 'Chave Aleatória', value: 'Chave Aleatória' }];
@@ -249,12 +249,10 @@ export default function EmployeeProfile() {
             
             <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} />
             <EditableRow label="Fim Experiência" value={editing ? d.data_fim_experiencia : (d.data_fim_experiencia ? new Date(d.data_fim_experiencia).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_fim_experiencia', v)} type="date" />
-            {d.status === 'Desligado' && (
+            {d.status === 'Aviso Prévio' && (
               <>
-                <EditableRow label="Data Desligamento" value={editing ? d.data_desligamento : (d.data_desligamento ? new Date(d.data_desligamento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_desligamento', v)} type="date" />
-                <EditableRow label="Motivo" value={d.motivo_desligamento} editing={editing} onChange={v => updateField('motivo_desligamento', v)} />
-                <EditableRow label="Valor Rescisão" value={d.valor_rescisao} editing={editing} onChange={v => updateField('valor_rescisao', Number(v))} type="number" error={errors.valor_rescisao} />
-                <EditableRow label="Data Pgto Rescisão" value={editing ? d.data_pagamento_rescisao : (d.data_pagamento_rescisao ? new Date(d.data_pagamento_rescisao).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_pagamento_rescisao', v)} type="date" error={errors.data_pagamento_rescisao} />
+                <EditableRow label="Data Início Aviso Prévio" value={editing ? d.data_inicio_aviso_previo : (d.data_inicio_aviso_previo ? new Date(d.data_inicio_aviso_previo).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_inicio_aviso_previo', v)} type="date" />
+                <InfoRow label="Fim do Aviso Prévio" value={d.data_inicio_aviso_previo ? (() => { const dt = new Date(d.data_inicio_aviso_previo); dt.setDate(dt.getDate() + 30); return dt.toLocaleDateString('pt-BR'); })() : '—'} />
               </>
             )}
             {isAdmin && !editing && (
@@ -265,6 +263,20 @@ export default function EmployeeProfile() {
               </div>
             )}
           </div>
+
+          {d.status === 'Desligado' && (
+            <div className="kpi-card mt-4">
+              <h3 className="font-heading font-semibold text-lg text-foreground mb-4">Informações de Rescisão</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
+                <EditableRow label="Valor Rescisão Líquido" value={d.valor_rescisao} editing={editing} onChange={v => updateField('valor_rescisao', Number(v))} type="number" error={errors.valor_rescisao} />
+                <EditableRow label="Desconto Alimentação" value={d.desconto_alimentacao} editing={editing} onChange={v => updateField('desconto_alimentacao', Number(v))} type="number" />
+                <EditableRow label="Desconto Faltas" value={d.desconto_faltas} editing={editing} onChange={v => updateField('desconto_faltas', Number(v))} type="number" />
+                <EditableRow label="Data Desligamento" value={editing ? d.data_desligamento : (d.data_desligamento ? new Date(d.data_desligamento).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_desligamento', v)} type="date" />
+                <EditableRow label="Data Pgto Rescisão" value={editing ? d.data_pagamento_rescisao : (d.data_pagamento_rescisao ? new Date(d.data_pagamento_rescisao).toLocaleDateString('pt-BR') : '—')} editing={editing} onChange={v => updateField('data_pagamento_rescisao', v)} type="date" error={errors.data_pagamento_rescisao} />
+                <EditableRow label="Motivo" value={d.motivo_desligamento} editing={editing} onChange={v => updateField('motivo_desligamento', v)} />
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="documentos" className="mt-4">
