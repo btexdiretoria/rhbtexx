@@ -214,6 +214,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          aviso_previo_ciente: boolean | null
           carga_horaria: number | null
           cargo: string
           centro_custo: string | null
@@ -224,9 +225,12 @@ export type Database = {
           data_admissao: string
           data_desligamento: string | null
           data_fim_experiencia: string | null
+          data_inicio_aviso_previo: string | null
           data_nascimento: string | null
           data_pagamento_rescisao: string | null
           departamento: string
+          desconto_alimentacao: number | null
+          desconto_faltas: number | null
           email_corporativo: string | null
           email_pessoal: string | null
           endereco_bairro: string | null
@@ -254,6 +258,7 @@ export type Database = {
           valor_rescisao: number | null
         }
         Insert: {
+          aviso_previo_ciente?: boolean | null
           carga_horaria?: number | null
           cargo: string
           centro_custo?: string | null
@@ -264,9 +269,12 @@ export type Database = {
           data_admissao: string
           data_desligamento?: string | null
           data_fim_experiencia?: string | null
+          data_inicio_aviso_previo?: string | null
           data_nascimento?: string | null
           data_pagamento_rescisao?: string | null
           departamento: string
+          desconto_alimentacao?: number | null
+          desconto_faltas?: number | null
           email_corporativo?: string | null
           email_pessoal?: string | null
           endereco_bairro?: string | null
@@ -294,6 +302,7 @@ export type Database = {
           valor_rescisao?: number | null
         }
         Update: {
+          aviso_previo_ciente?: boolean | null
           carga_horaria?: number | null
           cargo?: string
           centro_custo?: string | null
@@ -304,9 +313,12 @@ export type Database = {
           data_admissao?: string
           data_desligamento?: string | null
           data_fim_experiencia?: string | null
+          data_inicio_aviso_previo?: string | null
           data_nascimento?: string | null
           data_pagamento_rescisao?: string | null
           departamento?: string
+          desconto_alimentacao?: number | null
+          desconto_faltas?: number | null
           email_corporativo?: string | null
           email_pessoal?: string | null
           endereco_bairro?: string | null
