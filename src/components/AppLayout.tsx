@@ -51,7 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  const companyName = companySettings?.company_name || 'GestãoPeople';
+  const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
   const handleLogout = async () => { await signOut(); navigate('/login'); };
 
