@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DollarSign, Plus, Trash2, Pencil, Check, Search, X } from 'lucide-react';
+import { DollarSign, Plus, Trash2, Pencil, Check, Search, X, Rocket } from 'lucide-react';
+import DynamicLaunchOverlay from '@/components/DynamicLaunchOverlay';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useNetSalaryColumns, useNetSalaryValues, useCreateNetSalaryColumn, useDeleteNetSalaryColumn, useUpdateNetSalaryColumn, useUpsertNetSalaryValue } from '@/hooks/useFinancial';
 
@@ -85,6 +86,7 @@ export default function NetSalary() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [editingColId, setEditingColId] = useState<string | null>(null);
+  const [dynamicLaunchOpen, setDynamicLaunchOpen] = useState(false);
   const [editingColName, setEditingColName] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [topHeaderHeight, setTopHeaderHeight] = useState(40);
