@@ -25,7 +25,7 @@ export default function Login() {
     retry: false,
   });
 
-  const companyName = companySettings?.company_name || 'GestãoPeople';
+  const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
