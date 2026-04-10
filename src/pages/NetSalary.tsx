@@ -335,6 +335,7 @@ export default function NetSalary() {
           <div className="min-w-[200px] flex-1"><label className="mb-1 block text-xs font-medium text-muted-foreground">Buscar</label><div className="relative"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input className="pl-8" placeholder="Nome do funcionário..." value={search} onChange={e => setSearch(e.target.value)} /></div></div>
           <div className="w-[160px]"><label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem>{availableStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent></Select></div>
           {(search || statusFilter !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setStatusFilter('all'); }}><X className="mr-1 h-4 w-4" /> Limpar</Button>}
+          <Button onClick={() => setDynamicLaunchOpen(true)} className="ml-auto"><Rocket className="mr-1 h-4 w-4" /> Lançamento Dinâmico</Button>
         </div>
       </CardContent></Card>
 
