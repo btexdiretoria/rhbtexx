@@ -432,6 +432,15 @@ export default function NetSalary() {
           </div>
         </div>
       )}
+
+      <DynamicLaunchOverlay
+        open={dynamicLaunchOpen}
+        onClose={() => setDynamicLaunchOpen(false)}
+        employees={employees}
+        columns={columns}
+        getCellValue={getCellValue}
+        setCellValue={setCellValue}
+      />
     </div>
   );
 }
