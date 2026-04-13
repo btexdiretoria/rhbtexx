@@ -116,6 +116,28 @@ export default function FoodVoucher() {
         </div>
       </CardContent></Card>
 
+      {entries.length > 0 && (
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Valor para todos</label>
+              <Input
+                type="number"
+                placeholder="0,00"
+                value={bulkValue}
+                onChange={e => setBulkValue(e.target.value)}
+                className="w-40 text-right"
+                onWheel={e => (e.target as HTMLInputElement).blur()}
+              />
+              <Button onClick={applyBulkValue} disabled={!bulkValue || entries.length === 0} className="gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Aplicar para todos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card><CardContent className="pt-6 p-0 sm:p-6 sm:pt-6"><div className="overflow-x-auto">
         <Table><TableHeader><TableRow>
           <TableHead>Funcionário</TableHead>
