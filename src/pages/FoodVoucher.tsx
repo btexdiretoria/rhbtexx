@@ -63,7 +63,16 @@ export default function FoodVoucher() {
     upsertFV.mutate({ ...entry, [field]: value });
   };
 
-  const total = useMemo(() => entries.reduce((s, e) => s + e.value, 0), [entries]);
+  const applyBulkValue = () => {
+    const numVal = Number(bulkValue);
+    if (isNaN(numVal) || entries.length === 0) return;
+    entries.forEach(entry => {
+      upsertFV.mutate({ ...entry, value: numVal });
+    });
+    toast.success(`Valor aplicado a ${entries.length} funcionário(s)`);
+    setBulkValue('');
+  };
+
   const totalAlelo = useMemo(() => entries.filter(e => e.delivery_method === 'Alelo').reduce((s, e) => s + e.value, 0), [entries]);
   const totalCesta = useMemo(() => entries.filter(e => e.delivery_method === 'Cesta Básica').reduce((s, e) => s + e.value, 0), [entries]);
 
