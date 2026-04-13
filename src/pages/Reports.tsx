@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { funcionariosMock } from '@/data/mockData';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useFoodVoucherEntries, useTransportVoucherEntries } from '@/hooks/useFinancial';
 import {
   exportFuncionariosPDF,
   exportFuncionariosExcel,
@@ -34,8 +35,6 @@ const financialReportOptions: { id: FinancialReportType; label: string; descript
   { id: 'transport', label: 'Vale Transporte', description: 'Pagamentos de vale transporte do período' },
 ];
 
-const departments = [...new Set(funcionariosMock.map(f => f.departamento))];
-
 export default function Reports() {
   const [selectedReports, setSelectedReports] = useState<FinancialReportType[]>([]);
   const [periodType, setPeriodType] = useState<'single' | 'range'>('single');
@@ -49,24 +48,30 @@ export default function Reports() {
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [deliveryMethodFilter, setDeliveryMethodFilter] = useState('all');
 
+  // Real data from Supabase
+  const { data: employees = [] } = useEmployees();
+  const { data: foodEntries = [] } = useFoodVoucherEntries(singleYear, singleMonth);
+  const { data: transportEntries = [] } = useTransportVoucherEntries(singleYear, singleMonth);
+
+  const departments = useMemo(() => [...new Set(employees.map(f => f.departamento))], [employees]);
+
   const toggleReport = (id: FinancialReportType) => {
     setSelectedReports(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
 
-  // ── Exportações gerais ──────────────────────
   const handleExport = (title: string, format: string) => {
     try {
       if (title === 'Quadro Atual de Funcionários') {
-        const ativos = funcionariosMock.filter(f => f.status !== 'Desligado');
+        const ativos = employees.filter(f => f.status !== 'Desligado');
         if (format === 'PDF') exportFuncionariosPDF(ativos);
         else exportFuncionariosExcel(ativos);
       } else if (title === 'Relatório de Desligamentos') {
-        if (format === 'PDF') exportDesligamentosPDF(funcionariosMock);
-        else exportDesligamentosExcel(funcionariosMock);
+        if (format === 'PDF') exportDesligamentosPDF(employees);
+        else exportDesligamentosExcel(employees);
       } else if (title === 'Relatório de Aniversariantes') {
-        exportAniversariantesPDF(funcionariosMock, singleMonth + 1);
+        exportAniversariantesPDF(employees, singleMonth + 1);
       }
       toast({ title: 'Exportação concluída!', description: `${title} foi baixado com sucesso.` });
     } catch (err) {
@@ -74,25 +79,12 @@ export default function Reports() {
     }
   };
 
-  // ── Exportações financeiras ─────────────────
   const periodLabel = periodType === 'single'
     ? `${MONTHS[singleMonth]}/${singleYear}`
     : `${MONTHS[fromMonth]}/${fromYear} a ${MONTHS[toMonth]}/${toYear}`;
 
-  const getVoucherTotal = (prefix: string, month: number, year: number): number => {
-    try {
-      const raw = localStorage.getItem(`${prefix}-${year}-${month}`);
-      if (!raw) return 0;
-      const parsed = JSON.parse(raw);
-      if (prefix === 'food-voucher') {
-        return (parsed.entries || []).reduce((s: number, e: any) => s + (e.value || 0), 0);
-      }
-      return (parsed.entries || []).reduce((s: number, e: any) => s + (e.payment1Value || 0) + (e.payment2Value || 0), 0);
-    } catch { return 0; }
-  };
-
-  const foodTotal = getVoucherTotal('food-voucher', singleMonth, singleYear);
-  const transportTotal = getVoucherTotal('transport-voucher', singleMonth, singleYear);
+  const foodTotal = useMemo(() => foodEntries.reduce((s, e) => s + (e.value || 0), 0), [foodEntries]);
+  const transportTotal = useMemo(() => transportEntries.reduce((s, e) => s + (e.payment1_value || 0) + (e.payment2_value || 0), 0), [transportEntries]);
 
   const handleFinancialExport = (format: 'PDF' | 'Excel') => {
     if (selectedReports.length === 0) {
@@ -102,7 +94,7 @@ export default function Reports() {
     try {
       const opts = {
         selectedReports,
-        funcionarios: funcionariosMock,
+        funcionarios: employees,
         periodLabel,
         departmentFilter,
         employeeFilter,
@@ -117,9 +109,8 @@ export default function Reports() {
     }
   };
 
-  // ── Preview ─────────────────────────────────
   const previewData = useMemo(() => {
-    const filtered = funcionariosMock.filter(f => {
+    const filtered = employees.filter(f => {
       if (f.status !== 'Ativo') return false;
       if (departmentFilter !== 'all' && f.departamento !== departmentFilter) return false;
       if (employeeFilter !== 'all' && f.id !== employeeFilter) return false;
@@ -127,7 +118,7 @@ export default function Reports() {
     });
     const grossTotal = filtered.reduce((s, f) => s + f.salario, 0);
     return { grossTotal, foodTotal, transportTotal, employeeCount: filtered.length };
-  }, [departmentFilter, employeeFilter, foodTotal, transportTotal]);
+  }, [employees, departmentFilter, employeeFilter, foodTotal, transportTotal]);
 
   const reports = [
     { title: 'Quadro Atual de Funcionários', description: 'Lista completa de todos os funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
@@ -263,7 +254,7 @@ export default function Reports() {
                     <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os funcionários</SelectItem>
-                      {funcionariosMock.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                      {employees.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
