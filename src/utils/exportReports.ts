@@ -1,19 +1,14 @@
-// src/utils/exportReports.ts
-// Utilitário de exportação de relatórios em PDF e Excel (CSV)
-// Dependências necessárias: jsPDF, jspdf-autotable, xlsx
-// Instale com: npm install jspdf jspdf-autotable xlsx
-
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { Funcionario } from '@/data/mockData';
+import type { Employee } from '@/hooks/useEmployees';
 
-const EMPRESA = 'GestaoPeople';
+const EMPRESA = 'BTEX INDUSTRIA TEXTIL';
 
 const formatCurrency = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const formatDate = (dateStr: string) => {
+const formatDate = (dateStr: string | null | undefined) => {
   if (!dateStr) return '-';
   const [y, m, d] = dateStr.split('-');
   return `${d}/${m}/${y}`;
@@ -25,10 +20,9 @@ const hoje = () => new Date().toLocaleDateString('pt-BR');
 // RELATÓRIO: QUADRO ATUAL DE FUNCIONÁRIOS
 // ─────────────────────────────────────────────
 
-export function exportFuncionariosPDF(funcionarios: Funcionario[]) {
+export function exportFuncionariosPDF(funcionarios: Employee[]) {
   const doc = new jsPDF({ orientation: 'landscape' });
 
-  // Cabeçalho
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(`${EMPRESA} — Quadro Atual de Funcionários`, 14, 18);
@@ -46,39 +40,37 @@ export function exportFuncionariosPDF(funcionarios: Funcionario[]) {
       f.nome,
       f.cargo,
       f.departamento,
-      f.tipoContrato,
-      formatDate(f.dataAdmissao),
+      f.tipo_contrato,
+      formatDate(f.data_admissao),
       formatCurrency(f.salario),
       f.status,
     ]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 248, 252] },
-    columnStyles: {
-      6: { halign: 'right' },
-    },
+    columnStyles: { 6: { halign: 'right' } },
   });
 
   doc.save('quadro-funcionarios.pdf');
 }
 
-export function exportFuncionariosExcel(funcionarios: Funcionario[]) {
+export function exportFuncionariosExcel(funcionarios: Employee[]) {
   const dados = funcionarios.map(f => ({
     Matrícula: f.matricula,
     Nome: f.nome,
     CPF: f.cpf,
-    'Data Nascimento': formatDate(f.dataNascimento),
+    'Data Nascimento': formatDate(f.data_nascimento),
     Cargo: f.cargo,
     Departamento: f.departamento,
-    'Centro de Custo': f.centroCusto,
-    'Tipo Contrato': f.tipoContrato,
-    'Data Admissão': formatDate(f.dataAdmissao),
-    'Carga Horária': f.cargaHoraria,
+    'Centro de Custo': f.centro_custo || '',
+    'Tipo Contrato': f.tipo_contrato,
+    'Data Admissão': formatDate(f.data_admissao),
+    'Carga Horária': f.carga_horaria,
     Salário: f.salario,
     Status: f.status,
-    'E-mail Corporativo': f.emailCorporativo,
-    'Gestor Direto': f.gestorDireto,
-    Telefone: f.telefone,
+    'E-mail Corporativo': f.email_corporativo || '',
+    'Gestor Direto': f.gestor_direto || '',
+    Telefone: f.telefone || '',
   }));
 
   const ws = XLSX.utils.json_to_sheet(dados);
@@ -91,7 +83,7 @@ export function exportFuncionariosExcel(funcionarios: Funcionario[]) {
 // RELATÓRIO: DESLIGAMENTOS
 // ─────────────────────────────────────────────
 
-export function exportDesligamentosPDF(funcionarios: Funcionario[]) {
+export function exportDesligamentosPDF(funcionarios: Employee[]) {
   const desligados = funcionarios.filter(f => f.status === 'Desligado');
   const doc = new jsPDF({ orientation: 'landscape' });
 
@@ -111,11 +103,11 @@ export function exportDesligamentosPDF(funcionarios: Funcionario[]) {
       f.nome,
       f.cargo,
       f.departamento,
-      formatDate(f.dataAdmissao),
-      formatDate(f.dataDesligamento || ''),
-      f.motivoDesligamento || '-',
-      f.valorRescisao ? formatCurrency(f.valorRescisao) : '-',
-      f.pagamentoConfirmado ? 'Sim' : 'Não',
+      formatDate(f.data_admissao),
+      formatDate(f.data_desligamento),
+      f.motivo_desligamento || '-',
+      f.valor_rescisao ? formatCurrency(f.valor_rescisao) : '-',
+      f.pagamento_confirmado ? 'Sim' : 'Não',
     ]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [192, 57, 43], textColor: 255, fontStyle: 'bold' },
@@ -126,7 +118,7 @@ export function exportDesligamentosPDF(funcionarios: Funcionario[]) {
   doc.save('relatorio-desligamentos.pdf');
 }
 
-export function exportDesligamentosExcel(funcionarios: Funcionario[]) {
+export function exportDesligamentosExcel(funcionarios: Employee[]) {
   const desligados = funcionarios.filter(f => f.status === 'Desligado');
 
   const dados = desligados.map(f => ({
@@ -134,13 +126,13 @@ export function exportDesligamentosExcel(funcionarios: Funcionario[]) {
     CPF: f.cpf,
     Cargo: f.cargo,
     Departamento: f.departamento,
-    'Data Admissão': formatDate(f.dataAdmissao),
-    'Data Desligamento': formatDate(f.dataDesligamento || ''),
-    'Motivo': f.motivoDesligamento || '-',
-    'Valor Rescisão': f.valorRescisao ?? 0,
-    'Data Pgto Rescisão': formatDate(f.dataPagamentoRescisao || ''),
-    'Pgto Confirmado': f.pagamentoConfirmado ? 'Sim' : 'Não',
-    'Contrato Assinado': f.contratoAssinado ? 'Sim' : 'Não',
+    'Data Admissão': formatDate(f.data_admissao),
+    'Data Desligamento': formatDate(f.data_desligamento),
+    'Motivo': f.motivo_desligamento || '-',
+    'Valor Rescisão': f.valor_rescisao ?? 0,
+    'Data Pgto Rescisão': formatDate(f.data_pagamento_rescisao),
+    'Pgto Confirmado': f.pagamento_confirmado ? 'Sim' : 'Não',
+    'Contrato Assinado': f.contrato_assinado ? 'Sim' : 'Não',
   }));
 
   const ws = XLSX.utils.json_to_sheet(dados);
@@ -153,19 +145,19 @@ export function exportDesligamentosExcel(funcionarios: Funcionario[]) {
 // RELATÓRIO: ANIVERSARIANTES
 // ─────────────────────────────────────────────
 
-export function exportAniversariantesPDF(funcionarios: Funcionario[], mes?: number) {
+export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number) {
   const mesAlvo = mes ?? new Date().getMonth() + 1;
   const nomeMes = new Date(2000, mesAlvo - 1).toLocaleString('pt-BR', { month: 'long' });
 
   const aniversariantes = funcionarios
-    .filter(f => f.status === 'Ativo')
+    .filter(f => f.status === 'Ativo' && f.data_nascimento)
     .filter(f => {
-      const m = parseInt(f.dataNascimento.split('-')[1]);
+      const m = parseInt(f.data_nascimento!.split('-')[1]);
       return m === mesAlvo;
     })
     .sort((a, b) => {
-      const dA = parseInt(a.dataNascimento.split('-')[2]);
-      const dB = parseInt(b.dataNascimento.split('-')[2]);
+      const dA = parseInt(a.data_nascimento!.split('-')[2]);
+      const dB = parseInt(b.data_nascimento!.split('-')[2]);
       return dA - dB;
     });
 
@@ -188,12 +180,12 @@ export function exportAniversariantesPDF(funcionarios: Funcionario[], mes?: numb
       startY: 36,
       head: [['Nome', 'Cargo', 'Departamento', 'Data Nascimento', 'Dia']],
       body: aniversariantes.map(f => {
-        const parts = f.dataNascimento.split('-');
+        const parts = f.data_nascimento!.split('-');
         return [
           f.nome,
           f.cargo,
           f.departamento,
-          formatDate(f.dataNascimento),
+          formatDate(f.data_nascimento),
           parts[2],
         ];
       }),
@@ -214,8 +206,8 @@ export type FinancialReportType = 'gross' | 'net' | 'food' | 'transport';
 
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
-  funcionarios: Funcionario[];
-  periodLabel: string; // ex: "Abril/2026"
+  funcionarios: Employee[];
+  periodLabel: string;
   departmentFilter: string;
   employeeFilter: string;
   foodTotal?: number;
@@ -223,7 +215,6 @@ interface FinancialExportOptions {
 }
 
 function calcINSS(salario: number): number {
-  // Tabela simplificada INSS 2026
   if (salario <= 1518.00) return salario * 0.075;
   if (salario <= 2793.88) return salario * 0.09;
   if (salario <= 4190.83) return salario * 0.12;
@@ -251,7 +242,6 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
   const doc = new jsPDF({ orientation: 'landscape' });
   let cursorY = 18;
 
-  // Cabeçalho
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(`${EMPRESA} — Relatório Financeiro`, 14, cursorY);
@@ -264,7 +254,6 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
   if (departmentFilter !== 'all') doc.text(`Departamento: ${departmentFilter}`, 14, cursorY++);
   cursorY += 3;
 
-  // ── Folha Bruta ──
   if (selectedReports.includes('gross')) {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -276,7 +265,7 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
       startY: cursorY,
       head: [['Nome', 'Matrícula', 'Cargo', 'Departamento', 'Contrato', 'Salário Bruto']],
       body: [
-        ...ativos.map(f => [f.nome, f.matricula, f.cargo, f.departamento, f.tipoContrato, formatCurrency(f.salario)]),
+        ...ativos.map(f => [f.nome, f.matricula, f.cargo, f.departamento, f.tipo_contrato, formatCurrency(f.salario)]),
         [{ content: 'TOTAL', colSpan: 5, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
@@ -287,7 +276,6 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     cursorY = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ── Folha Líquida ──
   if (selectedReports.includes('net')) {
     if (cursorY > 160) { doc.addPage(); cursorY = 18; }
     doc.setFontSize(12);
@@ -300,14 +288,7 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
       const irrf = calcIRRF(f.salario - inss);
       const liquido = f.salario - inss - irrf;
       totalLiq += liquido;
-      return [
-        f.nome,
-        f.matricula,
-        formatCurrency(f.salario),
-        formatCurrency(inss),
-        formatCurrency(irrf),
-        formatCurrency(liquido),
-      ];
+      return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
     });
 
     autoTable(doc, {
@@ -325,7 +306,6 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     cursorY = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ── Vale Alimentação ──
   if (selectedReports.includes('food')) {
     if (cursorY > 160) { doc.addPage(); cursorY = 18; }
     doc.setFontSize(12);
@@ -346,7 +326,6 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     cursorY = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ── Vale Transporte ──
   if (selectedReports.includes('transport')) {
     if (cursorY > 160) { doc.addPage(); cursorY = 18; }
     doc.setFontSize(12);
@@ -381,15 +360,15 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   const wb = XLSX.utils.book_new();
 
   if (selectedReports.includes('gross')) {
-    const dados = ativos.map(f => ({
+    const dados: any[] = ativos.map(f => ({
       Nome: f.nome,
       Matrícula: f.matricula,
       Cargo: f.cargo,
       Departamento: f.departamento,
-      'Tipo Contrato': f.tipoContrato,
+      'Tipo Contrato': f.tipo_contrato,
       'Salário Bruto': f.salario,
     }));
-    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '' as any, 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
+    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Folha Bruta');
   }
@@ -406,15 +385,15 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   }
 
   if (selectedReports.includes('food')) {
-    const dados = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' as any });
+    const dados: any[] = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
+    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Alimentação');
   }
 
   if (selectedReports.includes('transport')) {
-    const dados = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(transportTotal)}`, Departamento: '', Status: '' as any });
+    const dados: any[] = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
+    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(transportTotal)}`, Departamento: '', Status: '' });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Transporte');
   }
