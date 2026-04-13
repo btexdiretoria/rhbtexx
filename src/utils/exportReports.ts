@@ -389,7 +389,7 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
       'Tipo Contrato': f.tipoContrato,
       'Salário Bruto': f.salario,
     }));
-    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
+    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '' as any, 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Folha Bruta');
   }
