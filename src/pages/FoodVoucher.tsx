@@ -21,6 +21,8 @@ export default function FoodVoucher() {
   const [search, setSearch] = useState('');
   const [selectedToAdd, setSelectedToAdd] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [bulkValue, setBulkValue] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: allEmployees = [] } = useEmployees();
