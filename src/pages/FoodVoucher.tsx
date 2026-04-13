@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Search, UtensilsCrossed, Plus, CreditCard, Package } from 'lucide-react';
+import { Trash2, Search, UtensilsCrossed, Plus, CreditCard, Package, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useFoodVoucherEntries, useCreateFoodVoucherBatch, useDeleteFoodVoucher, useUpsertFoodVoucher } from '@/hooks/useFinancial';
+import { toast } from 'sonner';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
