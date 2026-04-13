@@ -389,7 +389,7 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
       'Tipo Contrato': f.tipoContrato,
       'Salário Bruto': f.salario,
     }));
-    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
+    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '' as any, 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Folha Bruta');
   }
@@ -407,14 +407,14 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
 
   if (selectedReports.includes('food')) {
     const dados = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' });
+    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' as any });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Alimentação');
   }
 
   if (selectedReports.includes('transport')) {
     const dados = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(transportTotal)}`, Departamento: '', Status: '' });
+    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(transportTotal)}`, Departamento: '', Status: '' as any });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Transporte');
   }

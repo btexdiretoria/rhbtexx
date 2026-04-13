@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Search, UtensilsCrossed, Plus, CreditCard, Package } from 'lucide-react';
+import { Trash2, Search, UtensilsCrossed, Plus, CreditCard, Package, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useFoodVoucherEntries, useCreateFoodVoucherBatch, useDeleteFoodVoucher, useUpsertFoodVoucher } from '@/hooks/useFinancial';
+import { toast } from 'sonner';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -20,6 +21,7 @@ export default function FoodVoucher() {
   const [search, setSearch] = useState('');
   const [selectedToAdd, setSelectedToAdd] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [bulkValue, setBulkValue] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: allEmployees = [] } = useEmployees();
@@ -59,6 +61,16 @@ export default function FoodVoucher() {
     const entry = entries.find(e => e.id === entryId);
     if (!entry) return;
     upsertFV.mutate({ ...entry, [field]: value });
+  };
+
+  const applyBulkValue = () => {
+    const numVal = Number(bulkValue);
+    if (isNaN(numVal) || entries.length === 0) return;
+    entries.forEach(entry => {
+      upsertFV.mutate({ ...entry, value: numVal });
+    });
+    toast.success(`Valor aplicado a ${entries.length} funcionário(s)`);
+    setBulkValue('');
   };
 
   const total = useMemo(() => entries.reduce((s, e) => s + e.value, 0), [entries]);
@@ -103,6 +115,28 @@ export default function FoodVoucher() {
           <Button onClick={addSelectedEmployees} disabled={selectedToAdd.length === 0} className="gap-2"><Plus className="w-4 h-4" />Adicionar Selecionados ({selectedToAdd.length})</Button>
         </div>
       </CardContent></Card>
+
+      {entries.length > 0 && (
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Valor para todos</label>
+              <Input
+                type="number"
+                placeholder="0,00"
+                value={bulkValue}
+                onChange={e => setBulkValue(e.target.value)}
+                className="w-40 text-right"
+                onWheel={e => (e.target as HTMLInputElement).blur()}
+              />
+              <Button onClick={applyBulkValue} disabled={!bulkValue || entries.length === 0} className="gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Aplicar para todos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card><CardContent className="pt-6 p-0 sm:p-6 sm:pt-6"><div className="overflow-x-auto">
         <Table><TableHeader><TableRow>
