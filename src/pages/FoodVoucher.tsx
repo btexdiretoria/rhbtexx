@@ -73,6 +73,7 @@ export default function FoodVoucher() {
     setBulkValue('');
   };
 
+  const total = useMemo(() => entries.reduce((s, e) => s + e.value, 0), [entries]);
   const totalAlelo = useMemo(() => entries.filter(e => e.delivery_method === 'Alelo').reduce((s, e) => s + e.value, 0), [entries]);
   const totalCesta = useMemo(() => entries.filter(e => e.delivery_method === 'Cesta Básica').reduce((s, e) => s + e.value, 0), [entries]);
 
