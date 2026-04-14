@@ -65,6 +65,20 @@
     --font-heading: 'Plus Jakarta Sans', sans-serif;
     --font-body: 'DM Sans', sans-serif;
 
+    --positive: 152 60% 40%;
+    --positive-foreground: 152 60% 20%;
+    --negative: 0 72% 50%;
+    --negative-foreground: 0 72% 40%;
+    --header-bg: 220 60% 20%;
+    --header-foreground: 220 20% 95%;
+    --row-alt: 220 20% 96%;
+    --section-bg: 220 25% 94%;
+    --section-foreground: 220 25% 20%;
+    --saldo-final-bg: 220 30% 90%;
+    --saldo-final-foreground: 220 25% 15%;
+    --positive-row-bg: 152 40% 94%;
+    --negative-row-bg: 0 50% 95%;
+    
     --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
     --shadow-card-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
