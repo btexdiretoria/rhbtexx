@@ -24,6 +24,7 @@ const sidebarGroups: SidebarGroup[] = [
   ]},
   { label: 'Despesas', icon: Receipt, items: [
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
+    { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
   ]},
   { label: 'Configurações', icon: Settings, items: [
     { label: 'Usuários', icon: UserCog, path: '/usuarios' },
