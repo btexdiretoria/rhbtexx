@@ -298,9 +298,9 @@ export default function Dashboard() {
 
       <div>
         <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Quadro de Setores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {setores.map(setor => (
-            <div key={setor.dept} className="kpi-card flex flex-col">
+            <div key={setor.dept} className="kpi-card flex flex-col min-h-[280px]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">{deptIcons[setor.dept] || <Users className="w-5 h-5" />}</div>
