@@ -56,6 +56,7 @@ const App = () => (
               <Route path="/vale-alimentacao" element={<ProtectedPage><FoodVoucher /></ProtectedPage>} />
               <Route path="/vale-transporte" element={<ProtectedPage><TransportationVoucher /></ProtectedPage>} />
               <Route path="/controle-despesas" element={<ProtectedPage><ExpenseControl /></ProtectedPage>} />
+              <Route path="/fluxo" element={<ProtectedPage><Fluxo /></ProtectedPage>} />
               <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
