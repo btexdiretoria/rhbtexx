@@ -82,8 +82,8 @@ const TransactionPanel = ({ open, onClose, transactions, label, editable, onDate
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Data Mov.</span>
-                    <span className="text-foreground">{t.dataMovimento ? formatDateBR(t.dataMovimento) : "—"}</span>
+                    <span className="text-muted-foreground">Data de Vencimento</span>
+                    <span className="text-foreground">{t.dataPrevista ? formatDateBR(t.dataPrevista) : "—"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Descrição</span>
