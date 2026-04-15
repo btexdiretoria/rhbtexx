@@ -54,6 +54,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: companySettings } = useCompanySettings();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const sectionKey = getSectionKeyForPath(location.pathname);
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
+  const hasAccess = isAdmin || useCheckAccess(currentUser.id, sectionKey);
 
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
