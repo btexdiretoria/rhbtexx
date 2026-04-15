@@ -124,7 +124,7 @@ const CashFlowTable = ({
         onDateChange(realIndex, newDate);
         // Refresh panel transactions
         const updatedEntries = [...entries];
-        updatedEntries[realIndex] = { ...txn, dataPrevista: newDate };
+        updatedEntries[realIndex] = { ...txn, dataMovimento: newDate };
         setPanelTransactions(updatedEntries.filter(panelFilterFn));
       }
     },
@@ -136,7 +136,7 @@ const CashFlowTable = ({
       if (!originalEntries) return undefined;
       const idx = entries.indexOf(entry);
       if (idx >= 0 && originalEntries[idx]) {
-        return originalEntries[idx].dataPrevista;
+        return originalEntries[idx].dataMovimento;
       }
       return undefined;
     },
@@ -236,7 +236,7 @@ const CashFlowTable = ({
                         key={d}
                         className="px-3 py-1.5 text-right whitespace-nowrap text-foreground cursor-pointer hover:bg-accent/50 transition-colors"
                         onClick={() =>
-                          openPanel(`${cat} — ${formatDateBR(d)}`, (e) => e.dataPrevista === d && (e.categoria1 || "Sem categoria") === cat && e.valor > 0)
+                          openPanel(`${cat} — ${formatDateBR(d)}`, (e) => e.dataMovimento === d && (e.categoria1 || "Sem categoria") === cat && e.valor > 0)
                         }
                       >
                         {v !== 0 ? formatCurrency(v) : "—"}
@@ -275,7 +275,7 @@ const CashFlowTable = ({
                         key={d}
                         className="px-3 py-1.5 text-right whitespace-nowrap text-foreground cursor-pointer hover:bg-accent/50 transition-colors"
                         onClick={() =>
-                          openPanel(`${cat} — ${formatDateBR(d)}`, (e) => e.dataPrevista === d && (e.categoria1 || "Sem categoria") === cat && e.valor < 0)
+                          openPanel(`${cat} — ${formatDateBR(d)}`, (e) => e.dataMovimento === d && (e.categoria1 || "Sem categoria") === cat && e.valor < 0)
                         }
                       >
                         {v !== 0 ? formatCurrency(v) : "—"}
@@ -295,7 +295,7 @@ const CashFlowTable = ({
                   key={d}
                   value={computedRows.balance[d]}
                   colored
-                  onClick={() => openPanel(`Balanço — ${formatDateBR(d)}`, (e) => e.dataPrevista === d)}
+                  onClick={() => openPanel(`Balanço — ${formatDateBR(d)}`, (e) => e.dataMovimento === d)}
                 />
               ))}
             </tr>
