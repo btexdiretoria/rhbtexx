@@ -4,6 +4,8 @@ import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings
 import { useApp } from '@/contexts/AppContext';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSectionKeyForPath, useCheckAccess } from '@/hooks/usePermissions';
+import AccessDeniedOverlay from '@/components/AccessDeniedOverlay';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
 interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
@@ -149,7 +151,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-auto relative">
+          {children}
+          {!hasAccess && <AccessDeniedOverlay />}
+        </main>
       </div>
     </div>
   );
