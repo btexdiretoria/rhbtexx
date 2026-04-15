@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const updateDept = useUpdateDepartment();
   const deleteDept = useDeleteDepartment();
   const { currentUser } = useApp();
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
