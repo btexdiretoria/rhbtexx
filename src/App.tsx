@@ -23,6 +23,7 @@ import TransportationVoucher from "@/pages/TransportationVoucher";
 import FoodVoucher from "@/pages/FoodVoucher";
 import ExpenseControl from "@/pages/ExpenseControl";
 import Fluxo from "@/pages/Fluxo";
+import FinanceDashboard from "@/pages/FinanceDashboard";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/vale-transporte" element={<ProtectedPage><TransportationVoucher /></ProtectedPage>} />
               <Route path="/controle-despesas" element={<ProtectedPage><ExpenseControl /></ProtectedPage>} />
               <Route path="/fluxo" element={<ProtectedPage><Fluxo /></ProtectedPage>} />
+              <Route path="/dashboard-financas" element={<ProtectedPage><FinanceDashboard /></ProtectedPage>} />
               <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

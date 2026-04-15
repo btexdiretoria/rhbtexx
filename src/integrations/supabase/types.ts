@@ -439,6 +439,51 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_dashboard_data: {
+        Row: {
+          average_price: number
+          created_at: string
+          daily_production_avg: number
+          id: string
+          month: number
+          revenue_billed: number
+          revenue_goal: number
+          total_pieces: number
+          updated_at: string
+          working_days: number
+          working_days_passed: number
+          year: number
+        }
+        Insert: {
+          average_price?: number
+          created_at?: string
+          daily_production_avg?: number
+          id?: string
+          month: number
+          revenue_billed?: number
+          revenue_goal?: number
+          total_pieces?: number
+          updated_at?: string
+          working_days?: number
+          working_days_passed?: number
+          year: number
+        }
+        Update: {
+          average_price?: number
+          created_at?: string
+          daily_production_avg?: number
+          id?: string
+          month?: number
+          revenue_billed?: number
+          revenue_goal?: number
+          total_pieces?: number
+          updated_at?: string
+          working_days?: number
+          working_days_passed?: number
+          year?: number
+        }
+        Relationships: []
+      }
       food_voucher_entries: {
         Row: {
           created_at: string
@@ -633,6 +678,41 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_section_permissions: {
+        Row: {
+          created_at: string
+          has_access: boolean
+          id: string
+          section_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          has_access?: boolean
+          id?: string
+          section_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          has_access?: boolean
+          id?: string
+          section_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_section_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "system_users"
             referencedColumns: ["id"]
           },
         ]

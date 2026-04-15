@@ -4,6 +4,8 @@ import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings
 import { useApp } from '@/contexts/AppContext';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSectionKeyForPath, useCheckAccess } from '@/hooks/usePermissions';
+import AccessDeniedOverlay from '@/components/AccessDeniedOverlay';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
 interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
@@ -22,7 +24,8 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
     { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
   ]},
-  { label: 'Despesas', icon: Receipt, items: [
+  { label: 'Finanças', icon: Receipt, items: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
   ]},
@@ -51,6 +54,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: companySettings } = useCompanySettings();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const sectionKey = getSectionKeyForPath(location.pathname);
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
+  const hasAccess = isAdmin || useCheckAccess(currentUser.id, sectionKey);
 
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
@@ -148,7 +154,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-medium text-foreground hidden sm:inline">{currentUser.nome}</span>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-auto relative">
+          {children}
+          {!hasAccess && <AccessDeniedOverlay />}
+        </main>
       </div>
     </div>
   );
