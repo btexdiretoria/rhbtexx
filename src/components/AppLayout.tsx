@@ -22,7 +22,8 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
     { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
   ]},
-  { label: 'Despesas', icon: Receipt, items: [
+  { label: 'Finanças', icon: Receipt, items: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
   ]},
