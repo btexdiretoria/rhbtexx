@@ -98,7 +98,7 @@ const Index = () => {
 
   const handleSimDateChange = useCallback((entryIndex: number, newDate: string) => {
     const entry = entries[entryIndex];
-    const previousDate = activeEdits[entryIndex] || entry.dataPrevista;
+    const previousDate = activeEdits[entryIndex] || entry.dataMovimento;
     setDateEdits((prev) => ({ ...prev, [entryIndex]: newDate }));
     setChangeHistory((prev) => [{
       description: entry.categoria1 || entry.descricao || "Sem descrição",

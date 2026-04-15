@@ -8,7 +8,7 @@ export type DateEdits = Record<number, string>;
 export function applyEdits(entries: RawEntry[], edits: DateEdits): RawEntry[] {
   return entries.map((e, i) => {
     if (edits[i] !== undefined) {
-      return { ...e, dataPrevista: edits[i] };
+      return { ...e, dataMovimento: edits[i] };
     }
     return e;
   });
@@ -22,8 +22,8 @@ export function exportEdits(entries: RawEntry[], edits: DateEdits): void {
       "Descrição": e.descricao,
       "Categoria 1": e.categoria1,
       "Valor (R$)": e.valor,
-      "Data prevista original": e.dataPrevista,
-      "Data prevista nova": newDate,
+      "Data Mov. original": e.dataMovimento,
+      "Data Mov. nova": newDate,
     };
   });
 

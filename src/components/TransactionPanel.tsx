@@ -44,22 +44,22 @@ const TransactionPanel = ({ open, onClose, transactions, label, editable, onDate
           ) : (
             transactions.map((t, i) => {
               const origDate = getOriginalDate?.(t);
-              const wasEdited = origDate && origDate !== t.dataPrevista;
+              const wasEdited = origDate && origDate !== t.dataMovimento;
               return (
                 <div key={i} className={cn("border border-border rounded-md px-3 py-2 space-y-0.5 text-sm", wasEdited && "border-primary/50 bg-primary/5")}>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Data Prevista</span>
+                    <span className="text-muted-foreground">Data Mov.</span>
                     {editable && onDateChange ? (
                       <Popover open={openPopoverIdx === i} onOpenChange={(v) => setOpenPopoverIdx(v ? i : null)}>
                         <PopoverTrigger asChild>
                           <button className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors">
-                            {t.dataPrevista ? formatDateBR(t.dataPrevista) : "—"}
+                            {t.dataMovimento ? formatDateBR(t.dataMovimento) : "—"}
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
                           <Calendar
                             mode="single"
-                            selected={isoToDate(t.dataPrevista)}
+                            selected={isoToDate(t.dataMovimento)}
                             onSelect={(d) => {
                               if (d) {
                                 onDateChange(i, dateToIso(d));
@@ -72,7 +72,7 @@ const TransactionPanel = ({ open, onClose, transactions, label, editable, onDate
                         </PopoverContent>
                       </Popover>
                     ) : (
-                      <span className="text-foreground">{t.dataPrevista ? formatDateBR(t.dataPrevista) : "—"}</span>
+                      <span className="text-foreground">{t.dataMovimento ? formatDateBR(t.dataMovimento) : "—"}</span>
                     )}
                   </div>
                   {wasEdited && origDate && (

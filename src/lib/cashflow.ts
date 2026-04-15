@@ -182,7 +182,7 @@ export function buildCashFlow(entries: RawEntry[]): CashFlowData {
   const matrix: Record<string, Record<string, number>> = {};
 
   for (const e of entries) {
-    const d = e.dataPrevista;
+    const d = e.dataMovimento;
     if (!d) continue;
     dateSet.add(d);
     const cat = e.categoria1 || "Sem categoria";
