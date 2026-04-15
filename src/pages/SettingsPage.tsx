@@ -9,6 +9,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import PermissionsPanel from '@/components/PermissionsPanel';
 
 export default function SettingsPage() {
   const { data: settings, isLoading: loadingSettings } = useCompanySettings();
@@ -205,6 +206,8 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
+
+      {isAdmin && <PermissionsPanel />}
     </div>
   );
 }
