@@ -532,14 +532,14 @@ export function useFoodVoucherSettings(year: number, month: number) {
   return useQuery({
     queryKey: ['food_voucher_settings', year, month],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from('food_voucher_settings' as any)
         .select('*')
         .eq('year', year)
         .eq('month', month)
-        .maybeSingle();
+        .maybeSingle() as any);
       if (error) throw error;
-      return data as { id: string; year: number; month: number; benefit_day: number } | null;
+      return (data as unknown) as { id: string; year: number; month: number; benefit_day: number } | null;
     },
   });
 }
