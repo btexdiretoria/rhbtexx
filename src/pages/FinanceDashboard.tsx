@@ -236,81 +236,6 @@ export default function FinanceDashboard() {
         )}
       </div>
 
-      {/* Gráfico Combinado */}
-      <div className="kpi-card">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
-          <h3 className="font-heading font-semibold text-foreground">
-            Produção Diária &amp; Evolução de Preços
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Barras = peças/dia · Linha = preço médio (R$)
-          </p>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
-            />
-            {/* Eixo esquerdo: produção */}
-            <YAxis
-              yAxisId="left"
-              tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
-              label={{
-                value: 'Peças/dia',
-                angle: -90,
-                position: 'insideLeft',
-                offset: 8,
-                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
-              }}
-            />
-            {/* Eixo direito: preço médio */}
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
-              tickFormatter={v => `R$${v.toLocaleString('pt-BR')}`}
-              label={{
-                value: 'Preço médio',
-                angle: 90,
-                position: 'insideRight',
-                offset: 12,
-                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
-              }}
-            />
-            <Tooltip content={<CombinedTooltip />} />
-            <Legend
-              wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
-              formatter={(value) =>
-                value === 'dailyProd' ? 'Média Diária de Produção' : 'Preço Médio'
-              }
-            />
-            <Bar
-              yAxisId="left"
-              dataKey="dailyProd"
-              name="dailyProd"
-              fill="hsl(var(--primary))"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={48}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="avgPrice"
-              name="avgPrice"
-              stroke="hsl(var(--accent-foreground))"
-              strokeWidth={2.5}
-              dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }}
-              activeDot={{ r: 6 }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-
       {/* Meta do Mês Atual */}
       <div className="kpi-card space-y-4">
         <h3 className="font-heading font-semibold text-foreground">
@@ -346,7 +271,6 @@ export default function FinanceDashboard() {
                 <p className="text-xs text-muted-foreground">Meta Diária Restante</p>
                 <p className="text-lg font-bold text-foreground">{fmt(dailyTarget)}</p>
               </div>
-              {/* NOVO: Média de faturamento diário real */}
               <div className="p-3 rounded-lg bg-muted/30">
                 <p className="text-xs text-muted-foreground">
                   Média Fat. Diário
@@ -364,6 +288,76 @@ export default function FinanceDashboard() {
             {isAdmin ? ' Clique em "Inserir Dados" para começar.' : ''}
           </p>
         )}
+      </div>
+
+      {/* Gráfico Combinado */}
+      <div className="kpi-card">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
+          <h3 className="font-heading font-semibold text-foreground">
+            Produção Diária &amp; Evolução de Preços
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Barras = peças/dia · Linha = preço médio (R$)
+          </p>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <YAxis
+              yAxisId="left"
+              tick={{ fontSize: 11 }}
+              stroke="hsl(var(--muted-foreground))"
+              label={{
+                value: 'Peças/dia',
+                angle: -90,
+                position: 'insideLeft',
+                offset: 8,
+                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
+              }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fontSize: 11 }}
+              stroke="hsl(var(--muted-foreground))"
+              tickFormatter={v => `R$${v.toLocaleString('pt-BR')}`}
+              label={{
+                value: 'Preço médio',
+                angle: 90,
+                position: 'insideRight',
+                offset: 12,
+                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
+              }}
+            />
+            <Tooltip content={<CombinedTooltip />} />
+            <Legend
+              wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
+            />
+            <Bar
+              yAxisId="left"
+              dataKey="dailyProd"
+              name="Média Diária de Produção"
+              fill="hsl(var(--primary))"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={48}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="avgPrice"
+              name="Preço Médio (R$)"
+              stroke="hsl(var(--accent-foreground))"
+              strokeWidth={2.5}
+              dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }}
+              activeDot={{ r: 6 }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
