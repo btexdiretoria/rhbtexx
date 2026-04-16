@@ -56,7 +56,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const sectionKey = getSectionKeyForPath(location.pathname);
   const isAdmin = currentUser.nivelAcesso === 'Administrador';
-  const hasAccess = isAdmin || useCheckAccess(currentUser.id, sectionKey);
+  const permissionCheck = useCheckAccess(currentUser.id, sectionKey);
+  const hasAccess = isAdmin || permissionCheck;
 
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
