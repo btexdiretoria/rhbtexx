@@ -526,3 +526,48 @@ export function useUpsertDepartmentManager() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['department_managers'] }),
   });
 }
+
+// ─── Food Voucher Settings (benefit day) ───
+export function useFoodVoucherSettings(year: number, month: number) {
+  return useQuery({
+    queryKey: ['food_voucher_settings', year, month],
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from('food_voucher_settings' as any)
+        .select('*')
+        .eq('year', year)
+        .eq('month', month)
+        .maybeSingle() as any);
+      if (error) throw error;
+      return (data as unknown) as { id: string; year: number; month: number; benefit_day: number } | null;
+    },
+  });
+}
+
+export function useUpsertFoodVoucherSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ year, month, benefit_day }: { year: number; month: number; benefit_day: number }) => {
+      const { data: existing } = await (supabase
+        .from('food_voucher_settings' as any)
+        .select('id')
+        .eq('year', year)
+        .eq('month', month)
+        .maybeSingle() as any);
+
+      if (existing) {
+        const { error } = await (supabase
+          .from('food_voucher_settings' as any)
+          .update({ benefit_day, updated_at: new Date().toISOString() })
+          .eq('id', existing.id) as any);
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase
+          .from('food_voucher_settings' as any)
+          .insert({ year, month, benefit_day }) as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ['food_voucher_settings', vars.year, vars.month] }),
+  });
+}
