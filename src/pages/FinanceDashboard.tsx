@@ -40,7 +40,7 @@ const CombinedTooltip = ({ active, payload, label }: any) => {
           />
           <span className="text-muted-foreground">{entry.name}:</span>
           <span className="font-medium text-foreground">
-            {entry.dataKey === 'avgPrice'
+            {entry.dataKey === 'avgPrice' || entry.dataKey === 'dailyBilling'
               ? fmt(entry.value)
               : entry.value.toLocaleString('pt-BR')}
           </span>
@@ -116,6 +116,7 @@ export default function FinanceDashboard() {
       label: `${MONTH_NAMES[d.month - 1]}/${String(d.year).slice(2)}`,
       avgPrice: Number(d.average_price),
       dailyProd: Number(d.daily_production_avg),
+      dailyBilling: d.working_days_passed > 0 ? Number(d.revenue_billed) / d.working_days_passed : 0,
     }));
 
   // Dados do mês atual
@@ -354,6 +355,17 @@ export default function FinanceDashboard() {
               stroke="hsl(var(--accent-foreground))"
               strokeWidth={2.5}
               dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="dailyBilling"
+              name="Fat. Diário Médio (R$)"
+              stroke="#f97316"
+              strokeWidth={2.5}
+              strokeDasharray="5 3"
+              dot={{ r: 4, fill: '#f97316' }}
               activeDot={{ r: 6 }}
             />
           </ComposedChart>
