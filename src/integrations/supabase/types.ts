@@ -522,6 +522,33 @@ export type Database = {
           },
         ]
       }
+      food_voucher_settings: {
+        Row: {
+          benefit_day: number
+          created_at: string
+          id: string
+          month: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          benefit_day?: number
+          created_at?: string
+          id?: string
+          month: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          benefit_day?: number
+          created_at?: string
+          id?: string
+          month?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       net_salary_columns: {
         Row: {
           column_id: string
