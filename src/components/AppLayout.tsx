@@ -18,7 +18,7 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Avaliações', icon: BarChart3, path: '/avaliacoes' },
     { label: 'Desligamentos', icon: LogOut, path: '/desligamentos' },
   ]},
-  { label: 'Financeiro', icon: Landmark, items: [
+  { label: 'Pagamentos', icon: Landmark, items: [
     { label: 'Salário (Bruto)', icon: DollarSign, path: '/salarios' },
     { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
     { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },

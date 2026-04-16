@@ -10,7 +10,7 @@ export interface SectionPermission {
 
 export const ALL_SECTIONS = [
   { key: 'rh', label: 'Recursos Humanos' },
-  { key: 'financeiro', label: 'Financeiro' },
+  { key: 'financeiro', label: 'Pagamentos' },
   { key: 'financas', label: 'Finanças' },
   { key: 'configuracoes', label: 'Configurações' },
   { key: 'relatorios', label: 'Relatórios' },

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useApp } from '@/contexts/AppContext';
 import { useFinancialDashboardData, useUpsertFinancialDashboard } from '@/hooks/useFinancialDashboard';
 import { toast } from '@/hooks/use-toast';
@@ -19,14 +20,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTH_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-// Tooltip customizado para o gráfico combinado
 const CombinedTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -34,10 +35,7 @@ const CombinedTooltip = ({ active, payload, label }: any) => {
       <p className="font-semibold text-foreground mb-2">{label}</p>
       {payload.map((entry: any) => (
         <div key={entry.dataKey} className="flex items-center gap-2">
-          <span
-            className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
-            style={{ background: entry.color }}
-          />
+          <span className="inline-block w-3 h-3 rounded-sm flex-shrink-0" style={{ background: entry.color }} />
           <span className="text-muted-foreground">{entry.name}:</span>
           <span className="font-medium text-foreground">
             {entry.dataKey === 'avgPrice' || entry.dataKey === 'dailyBilling'
@@ -70,29 +68,32 @@ export default function FinanceDashboard() {
     working_days_passed: 0,
   });
 
-  const handleOpenForm = () => {
-    const existing = allData.find(d => d.year === formYear && d.month === formMonth);
-    if (existing) {
-      setFormData({
-        average_price: existing.average_price,
-        daily_production_avg: existing.daily_production_avg,
-        total_pieces: existing.total_pieces,
-        working_days: existing.working_days,
-        revenue_goal: existing.revenue_goal,
-        revenue_billed: existing.revenue_billed,
-        working_days_passed: existing.working_days_passed,
-      });
-    } else {
-      setFormData({
-        average_price: 0,
-        daily_production_avg: 0,
-        total_pieces: 0,
-        working_days: 22,
-        revenue_goal: 0,
-        revenue_billed: 0,
-        working_days_passed: 0,
-      });
-    }
+  const resetForm = () => {
+    setFormYear(now.getFullYear());
+    setFormMonth(now.getMonth() + 1);
+    setFormData({
+      average_price: 0, daily_production_avg: 0, total_pieces: 0,
+      working_days: 22, revenue_goal: 0, revenue_billed: 0, working_days_passed: 0,
+    });
+  };
+
+  const handleOpenNew = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const handleEditRow = (d: typeof allData[0]) => {
+    setFormYear(d.year);
+    setFormMonth(d.month);
+    setFormData({
+      average_price: d.average_price,
+      daily_production_avg: d.daily_production_avg,
+      total_pieces: d.total_pieces,
+      working_days: d.working_days,
+      revenue_goal: d.revenue_goal,
+      revenue_billed: d.revenue_billed,
+      working_days_passed: d.working_days_passed,
+    });
     setOpen(true);
   };
 
@@ -100,16 +101,13 @@ export default function FinanceDashboard() {
     upsert.mutate(
       { year: formYear, month: formMonth, ...formData },
       {
-        onSuccess: () => {
-          toast({ title: 'Dados salvos com sucesso!' });
-          setOpen(false);
-        },
+        onSuccess: () => { toast({ title: 'Dados salvos com sucesso!' }); setOpen(false); },
         onError: () => toast({ title: 'Erro ao salvar', variant: 'destructive' }),
       }
     );
   };
 
-  // Dados do gráfico combinado — ordem cronológica
+  // Chart data sorted chronologically
   const chartData = [...allData]
     .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month)
     .map(d => ({
@@ -119,10 +117,11 @@ export default function FinanceDashboard() {
       dailyBilling: d.working_days_passed > 0 ? Number(d.revenue_billed) / d.working_days_passed : 0,
     }));
 
-  // Dados do mês atual
-  const currentMonthData = allData.find(
-    d => d.year === now.getFullYear() && d.month === now.getMonth() + 1
-  );
+  // Sorted table data
+  const sortedData = [...allData].sort((a, b) => a.year !== b.year ? b.year - a.year : b.month - a.month);
+
+  // Current month
+  const currentMonthData = allData.find(d => d.year === now.getFullYear() && d.month === now.getMonth() + 1);
   const goal = currentMonthData ? Number(currentMonthData.revenue_goal) : 0;
   const billed = currentMonthData ? Number(currentMonthData.revenue_billed) : 0;
   const workingDaysTotal = currentMonthData ? currentMonthData.working_days : 22;
@@ -131,8 +130,6 @@ export default function FinanceDashboard() {
   const remaining = Math.max(0, goal - billed);
   const dailyTarget = workingDaysLeft > 0 ? remaining / workingDaysLeft : 0;
   const progressPct = goal > 0 ? Math.min(100, (billed / goal) * 100) : 0;
-
-  // Média de faturamento diário = faturamento atual / dias úteis passados
   const dailyBillingAvg = workingDaysPassed > 0 ? billed / workingDaysPassed : 0;
 
   if (isLoading)
@@ -150,83 +147,56 @@ export default function FinanceDashboard() {
         {isAdmin && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleOpenForm} className="gap-1.5">
+              <Button onClick={handleOpenNew} className="gap-1.5">
                 <Plus className="w-4 h-4" />
                 Inserir Dados
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Inserir Dados do Mês</DialogTitle>
+                <DialogTitle>
+                  {formYear && formMonth ? `Dados — ${MONTH_FULL[formMonth - 1]} ${formYear}` : 'Inserir Dados do Mês'}
+                </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Ano</Label>
-                  <Input
-                    type="number"
-                    value={formYear}
-                    onChange={e => setFormYear(Number(e.target.value))}
-                  />
+                  <Input type="number" value={formYear} onChange={e => setFormYear(Number(e.target.value))} />
                 </div>
                 <div>
                   <Label>Mês</Label>
                   <Select value={String(formMonth)} onValueChange={v => setFormMonth(Number(v))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {MONTH_NAMES.map((m, i) => (
-                        <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent>{MONTH_NAMES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label>Média de Preços (R$)</Label>
-                  <Input
-                    type="number" step="0.01" value={formData.average_price}
-                    onChange={e => setFormData(p => ({ ...p, average_price: Number(e.target.value) }))}
-                  />
+                  <Input type="number" step="0.01" value={formData.average_price} onChange={e => setFormData(p => ({ ...p, average_price: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Média Diária Produção</Label>
-                  <Input
-                    type="number" step="0.01" value={formData.daily_production_avg}
-                    onChange={e => setFormData(p => ({ ...p, daily_production_avg: Number(e.target.value) }))}
-                  />
+                  <Input type="number" step="0.01" value={formData.daily_production_avg} onChange={e => setFormData(p => ({ ...p, daily_production_avg: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Total Peças Produzidas</Label>
-                  <Input
-                    type="number" value={formData.total_pieces}
-                    onChange={e => setFormData(p => ({ ...p, total_pieces: Number(e.target.value) }))}
-                  />
+                  <Input type="number" value={formData.total_pieces} onChange={e => setFormData(p => ({ ...p, total_pieces: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Dias Úteis (mês)</Label>
-                  <Input
-                    type="number" value={formData.working_days}
-                    onChange={e => setFormData(p => ({ ...p, working_days: Number(e.target.value) }))}
-                  />
+                  <Input type="number" value={formData.working_days} onChange={e => setFormData(p => ({ ...p, working_days: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Meta de Faturamento (R$)</Label>
-                  <Input
-                    type="number" step="0.01" value={formData.revenue_goal}
-                    onChange={e => setFormData(p => ({ ...p, revenue_goal: Number(e.target.value) }))}
-                  />
+                  <Input type="number" step="0.01" value={formData.revenue_goal} onChange={e => setFormData(p => ({ ...p, revenue_goal: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Faturamento Atual (R$)</Label>
-                  <Input
-                    type="number" step="0.01" value={formData.revenue_billed}
-                    onChange={e => setFormData(p => ({ ...p, revenue_billed: Number(e.target.value) }))}
-                  />
+                  <Input type="number" step="0.01" value={formData.revenue_billed} onChange={e => setFormData(p => ({ ...p, revenue_billed: Number(e.target.value) }))} />
                 </div>
                 <div>
                   <Label>Dias Úteis Passados</Label>
-                  <Input
-                    type="number" value={formData.working_days_passed}
-                    onChange={e => setFormData(p => ({ ...p, working_days_passed: Number(e.target.value) }))}
-                  />
+                  <Input type="number" value={formData.working_days_passed} onChange={e => setFormData(p => ({ ...p, working_days_passed: Number(e.target.value) }))} />
                 </div>
               </div>
               <Button onClick={handleSave} disabled={upsert.isPending} className="w-full mt-4">
@@ -298,78 +268,87 @@ export default function FinanceDashboard() {
             Produção Diária &amp; Evolução de Preços
           </h3>
           <p className="text-xs text-muted-foreground">
-            Barras = peças/dia · Linha = preço médio (R$)
+            Barras = peças/dia · Linha sólida = preço médio · Linha tracejada = fat. diário
           </p>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+          <ComposedChart data={chartData} margin={{ top: 4, right: 60, left: 8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
-            />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis
               yAxisId="left"
               tick={{ fontSize: 11 }}
               stroke="hsl(var(--muted-foreground))"
-              label={{
-                value: 'Peças/dia',
-                angle: -90,
-                position: 'insideLeft',
-                offset: 8,
-                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
-              }}
+              label={{ value: 'Peças/dia', angle: -90, position: 'insideLeft', offset: 8, style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="hsl(var(--accent-foreground))"
               tickFormatter={v => `R$${v.toLocaleString('pt-BR')}`}
-              label={{
-                value: 'Preço médio',
-                angle: 90,
-                position: 'insideRight',
-                offset: 12,
-                style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
-              }}
+              label={{ value: 'Preço médio', angle: 90, position: 'insideRight', offset: 0, style: { fontSize: 11, fill: 'hsl(var(--accent-foreground))' } }}
+            />
+            <YAxis
+              yAxisId="right2"
+              orientation="right"
+              tick={{ fontSize: 10 }}
+              stroke="#f97316"
+              tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`}
+              label={{ value: 'Fat. Diário', angle: 90, position: 'insideRight', offset: 30, style: { fontSize: 10, fill: '#f97316' } }}
             />
             <Tooltip content={<CombinedTooltip />} />
-            <Legend
-              wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
-            />
-            <Bar
-              yAxisId="left"
-              dataKey="dailyProd"
-              name="Média Diária de Produção"
-              fill="hsl(var(--primary))"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={48}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="avgPrice"
-              name="Preço Médio (R$)"
-              stroke="hsl(var(--accent-foreground))"
-              strokeWidth={2.5}
-              dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="dailyBilling"
-              name="Fat. Diário Médio (R$)"
-              stroke="#f97316"
-              strokeWidth={2.5}
-              strokeDasharray="5 3"
-              dot={{ r: 4, fill: '#f97316' }}
-              activeDot={{ r: 6 }}
-            />
+            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
+            <Bar yAxisId="left" dataKey="dailyProd" name="Média Diária de Produção" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={48} />
+            <Line yAxisId="right" type="monotone" dataKey="avgPrice" name="Preço Médio (R$)" stroke="hsl(var(--accent-foreground))" strokeWidth={2.5} dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }} activeDot={{ r: 6 }} />
+            <Line yAxisId="right2" type="monotone" dataKey="dailyBilling" name="Fat. Diário Médio (R$)" stroke="#f97316" strokeWidth={2.5} strokeDasharray="5 3" dot={{ r: 4, fill: '#f97316' }} activeDot={{ r: 6 }} />
           </ComposedChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Tabela de dados cadastrados */}
+      <div className="kpi-card">
+        <h3 className="font-heading font-semibold text-foreground mb-4">Dados Mensais Cadastrados</h3>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mês/Ano</TableHead>
+                <TableHead className="text-right">Média Preços</TableHead>
+                <TableHead className="text-right">Méd. Diária Prod.</TableHead>
+                <TableHead className="text-right">Total Peças</TableHead>
+                <TableHead className="text-right">Dias Úteis</TableHead>
+                <TableHead className="text-right">Meta Fat.</TableHead>
+                <TableHead className="text-right">Fat. Atual</TableHead>
+                <TableHead className="text-right">Dias Passados</TableHead>
+                {isAdmin && <TableHead className="w-10" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.length === 0 ? (
+                <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">Nenhum dado cadastrado.</TableCell></TableRow>
+              ) : sortedData.map(d => (
+                <TableRow key={d.id}>
+                  <TableCell className="font-medium">{MONTH_FULL[d.month - 1]} {d.year}</TableCell>
+                  <TableCell className="text-right">{fmt(Number(d.average_price))}</TableCell>
+                  <TableCell className="text-right">{Number(d.daily_production_avg).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell className="text-right">{Number(d.total_pieces).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell className="text-right">{d.working_days}</TableCell>
+                  <TableCell className="text-right">{fmt(Number(d.revenue_goal))}</TableCell>
+                  <TableCell className="text-right">{fmt(Number(d.revenue_billed))}</TableCell>
+                  <TableCell className="text-right">{d.working_days_passed}</TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => handleEditRow(d)} className="text-muted-foreground hover:text-primary">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
