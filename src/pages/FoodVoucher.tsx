@@ -8,8 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, Search, UtensilsCrossed, Plus, CreditCard, Package, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useFoodVoucherEntries, useCreateFoodVoucherBatch, useDeleteFoodVoucher, useUpsertFoodVoucher } from '@/hooks/useFinancial';
+import { useFoodVoucherEntries, useCreateFoodVoucherBatch, useDeleteFoodVoucher, useUpsertFoodVoucher, useFoodVoucherSettings, useUpsertFoodVoucherSettings } from '@/hooks/useFinancial';
 import { toast } from 'sonner';
+import { useApp } from '@/contexts/AppContext';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -29,6 +30,16 @@ export default function FoodVoucher() {
   const createBatch = useCreateFoodVoucherBatch();
   const deleteFV = useDeleteFoodVoucher();
   const upsertFV = useUpsertFoodVoucher();
+  const { data: settings } = useFoodVoucherSettings(selectedYear, selectedMonth);
+  const upsertSettings = useUpsertFoodVoucherSettings();
+  const { currentUser } = useApp();
+  const isAdmin = currentUser.nivelAcesso === 'Administrador';
+
+  const handleBenefitDayChange = (day: string) => {
+    upsertSettings.mutate({ year: selectedYear, month: selectedMonth, benefit_day: Number(day) }, {
+      onSuccess: () => toast.success('Dia de concessão salvo!'),
+    });
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -83,6 +94,34 @@ export default function FoodVoucher() {
 
   return (
     <div className="space-y-6">
+      {/* Benefit day selector */}
+      {isAdmin && (
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-foreground whitespace-nowrap">Dia de concessão do benefício este mês</label>
+              <Select value={settings?.benefit_day ? String(settings.benefit_day) : ''} onValueChange={handleBenefitDayChange}>
+                <SelectTrigger className="w-[100px]"><SelectValue placeholder="Dia" /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {!isAdmin && settings?.benefit_day && (
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-foreground">
+              <span className="font-medium">Dia de concessão do benefício este mês:</span> {settings.benefit_day}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-bold text-foreground">{MONTHS[selectedMonth]} {selectedYear}</h2>
         <Select value={String(selectedMonth)} onValueChange={v => setSelectedMonth(Number(v))}><SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent></Select>
