@@ -272,31 +272,32 @@ export default function FinanceDashboard() {
             Barras = peças/dia · Linha sólida = preço médio · Linha tracejada = fat. diário
           </p>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={chartData} margin={{ top: 4, right: 60, left: 8, bottom: 4 }}>
+        <ResponsiveContainer width="100%" height={340}>
+          <ComposedChart data={chartData} margin={{ top: 16, right: 96, left: 24, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis
               yAxisId="left"
+              width={56}
               tick={{ fontSize: 11 }}
               stroke="hsl(var(--muted-foreground))"
-              label={{ value: 'Peças/dia', angle: -90, position: 'insideLeft', offset: 8, style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
+              label={{ value: 'Peças/dia', angle: -90, position: 'outsideLeft', dx: -16, style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))', textAnchor: 'middle' } }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
+              width={64}
               tick={{ fontSize: 11 }}
               stroke="hsl(var(--accent-foreground))"
               tickFormatter={v => `R$${v.toLocaleString('pt-BR')}`}
-              label={{ value: 'Preço médio', angle: 90, position: 'insideRight', offset: 0, style: { fontSize: 11, fill: 'hsl(var(--accent-foreground))' } }}
             />
             <YAxis
               yAxisId="right2"
               orientation="right"
+              width={56}
               tick={{ fontSize: 10 }}
               stroke="#f97316"
               tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`}
-              label={{ value: 'Fat. Diário', angle: 90, position: 'insideRight', offset: 30, style: { fontSize: 10, fill: '#f97316' } }}
             />
             <Tooltip content={<CombinedTooltip />} />
             <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
