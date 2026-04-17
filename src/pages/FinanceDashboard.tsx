@@ -20,7 +20,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MONTH_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
