@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power, PanelLeftClose, PanelLeft, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power, PanelLeftClose, PanelLeft, Sun, Moon, CalendarDays } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +29,7 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
+    { label: 'Calendário', icon: CalendarDays, path: '/calendario-financas' },
   ]},
   { label: 'Configurações', icon: Settings, items: [
     { label: 'Usuários', icon: UserCog, path: '/usuarios' },

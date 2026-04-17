@@ -59,6 +59,74 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_deliveries: {
+        Row: {
+          color: string
+          color_index: number
+          created_at: string
+          end_date: string
+          id: string
+          start_date: string
+          updated_at: string
+          working_days: number
+        }
+        Insert: {
+          color: string
+          color_index?: number
+          created_at?: string
+          end_date: string
+          id?: string
+          start_date: string
+          updated_at?: string
+          working_days: number
+        }
+        Update: {
+          color?: string
+          color_index?: number
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          updated_at?: string
+          working_days?: number
+        }
+        Relationships: []
+      }
+      calendar_receipts: {
+        Row: {
+          created_at: string
+          delivery_id: string
+          id: string
+          receipt_date: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          delivery_id: string
+          id?: string
+          receipt_date: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          delivery_id?: string
+          id?: string
+          receipt_date?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_receipts_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           cnpj: string
