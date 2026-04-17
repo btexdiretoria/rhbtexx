@@ -55,6 +55,7 @@ export default function FinanceDashboard() {
   const upsert = useUpsertFinancialDashboard();
 
   const [open, setOpen] = useState(false);
+  const [showTable, setShowTable] = useState(true);
   const now = new Date();
   const [formYear, setFormYear] = useState(now.getFullYear());
   const [formMonth, setFormMonth] = useState(now.getMonth() + 1);
