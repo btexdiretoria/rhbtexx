@@ -309,46 +309,66 @@ export default function FinanceDashboard() {
 
       {/* Tabela de dados cadastrados */}
       <div className="kpi-card">
-        <h3 className="font-heading font-semibold text-foreground mb-4">Dados Mensais Cadastrados</h3>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mês/Ano</TableHead>
-                <TableHead className="text-right">Média Preços</TableHead>
-                <TableHead className="text-right">Méd. Diária Prod.</TableHead>
-                <TableHead className="text-right">Total Peças</TableHead>
-                <TableHead className="text-right">Dias Úteis</TableHead>
-                <TableHead className="text-right">Meta Fat.</TableHead>
-                <TableHead className="text-right">Fat. Atual</TableHead>
-                <TableHead className="text-right">Dias Passados</TableHead>
-                {isAdmin && <TableHead className="w-10" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.length === 0 ? (
-                <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">Nenhum dado cadastrado.</TableCell></TableRow>
-              ) : sortedData.map(d => (
-                <TableRow key={d.id}>
-                  <TableCell className="font-medium">{MONTH_FULL[d.month - 1]} {d.year}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(d.average_price))}</TableCell>
-                  <TableCell className="text-right">{Number(d.daily_production_avg).toLocaleString('pt-BR')}</TableCell>
-                  <TableCell className="text-right">{Number(d.total_pieces).toLocaleString('pt-BR')}</TableCell>
-                  <TableCell className="text-right">{d.working_days}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(d.revenue_goal))}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(d.revenue_billed))}</TableCell>
-                  <TableCell className="text-right">{d.working_days_passed}</TableCell>
-                  {isAdmin && (
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleEditRow(d)} className="text-muted-foreground hover:text-primary">
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-heading font-semibold text-foreground">Dados Mensais Cadastrados</h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowTable(v => !v)}
+            aria-label={showTable ? 'Ocultar lista' : 'Exibir lista'}
+            aria-expanded={showTable}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {showTable ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </div>
+        <div
+          className={`grid transition-all duration-300 ease-in-out ${
+            showTable ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mês/Ano</TableHead>
+                    <TableHead className="text-right">Média Preços</TableHead>
+                    <TableHead className="text-right">Méd. Diária Prod.</TableHead>
+                    <TableHead className="text-right">Total Peças</TableHead>
+                    <TableHead className="text-right">Dias Úteis</TableHead>
+                    <TableHead className="text-right">Meta Fat.</TableHead>
+                    <TableHead className="text-right">Fat. Atual</TableHead>
+                    <TableHead className="text-right">Dias Passados</TableHead>
+                    {isAdmin && <TableHead className="w-10" />}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedData.length === 0 ? (
+                    <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">Nenhum dado cadastrado.</TableCell></TableRow>
+                  ) : sortedData.map(d => (
+                    <TableRow key={d.id}>
+                      <TableCell className="font-medium">{MONTH_FULL[d.month - 1]} {d.year}</TableCell>
+                      <TableCell className="text-right">{fmt(Number(d.average_price))}</TableCell>
+                      <TableCell className="text-right">{Number(d.daily_production_avg).toLocaleString('pt-BR')}</TableCell>
+                      <TableCell className="text-right">{Number(d.total_pieces).toLocaleString('pt-BR')}</TableCell>
+                      <TableCell className="text-right">{d.working_days}</TableCell>
+                      <TableCell className="text-right">{fmt(Number(d.revenue_goal))}</TableCell>
+                      <TableCell className="text-right">{fmt(Number(d.revenue_billed))}</TableCell>
+                      <TableCell className="text-right">{d.working_days_passed}</TableCell>
+                      {isAdmin && (
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditRow(d)} className="text-muted-foreground hover:text-primary">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
