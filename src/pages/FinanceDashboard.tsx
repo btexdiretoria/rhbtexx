@@ -281,7 +281,7 @@ export default function FinanceDashboard() {
               width={56}
               tick={{ fontSize: 11 }}
               stroke="hsl(var(--muted-foreground))"
-              label={{ value: 'Peças/dia', angle: -90, position: 'outsideLeft', dx: -16, style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))', textAnchor: 'middle' } }}
+              label={{ value: 'Peças/dia', angle: -90, position: 'insideLeft', dx: -8, style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))', textAnchor: 'middle' } }}
             />
             <YAxis
               yAxisId="right"
