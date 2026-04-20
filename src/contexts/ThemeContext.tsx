@@ -55,7 +55,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   );
-} 
+}
 
 export function useTheme() {
   return useContext(ThemeContext);
