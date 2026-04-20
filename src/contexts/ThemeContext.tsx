@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemeId = 'corporate-blue' | 'emerald-hr' | 'violet-pro' | 'slate-gray';
+export type ThemeId = 'corporate-blue' | 'navy-pro' | 'violet-pro' | 'cosmic';
 
 export interface ThemeDefinition {
   id: ThemeId;
@@ -12,10 +12,10 @@ export interface ThemeDefinition {
 }
 
 export const THEMES: ThemeDefinition[] = [
-  { id: 'corporate-blue', name: 'Corporate Blue', category: 'Corporativo', description: 'Azul & cinza escuro', swatch: '#2563EB' },
-  { id: 'emerald-hr',     name: 'Emerald HR',     category: 'Natural',     description: 'Verde & bege neutro', swatch: '#059669' },
-  { id: 'violet-pro',     name: 'Violet Pro',     category: 'Moderno',     description: 'Roxo & lavanda',      swatch: '#7C3AED' },
-  { id: 'slate-gray',     name: 'Slate Gray',     category: 'Slate Gray',  description: 'Cinza & prata neutro', swatch: '#6B7280' },
+  { id: 'corporate-blue', name: 'Corporate Blue', category: 'Corporativo', description: 'Azul & sidebar escuro', swatch: '#2563EB' },
+  { id: 'navy-pro',       name: 'Navy Pro',       category: 'Profissional', description: 'Azul marinho suave',   swatch: '#2B5FA0' },
+  { id: 'violet-pro',     name: 'Violet Pro',     category: 'Moderno',     description: 'Roxo & lavanda',       swatch: '#7C3AED' },
+  { id: 'cosmic',         name: 'Cosmic',         category: 'Criativo',    description: 'Índigo & violeta',     swatch: '#6C63FF' },
 ];
 
 const STORAGE_KEY = 'hr-app-theme';
