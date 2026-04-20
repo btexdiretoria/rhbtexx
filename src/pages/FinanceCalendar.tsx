@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -6,23 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronLeft, ChevronRight, Trash2, DollarSign, Package } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, Trash2, DollarSign, Package, Printer, Trash, Eraser,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Color palette - rotates per delivery
 const COLOR_PALETTE = [
-  '#3B82F6', // blue
-  '#10B981', // emerald
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // violet
-  '#EC4899', // pink
-  '#14B8A6', // teal
-  '#F97316', // orange
-  '#6366F1', // indigo
-  '#84CC16', // lime
+  '#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED',
+  '#DB2777', '#0D9488', '#EA580C', '#4F46E5', '#65A30D',
 ];
 
 interface Delivery {
@@ -39,6 +40,12 @@ interface Receipt {
   delivery_id: string;
   receipt_date: string;
   value: number;
+}
+
+interface WeekNote {
+  id: string;
+  week_key: string;
+  note: string;
 }
 
 const MONTHS_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -62,36 +69,21 @@ function fromISO(iso: string) {
   return new Date(y, m - 1, d);
 }
 
-// Calculate end date by adding N working days (excluding weekends), starting at startDate (inclusive)
-function calcEndDateByWorkingDays(startDate: Date, workingDays: number): Date {
-  const result = new Date(startDate);
-  let counted = 0;
-  if (!isWeekend(result)) counted = 1;
-  while (counted < workingDays) {
-    result.setDate(result.getDate() + 1);
-    if (!isWeekend(result)) counted++;
-  }
-  return result;
-}
-
-// Generate list of working day ISO strings between start and end (inclusive)
-function getDeliveryDays(startISO: string, endISO: string): string[] {
-  const days: string[] = [];
-  const cur = fromISO(startISO);
-  const end = fromISO(endISO);
-  while (cur <= end) {
-    if (!isWeekend(cur)) days.push(toISO(cur));
-    cur.setDate(cur.getDate() + 1);
-  }
-  return days;
-}
-
-// Calculate receipt date: 7 calendar days after end_date, then move to next working day if it's weekend
 function calcReceiptDate(endDateISO: string): string {
   const d = fromISO(endDateISO);
   d.setDate(d.getDate() + 7);
   while (isWeekend(d)) d.setDate(d.getDate() + 1);
   return toISO(d);
+}
+
+// ISO week key (e.g. "2026-W16")
+function getWeekKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
 
 export default function FinanceCalendar() {
@@ -100,15 +92,22 @@ export default function FinanceCalendar() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [referenceDay, setReferenceDay] = useState(today.getDate());
   const [hideWeekends, setHideWeekends] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createDate, setCreateDate] = useState<string | null>(null);
-  const [workingDaysInput, setWorkingDaysInput] = useState(1);
+  const [selectedProductionDays, setSelectedProductionDays] = useState<Set<string>>(new Set());
 
   const [editReceiptOpen, setEditReceiptOpen] = useState(false);
   const [editingReceipt, setEditingReceipt] = useState<Receipt | null>(null);
   const [receiptValueInput, setReceiptValueInput] = useState('');
+
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+
+  // Local week notes draft (for autosave debouncing)
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+  const noteTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Queries
   const { data: deliveries = [] } = useQuery({
@@ -129,12 +128,21 @@ export default function FinanceCalendar() {
     },
   });
 
+  const { data: weekNotes = [] } = useQuery({
+    queryKey: ['calendar_week_notes'],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from('calendar_week_notes' as any).select('*') as any);
+      if (error) throw error;
+      return (data as unknown) as WeekNote[];
+    },
+  });
+
   // Mutations
   const createDelivery = useMutation({
-    mutationFn: async ({ startISO, days }: { startISO: string; days: number }) => {
-      const startDate = fromISO(startISO);
-      const endDate = calcEndDateByWorkingDays(startDate, days);
-      const endISO = toISO(endDate);
+    mutationFn: async ({ daysISO }: { daysISO: string[] }) => {
+      const sorted = [...daysISO].sort();
+      const startISO = sorted[0];
+      const endISO = sorted[sorted.length - 1];
       const colorIndex = deliveries.length % COLOR_PALETTE.length;
       const color = COLOR_PALETTE[colorIndex];
 
@@ -143,7 +151,7 @@ export default function FinanceCalendar() {
         .insert({
           start_date: startISO,
           end_date: endISO,
-          working_days: days,
+          working_days: sorted.length,
           color,
           color_index: colorIndex,
         } as any)
@@ -151,7 +159,6 @@ export default function FinanceCalendar() {
         .single() as any);
       if (error) throw error;
 
-      // Auto-create receipt
       const receiptISO = calcReceiptDate(endISO);
       const { error: rErr } = await (supabase
         .from('calendar_receipts' as any)
@@ -168,13 +175,14 @@ export default function FinanceCalendar() {
 
   const deleteDelivery = useMutation({
     mutationFn: async (id: string) => {
+      await (supabase.from('calendar_receipts' as any).delete().eq('delivery_id', id) as any);
       const { error } = await (supabase.from('calendar_deliveries' as any).delete().eq('id', id) as any);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['calendar_deliveries'] });
       qc.invalidateQueries({ queryKey: ['calendar_receipts'] });
-      toast({ title: 'Entrega excluída', description: 'Recebimento vinculado também foi removido.' });
+      toast({ title: 'Entrega excluída' });
     },
   });
 
@@ -192,24 +200,43 @@ export default function FinanceCalendar() {
     },
   });
 
+  const clearAll = useMutation({
+    mutationFn: async () => {
+      await (supabase.from('calendar_receipts' as any).delete().neq('id', '00000000-0000-0000-0000-000000000000') as any);
+      await (supabase.from('calendar_deliveries' as any).delete().neq('id', '00000000-0000-0000-0000-000000000000') as any);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['calendar_deliveries'] });
+      qc.invalidateQueries({ queryKey: ['calendar_receipts'] });
+      toast({ title: 'Movimentações apagadas' });
+    },
+    onError: (e: any) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
+  });
+
+  const upsertWeekNote = useMutation({
+    mutationFn: async ({ week_key, note }: { week_key: string; note: string }) => {
+      const { error } = await (supabase
+        .from('calendar_week_notes' as any)
+        .upsert({ week_key, note } as any, { onConflict: 'week_key' } as any) as any);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['calendar_week_notes'] }),
+  });
+
   // Build calendar grid
   const calendarCells = useMemo(() => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const cells: { date: Date | null; iso: string | null }[] = [];
 
-    // Leading blanks
     const startWeekday = firstDay.getDay();
     if (!hideWeekends) {
       for (let i = 0; i < startWeekday; i++) cells.push({ date: null, iso: null });
     } else {
-      // Skip leading until Monday
-      let leading = startWeekday === 0 ? 0 : startWeekday - 1;
-      if (startWeekday === 0) leading = 0; // sunday hidden, no leading
+      const leading = startWeekday === 0 ? 0 : startWeekday - 1;
       for (let i = 0; i < leading; i++) cells.push({ date: null, iso: null });
     }
 
-    // Days of month
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dt = new Date(year, month, d);
       if (hideWeekends && isWeekend(dt)) continue;
@@ -223,12 +250,18 @@ export default function FinanceCalendar() {
   const eventsByDate = useMemo(() => {
     const map = new Map<string, { delivery?: Delivery; receipt?: Receipt }>();
     deliveries.forEach(del => {
-      const days = getDeliveryDays(del.start_date, del.end_date);
-      days.forEach(iso => {
-        const cur = map.get(iso) || {};
-        cur.delivery = del;
-        map.set(iso, cur);
-      });
+      // Mark only start and end as range; we mark every day between start and end (working days only)
+      const cur = fromISO(del.start_date);
+      const end = fromISO(del.end_date);
+      while (cur <= end) {
+        if (!isWeekend(cur)) {
+          const iso = toISO(cur);
+          const ex = map.get(iso) || {};
+          ex.delivery = del;
+          map.set(iso, ex);
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
     });
     receipts.forEach(rec => {
       const cur = map.get(rec.receipt_date) || {};
@@ -238,15 +271,39 @@ export default function FinanceCalendar() {
     return map;
   }, [deliveries, receipts]);
 
+  // Group cells by week row for the side notes column
+  const weekRows = useMemo(() => {
+    const colCount = hideWeekends ? 5 : 7;
+    const rows: { weekKey: string; cells: typeof calendarCells }[] = [];
+    for (let i = 0; i < calendarCells.length; i += colCount) {
+      const slice = calendarCells.slice(i, i + colCount);
+      const firstDate = slice.find(c => c.date)?.date;
+      const weekKey = firstDate ? getWeekKey(firstDate) : `empty-${i}`;
+      rows.push({ weekKey, cells: slice });
+    }
+    return rows;
+  }, [calendarCells, hideWeekends]);
+
   const handleDayClick = (iso: string) => {
     setCreateDate(iso);
-    setWorkingDaysInput(1);
+    setSelectedProductionDays(new Set([iso]));
     setCreateOpen(true);
   };
 
+  const toggleProductionDay = (iso: string) => {
+    setSelectedProductionDays(prev => {
+      const n = new Set(prev);
+      if (n.has(iso)) n.delete(iso); else n.add(iso);
+      return n;
+    });
+  };
+
   const handleConfirmCreate = () => {
-    if (!createDate || workingDaysInput < 1) return;
-    createDelivery.mutate({ startISO: createDate, days: workingDaysInput });
+    if (selectedProductionDays.size === 0) {
+      toast({ title: 'Selecione ao menos um dia', variant: 'destructive' });
+      return;
+    }
+    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays) });
     setCreateOpen(false);
   };
 
@@ -271,24 +328,86 @@ export default function FinanceCalendar() {
     }
   };
 
+  const handleNoteChange = (weekKey: string, value: string) => {
+    setNoteDrafts(prev => ({ ...prev, [weekKey]: value }));
+    if (noteTimers.current[weekKey]) clearTimeout(noteTimers.current[weekKey]);
+    noteTimers.current[weekKey] = setTimeout(() => {
+      upsertWeekNote.mutate({ week_key: weekKey, note: value });
+    }, 800);
+  };
+
+  const getNoteValue = (weekKey: string) => {
+    if (noteDrafts[weekKey] !== undefined) return noteDrafts[weekKey];
+    return weekNotes.find(n => n.week_key === weekKey)?.note || '';
+  };
+
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
   const weekdays = hideWeekends ? WEEKDAYS_NO_WEEKEND : WEEKDAYS_FULL;
-
-  // Find deliveries for a receipt's tooltip
   const getDeliveryById = (id: string) => deliveries.find(d => d.id === id);
+
+  // Mini calendar (production day picker) — shows same month as main filter
+  const miniCells = useMemo(() => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const cells: { date: Date | null; iso: string | null }[] = [];
+    const startWeekday = firstDay.getDay();
+    if (!hideWeekends) {
+      for (let i = 0; i < startWeekday; i++) cells.push({ date: null, iso: null });
+    } else {
+      const leading = startWeekday === 0 ? 0 : startWeekday - 1;
+      for (let i = 0; i < leading; i++) cells.push({ date: null, iso: null });
+    }
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const dt = new Date(year, month, d);
+      if (hideWeekends && isWeekend(dt)) continue;
+      cells.push({ date: dt, iso: toISO(dt) });
+    }
+    return cells;
+  }, [year, month, hideWeekends]);
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Calendário</h2>
-          <p className="text-sm text-muted-foreground">Cadastre entregas e visualize recebimentos automáticos.</p>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-area, .print-area * { visibility: visible; }
+          .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+          .no-print { display: none !important; }
+          .print-week-notes { border-left: 1px solid #000 !important; }
+        }
+      `}</style>
+
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap no-print">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Calendário</h2>
+            <p className="text-sm text-muted-foreground">Cadastre entregas e visualize recebimentos automáticos.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="w-4 h-4 mr-1" /> Imprimir
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => setClearAllOpen(true)}>
+              <Eraser className="w-4 h-4 mr-1" /> Limpar tudo
+            </Button>
+          </div>
         </div>
 
         {/* Filter & options */}
-        <Card className="p-4">
-          <div className="flex flex-wrap items-end gap-4">
+        <Card className="p-4 no-print">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Dia</Label>
+              <Input
+                type="number"
+                min={1}
+                max={31}
+                value={referenceDay}
+                onChange={(e) => setReferenceDay(Math.max(1, Math.min(31, Number(e.target.value) || 1)))}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                className="w-20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Mês</Label>
               <select
@@ -305,10 +424,11 @@ export default function FinanceCalendar() {
                 type="number"
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-28"
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                className="w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-1">
               <Button variant="outline" size="icon" onClick={() => {
                 if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1);
               }}><ChevronLeft className="w-4 h-4" /></Button>
@@ -316,123 +436,163 @@ export default function FinanceCalendar() {
                 if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1);
               }}><ChevronRight className="w-4 h-4" /></Button>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 ml-auto">
               <Switch id="hide-weekends" checked={hideWeekends} onCheckedChange={setHideWeekends} />
-              <Label htmlFor="hide-weekends" className="cursor-pointer">Ocultar sábado e domingo</Label>
+              <Label htmlFor="hide-weekends" className="cursor-pointer text-sm">Ocultar sábado e domingo</Label>
             </div>
           </div>
         </Card>
 
-        {/* Calendar */}
-        <Card className="p-4">
+        {/* Calendar + side notes */}
+        <Card className="p-4 print-area">
           <div className="mb-3 text-center">
             <h3 className="text-lg font-semibold text-foreground">{MONTHS_PT[month]} de {year}</h3>
           </div>
 
-          <div
-            className="grid gap-1"
-            style={{ gridTemplateColumns: `repeat(${weekdays.length}, minmax(0, 1fr))` }}
-          >
-            {weekdays.map(w => (
-              <div key={w} className="text-center text-xs font-semibold text-muted-foreground py-2">{w}</div>
-            ))}
+          <div className="flex gap-3">
+            {/* Calendar grid */}
+            <div className="flex-1 min-w-0">
+              <div
+                className="grid gap-1 mb-1"
+                style={{ gridTemplateColumns: `repeat(${weekdays.length}, minmax(0, 1fr))` }}
+              >
+                {weekdays.map(w => (
+                  <div key={w} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{w}</div>
+                ))}
+              </div>
 
-            {calendarCells.map((cell, idx) => {
-              if (!cell.date || !cell.iso) {
-                return <div key={`blank-${idx}`} className="aspect-square" />;
-              }
-              const event = eventsByDate.get(cell.iso);
-              const delivery = event?.delivery;
-              const receipt = event?.receipt;
-              const receiptDelivery = receipt ? getDeliveryById(receipt.delivery_id) : undefined;
-              const isToday = toISO(new Date()) === cell.iso;
+              <div className="space-y-1">
+                {weekRows.map((row, ri) => (
+                  <div
+                    key={`row-${ri}`}
+                    className="grid gap-1"
+                    style={{ gridTemplateColumns: `repeat(${weekdays.length}, minmax(0, 1fr))` }}
+                  >
+                    {row.cells.map((cell, idx) => {
+                      if (!cell.date || !cell.iso) {
+                        return <div key={`blank-${ri}-${idx}`} className="h-16" />;
+                      }
+                      const event = eventsByDate.get(cell.iso);
+                      const delivery = event?.delivery;
+                      const receipt = event?.receipt;
+                      const receiptDelivery = receipt ? getDeliveryById(receipt.delivery_id) : undefined;
+                      const isToday = toISO(new Date()) === cell.iso;
+                      const isReference = cell.date.getDate() === referenceDay;
 
-              const cellBg = delivery ? `${delivery.color}22` : 'transparent';
-              const cellBorder = delivery ? delivery.color : undefined;
+                      const cellBg = delivery ? `${delivery.color}1F` : 'transparent';
+                      const cellBorder = delivery ? delivery.color : 'hsl(var(--border))';
 
-              const cellContent = (
-                <button
-                  onClick={() => handleDayClick(cell.iso!)}
-                  className={`relative w-full aspect-square rounded-md border-2 p-1 text-left transition-all hover:shadow-md hover:scale-[1.02] ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''}`}
-                  style={{
-                    backgroundColor: cellBg,
-                    borderColor: cellBorder || 'hsl(var(--border))',
-                    borderStyle: receipt && !delivery ? 'dashed' : 'solid',
-                    ...(receipt && receiptDelivery && !delivery ? { borderColor: receiptDelivery.color, backgroundColor: `${receiptDelivery.color}11` } : {}),
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <span className="text-sm font-semibold text-foreground">{cell.date.getDate()}</span>
-                    {delivery && (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => handleDeleteDelivery(e as any, delivery.id)}
-                        className="opacity-0 group-hover:opacity-100 hover:opacity-100 text-destructive cursor-pointer"
-                        title="Excluir entrega"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1 space-y-0.5">
-                    {delivery && (
-                      <div
-                        className="flex items-center gap-1 text-[10px] font-medium px-1 py-0.5 rounded"
-                        style={{ backgroundColor: delivery.color, color: '#fff' }}
-                      >
-                        <Package className="w-2.5 h-2.5" />
-                        <span className="truncate">Entrega</span>
-                      </div>
-                    )}
-                    {receipt && receiptDelivery && (
-                      <div
-                        onClick={(e) => handleReceiptClick(e, receipt)}
-                        className="flex items-center gap-1 text-[10px] font-medium px-1 py-0.5 rounded cursor-pointer hover:opacity-80"
-                        style={{ backgroundColor: '#fff', color: receiptDelivery.color, border: `1px dashed ${receiptDelivery.color}` }}
-                      >
-                        <DollarSign className="w-2.5 h-2.5" />
-                        <span className="truncate">{receipt.value > 0 ? formatBRL(receipt.value) : 'R$'}</span>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-
-              if (delivery || receipt) {
-                return (
-                  <Tooltip key={cell.iso} delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <div className="group">{cellContent}</div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-xs space-y-1">
-                        {delivery && (
-                          <div>
-                            <strong>Entrega</strong> • {delivery.working_days} dia(s) úteis<br />
-                            {fromISO(delivery.start_date).toLocaleDateString('pt-BR')} → {fromISO(delivery.end_date).toLocaleDateString('pt-BR')}
+                      const cellContent = (
+                        <button
+                          onClick={() => handleDayClick(cell.iso!)}
+                          className={`group relative w-full h-16 rounded-md border-2 p-1 text-left transition-all hover:shadow-md hover:scale-[1.02] flex flex-col ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''} ${isReference && !isToday ? 'ring-1 ring-primary/40' : ''}`}
+                          style={{
+                            backgroundColor: cellBg,
+                            borderColor: receipt && !delivery && receiptDelivery ? receiptDelivery.color : cellBorder,
+                            borderStyle: receipt && !delivery ? 'dashed' : 'solid',
+                            ...(receipt && receiptDelivery && !delivery ? { backgroundColor: `${receiptDelivery.color}10` } : {}),
+                          }}
+                        >
+                          <div className="flex items-start justify-between leading-none">
+                            <span className="text-xs font-bold text-foreground">{cell.date.getDate()}</span>
+                            {delivery && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => handleDeleteDelivery(e as any, delivery.id)}
+                                className="opacity-0 group-hover:opacity-100 text-destructive cursor-pointer no-print"
+                                title="Excluir entrega"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </span>
+                            )}
                           </div>
-                        )}
-                        {receipt && receiptDelivery && (
-                          <div>
-                            <strong>Recebimento</strong><br />
-                            Data: {fromISO(receipt.receipt_date).toLocaleDateString('pt-BR')}<br />
-                            Valor: {formatBRL(receipt.value)}<br />
-                            <span className="text-muted-foreground">Entrega vinculada: {fromISO(receiptDelivery.start_date).toLocaleDateString('pt-BR')} a {fromISO(receiptDelivery.end_date).toLocaleDateString('pt-BR')}</span>
+                          <div className="mt-auto space-y-0.5">
+                            {delivery && (
+                              <div
+                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded leading-tight"
+                                style={{ backgroundColor: delivery.color, color: '#fff' }}
+                              >
+                                <Package className="w-3 h-3 shrink-0" />
+                                <span className="truncate">Entrega</span>
+                              </div>
+                            )}
+                            {receipt && receiptDelivery && (
+                              <div
+                                onClick={(e) => handleReceiptClick(e, receipt)}
+                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded cursor-pointer hover:brightness-110 leading-tight"
+                                style={{ backgroundColor: receiptDelivery.color, color: '#fff', border: `1.5px dashed #fff`, boxShadow: `inset 0 0 0 1.5px ${receiptDelivery.color}` }}
+                              >
+                                <DollarSign className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{receipt.value > 0 ? formatBRL(receipt.value) : 'R$ 0,00'}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
+                        </button>
+                      );
 
-              return <div key={cell.iso} className="group">{cellContent}</div>;
-            })}
+                      if (delivery || receipt) {
+                        return (
+                          <Tooltip key={cell.iso} delayDuration={200}>
+                            <TooltipTrigger asChild>
+                              <div>{cellContent}</div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-xs space-y-1">
+                                {delivery && (
+                                  <div>
+                                    <strong>Entrega</strong> • {delivery.working_days} dia(s)<br />
+                                    {fromISO(delivery.start_date).toLocaleDateString('pt-BR')} → {fromISO(delivery.end_date).toLocaleDateString('pt-BR')}
+                                  </div>
+                                )}
+                                {receipt && receiptDelivery && (
+                                  <div>
+                                    <strong>Recebimento</strong><br />
+                                    Data: {fromISO(receipt.receipt_date).toLocaleDateString('pt-BR')}<br />
+                                    Valor: {formatBRL(receipt.value)}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      }
+
+                      return <div key={cell.iso}>{cellContent}</div>;
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Side notes column */}
+            <div className="w-56 shrink-0 print-week-notes border-l border-border pl-3">
+              <div className="text-[11px] font-semibold text-muted-foreground py-1 mb-1 text-center">Considerações da semana</div>
+              <div className="space-y-1">
+                {weekRows.map((row, ri) => {
+                  const firstDate = row.cells.find(c => c.date)?.date;
+                  const lastDate = [...row.cells].reverse().find(c => c.date)?.date;
+                  const label = firstDate && lastDate
+                    ? `${firstDate.getDate()}/${firstDate.getMonth() + 1} – ${lastDate.getDate()}/${lastDate.getMonth() + 1}`
+                    : '—';
+                  return (
+                    <div key={`note-${ri}`} className="h-16">
+                      <div className="text-[10px] text-muted-foreground mb-0.5">{label}</div>
+                      <Textarea
+                        value={getNoteValue(row.weekKey)}
+                        onChange={(e) => handleNoteChange(row.weekKey, e.target.value)}
+                        placeholder="Notas..."
+                        className="h-[calc(100%-14px)] min-h-0 resize-none text-xs p-1.5 leading-tight"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Legend */}
-          <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground border-t border-border pt-3">
+          <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground border-t border-border pt-3 no-print">
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-primary" /> Entrega (clique para criar)</div>
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded border-2 border-dashed border-primary" /> Recebimento (auto, +7 dias)</div>
           </div>
@@ -440,27 +600,51 @@ export default function FinanceCalendar() {
 
         {/* Create delivery dialog */}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Cadastrar Entrega</DialogTitle>
+              <DialogDescription>
+                Selecione no mini-calendário todos os dias de produção que pertencem a esta entrega.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-2">
               <p className="text-sm text-muted-foreground">
-                Início: <strong className="text-foreground">{createDate ? fromISO(createDate).toLocaleDateString('pt-BR') : ''}</strong>
+                Data da entrega: <strong className="text-foreground">{createDate ? fromISO(createDate).toLocaleDateString('pt-BR') : ''}</strong>
               </p>
-              <div className="space-y-1">
-                <Label htmlFor="working-days">Quantidade de dias úteis</Label>
-                <Input
-                  id="working-days"
-                  type="number"
-                  min={1}
-                  value={workingDaysInput}
-                  onChange={(e) => setWorkingDaysInput(Math.max(1, Number(e.target.value) || 1))}
-                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Sábados e domingos são ignorados. Recebimento será gerado 7 dias após a última data.
+
+              <div>
+                <Label className="text-xs text-muted-foreground">Dias de produção ({selectedProductionDays.size} selecionado{selectedProductionDays.size !== 1 ? 's' : ''})</Label>
+                <div className="mt-2 border rounded-md p-2">
+                  <div
+                    className="grid gap-1 mb-1"
+                    style={{ gridTemplateColumns: `repeat(${weekdays.length}, minmax(0, 1fr))` }}
+                  >
+                    {weekdays.map(w => (
+                      <div key={w} className="text-center text-[10px] font-semibold text-muted-foreground">{w}</div>
+                    ))}
+                  </div>
+                  <div
+                    className="grid gap-1"
+                    style={{ gridTemplateColumns: `repeat(${weekdays.length}, minmax(0, 1fr))` }}
+                  >
+                    {miniCells.map((cell, idx) => {
+                      if (!cell.date || !cell.iso) return <div key={`mb-${idx}`} className="h-7" />;
+                      const selected = selectedProductionDays.has(cell.iso);
+                      return (
+                        <button
+                          key={cell.iso}
+                          type="button"
+                          onClick={() => toggleProductionDay(cell.iso!)}
+                          className={`h-7 text-xs rounded border transition-colors ${selected ? 'bg-primary text-primary-foreground border-primary font-bold' : 'bg-background hover:bg-muted border-border'}`}
+                        >
+                          {cell.date.getDate()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recebimento será gerado 7 dias após o último dia selecionado.
                 </p>
               </div>
             </div>
@@ -497,6 +681,27 @@ export default function FinanceCalendar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Clear all confirm */}
+        <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Limpar todas as movimentações?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja realmente apagar todas as movimentações? Essa ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => { clearAll.mutate(); setClearAllOpen(false); }}
+              >
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );

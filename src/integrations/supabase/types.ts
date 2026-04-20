@@ -127,6 +127,30 @@ export type Database = {
           },
         ]
       }
+      calendar_week_notes: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          updated_at: string
+          week_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          week_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           cnpj: string
