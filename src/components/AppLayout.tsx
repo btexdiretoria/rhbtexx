@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power, PanelLeftClose, PanelLeft, Sun, Moon, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, LogOut, FileText, Settings, Menu, X, UserCog, ClipboardList, ChevronRight, DollarSign, Briefcase, Landmark, Receipt, Power, PanelLeftClose, PanelLeft, CalendarDays } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSectionKeyForPath, useCheckAccess } from '@/hooks/usePermissions';
 import AccessDeniedOverlay from '@/components/AccessDeniedOverlay';
-import { useTheme } from '@/hooks/useTheme';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
 interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
@@ -56,7 +56,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: companySettings } = useCompanySettings();
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { isDark, toggle: toggleTheme } = useTheme();
   const sectionKey = getSectionKeyForPath(location.pathname);
   const isAdmin = currentUser.nivelAcesso === 'Administrador';
   const permissionCheck = useCheckAccess(currentUser.id, sectionKey);
@@ -119,10 +118,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="pt-2 border-t border-sidebar-border mt-2 space-y-0.5">
-            <button onClick={toggleTheme} className="sidebar-item w-full text-left">
-              {isDark ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
-              <span>{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-            </button>
+            <ThemeSwitcher variant="sidebar" />
             <button onClick={handleLogout} className="sidebar-item w-full text-left hover:!bg-destructive/20 hover:!text-destructive">
               <Power className="w-5 h-5 flex-shrink-0" /><span>Sair</span>
             </button>
@@ -153,6 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
             {allItems.find(i => isPathActive(location.pathname, i.path))?.label || companyName}
           </h1>
+          <ThemeSwitcher />
           <div className="flex items-center gap-2 px-3 py-1.5">
             {currentUser.avatar ? (
               <img src={currentUser.avatar} alt={currentUser.nome} className="w-6 h-6 rounded-full object-cover" />
