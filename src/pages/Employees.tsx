@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Teste';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste' };
 
 
 const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
   { value: 'Todos', label: 'Todos' },
   { value: 'Ativo', label: 'Ativo' },
+  { value: 'Teste', label: 'Teste' },
   { value: 'Afastado', label: 'Afastado' },
   { value: 'Desligado', label: 'Desligado' },
   { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },

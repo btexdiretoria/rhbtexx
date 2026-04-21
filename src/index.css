@@ -258,6 +258,9 @@
   .status-prestador-de-serviço {
     @apply bg-blue-100 text-blue-700;
   }
+  .status-teste {
+    @apply bg-violet-100 text-violet-700;
+  }
 
   .data-table {
     @apply w-full text-sm;
@@ -289,30 +292,91 @@
 @media print {
   @page {
     size: A4 landscape;
-    margin: 12mm;
+    margin: 10mm;
   }
-  body {
+  html, body {
     background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  /* Hide app chrome */
+  /* Hide app chrome and interactive controls */
   aside,
   nav,
+  header,
   [data-sidebar],
   [data-sidebar="sidebar"],
-  .print\:hidden {
+  [role="navigation"],
+  button,
+  .print\:hidden,
+  .no-print {
     display: none !important;
   }
-  /* Expand main content */
-  main, .min-h-screen {
+  /* Expand main content edge-to-edge */
+  main, .min-h-screen, .max-w-\[1600px\] {
     padding: 0 !important;
     margin: 0 !important;
     min-height: auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
-  /* Avoid breaking cards across pages */
-  .card, [class*="rounded-lg"][class*="border"] {
+  /* Card styling: simple borders, no heavy backgrounds */
+  .card,
+  [class*="rounded-lg"][class*="border"],
+  [class*="rounded-xl"][class*="border"] {
+    background: white !important;
+    box-shadow: none !important;
     break-inside: avoid;
     page-break-inside: avoid;
+    border: 1px solid #d1d5db !important;
   }
-  /* Ensure tables fit */
-  table { font-size: 10pt; }
+  /* Remove muted/colored backgrounds for clean B&W print */
+  .bg-muted, .bg-muted\/30, .bg-muted\/50, .bg-muted\/60,
+  .bg-accent, .bg-accent\/50, .bg-card, .bg-background,
+  .bg-row-alt, .bg-section-bg, .bg-saldo-final-bg,
+  .bg-positive-row-bg, .bg-negative-row-bg {
+    background: white !important;
+  }
+  /* Tables: legible font, avoid mid-page breaks */
+  table {
+    font-size: 10pt !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  thead { display: table-header-group; }
+  tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  th, td {
+    border: 1px solid #d1d5db !important;
+    padding: 4px 6px !important;
+  }
+  /* Remove scroll containers and let content flow */
+  [data-radix-scroll-area-viewport],
+  .overflow-x-auto, .overflow-y-auto, .overflow-auto, .overflow-hidden {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+  /* Force the 3 buckets to stack full-width for legibility */
+  .grid {
+    display: block !important;
+  }
+  .grid > * {
+    width: 100% !important;
+    margin-bottom: 12mm !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  h1, h2, h3, h4 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+  /* Body text legibility */
+  body, p, span, td, th, div {
+    color: black !important;
+  }
 }
