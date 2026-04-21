@@ -172,7 +172,7 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
                           <span
                             className={cn(
                               "text-right font-medium tabular-nums",
-                              it.valor >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                              it.valor >= 0 ? "text-success" : "text-destructive"
                             )}
                           >
                             {formatCurrency(it.valor)}
