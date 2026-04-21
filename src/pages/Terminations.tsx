@@ -10,7 +10,11 @@ const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 function getDaysInMonth(year: number, month: number) { return new Date(year, month + 1, 0).getDate(); }
 function getFirstDayOfMonth(year: number, month: number) { return new Date(year, month, 1).getDay(); }
 function formatCurrency(value?: number | null) { if (value == null) return '—'; return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`; }
-function formatDate(dateStr?: string | null) { if (!dateStr) return '—'; return new Date(dateStr).toLocaleDateString('pt-BR'); }
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '—';
+  const [y, m, d] = String(dateStr).split('T')[0].split('-');
+  return y && m && d ? `${d}/${m}/${y}` : '—';
+}
 
 export default function Terminations() {
   const { logAction } = useApp();
@@ -38,9 +42,9 @@ export default function Terminations() {
     const map: Record<string, Employee[]> = {};
     allDesligados.forEach(f => {
       if (f.data_pagamento_rescisao) {
-        const d = new Date(f.data_pagamento_rescisao);
-        if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
-          const day = d.getDate();
+        const [yy, mm, dd] = String(f.data_pagamento_rescisao).split('T')[0].split('-').map(Number);
+        if (yy === calYear && (mm - 1) === calMonth) {
+          const day = dd;
           if (!map[day]) map[day] = [];
           map[day].push(f);
         }

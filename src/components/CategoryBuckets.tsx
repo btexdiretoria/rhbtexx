@@ -243,13 +243,13 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
       </div>
 
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[80vh] p-0 gap-0 flex flex-col overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
             <DialogTitle>Detalhes do Lançamento</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {detail && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(Object.keys(FIELD_LABELS) as (keyof RawEntry)[]).map((field) => {
                   const raw = detail[field];
                   let display: string;
@@ -271,8 +271,8 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
                 })}
               </div>
             )}
-          </ScrollArea>
-          <DialogFooter>
+          </div>
+          <DialogFooter className="px-6 py-3 border-t border-border shrink-0">
             <DialogClose asChild>
               <Button variant="outline">Fechar</Button>
             </DialogClose>
