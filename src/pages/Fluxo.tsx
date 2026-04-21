@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import FileUpload from "@/components/FileUpload";
+import CategoryBuckets from "@/components/CategoryBuckets";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import CashFlowTable from "@/components/CashFlowTable";
 import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, type CashFlowData } from "@/lib/cashflow";
@@ -256,6 +257,9 @@ const Index = () => {
             ) : (
               <CashFlowTable data={data} filteredDates={filteredDates} entries={entries} />
             )}
+
+            {/* Category buckets summary */}
+            <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
           </>
         )}
       </div>

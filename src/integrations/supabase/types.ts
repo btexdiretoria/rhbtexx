@@ -151,6 +151,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cashflow_bucket_categories: {
+        Row: {
+          bucket: string
+          category: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          bucket: string
+          category: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          bucket?: string
+          category?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           cnpj: string
