@@ -299,11 +299,15 @@ export default function FinanceCalendar() {
   };
 
   const handleConfirmCreate = () => {
+    if (!createDate) {
+      toast({ title: 'Data de entrega não definida', variant: 'destructive' });
+      return;
+    }
     if (selectedProductionDays.size === 0) {
       toast({ title: 'Selecione ao menos um dia', variant: 'destructive' });
       return;
     }
-    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays) });
+    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays), deliveryISO: createDate });
     setCreateOpen(false);
   };
 
