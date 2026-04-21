@@ -187,7 +187,7 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
                   <span
                     className={cn(
                       "text-right tabular-nums",
-                      subtotal >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                      subtotal >= 0 ? "text-success" : "text-destructive"
                     )}
                   >
                     {formatCurrency(subtotal)}
