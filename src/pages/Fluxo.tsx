@@ -257,6 +257,9 @@ const Index = () => {
             ) : (
               <CashFlowTable data={data} filteredDates={filteredDates} entries={entries} />
             )}
+
+            {/* Category buckets summary */}
+            <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
           </>
         )}
       </div>
