@@ -1,13 +1,14 @@
 import { useState, useMemo, useCallback } from "react";
 import FileUpload from "@/components/FileUpload";
 import CategoryBuckets from "@/components/CategoryBuckets";
+import MonthlyBalance from "@/components/MonthlyBalance";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import CashFlowTable from "@/components/CashFlowTable";
 import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, type CashFlowData } from "@/lib/cashflow";
 import { DateEdits, applyEdits, exportEdits } from "@/lib/simulation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, FlaskConical, Save, Download } from "lucide-react";
+import { BarChart3, FlaskConical, Save, Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -260,6 +261,17 @@ const Index = () => {
 
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
+
+            {/* Monthly balance */}
+            <MonthlyBalance data={data} />
+
+            {/* Print button */}
+            <div className="flex justify-end print:hidden">
+              <Button onClick={() => window.print()} variant="outline" className="gap-2">
+                <Printer className="h-4 w-4" />
+                🖨️ Imprimir Página
+              </Button>
+            </div>
           </>
         )}
       </div>
