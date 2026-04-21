@@ -11,8 +11,8 @@ import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFi
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Aviso Prévio';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', 'Aviso Prévio': 'Aviso Prévio' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Aviso Prévio' | 'Teste';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', 'Aviso Prévio': 'Aviso Prévio', Teste: 'Teste' };
 
 const deptIcons: Record<string, React.ReactNode> = {
   'Tecnologia': <Monitor className="w-5 h-5" />,
@@ -30,7 +30,7 @@ function AvatarInitials({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md
   return <div className={`${cls} rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary shrink-0`}>{initials}</div>;
 }
 
-const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground', 'Prestador de Serviço': 'bg-blue-500', 'Aviso Prévio': 'bg-amber-500' };
+const statusDot: Record<string, string> = { 'Ativo': 'bg-emerald-500', 'Afastado': 'bg-warning', 'Desligado': 'bg-muted-foreground', 'Prestador de Serviço': 'bg-blue-500', 'Aviso Prévio': 'bg-amber-500', 'Teste': 'bg-violet-500' };
 function getStatusLabel(status: string) { return statusDisplayLabel[status as StatusFuncionario] || status; }
 
 export default function Dashboard() {
@@ -71,10 +71,11 @@ export default function Dashboard() {
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
     const avisoPrevio = employees.filter(f => f.status === 'Aviso Prévio').length;
+    const teste = employees.filter(f => f.status === 'Teste').length;
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const desligadosMes = employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)).length;
-    return { total, ativos, afastados, desligadosMes, prestadores, avisoPrevio };
+    return { total, ativos, afastados, desligadosMes, prestadores, avisoPrevio, teste };
   }, [employees]);
 
   const kpiEmployees = useMemo(() => {
@@ -85,6 +86,7 @@ export default function Dashboard() {
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
+      'Teste': employees.filter(f => f.status === 'Teste'),
       'Aviso Prévio': employees.filter(f => f.status === 'Aviso Prévio'),
       'Desligados no Mês': employees.filter(f => f.status === 'Desligado' && f.data_desligamento?.startsWith(mesAtual)),
     };
@@ -156,6 +158,7 @@ export default function Dashboard() {
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
     { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
+    { label: 'Teste', value: stats.teste, icon: UserCheck, color: 'bg-violet-50 text-violet-600' },
     { label: 'Aviso Prévio', value: stats.avisoPrevio, icon: Clock, color: 'bg-amber-50 text-amber-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
