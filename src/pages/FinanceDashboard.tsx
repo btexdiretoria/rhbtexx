@@ -288,7 +288,7 @@ export default function FinanceDashboard() {
               orientation="right"
               width={64}
               tick={{ fontSize: 11 }}
-              stroke="hsl(var(--accent-foreground))"
+              stroke="hsl(var(--foreground))"
               tickFormatter={v => `R$${v.toLocaleString('pt-BR')}`}
             />
             <YAxis
@@ -302,7 +302,7 @@ export default function FinanceDashboard() {
             <Tooltip content={<CombinedTooltip />} />
             <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
             <Bar yAxisId="left" dataKey="dailyProd" name="Média Diária de Produção" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={48} />
-            <Line yAxisId="right" type="monotone" dataKey="avgPrice" name="Preço Médio (R$)" stroke="hsl(var(--accent-foreground))" strokeWidth={2.5} dot={{ r: 4, fill: 'hsl(var(--accent-foreground))' }} activeDot={{ r: 6 }} />
+            <Line yAxisId="right" type="monotone" dataKey="avgPrice" name="Preço Médio (R$)" stroke="#1E3A5F" strokeWidth={2.5} dot={{ r: 4, fill: '#1E3A5F' }} activeDot={{ r: 6 }} />
             <Line yAxisId="right2" type="monotone" dataKey="dailyBilling" name="Fat. Diário Médio (R$)" stroke="#f97316" strokeWidth={2.5} strokeDasharray="5 3" dot={{ r: 4, fill: '#f97316' }} activeDot={{ r: 6 }} />
           </ComposedChart>
         </ResponsiveContainer>

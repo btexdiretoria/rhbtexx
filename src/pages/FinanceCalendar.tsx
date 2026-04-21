@@ -139,10 +139,10 @@ export default function FinanceCalendar() {
 
   // Mutations
   const createDelivery = useMutation({
-    mutationFn: async ({ daysISO }: { daysISO: string[] }) => {
+    mutationFn: async ({ daysISO, deliveryISO }: { daysISO: string[]; deliveryISO: string }) => {
       const sorted = [...daysISO].sort();
-      const startISO = sorted[0];
-      const endISO = sorted[sorted.length - 1];
+      const startISO = sorted[0] ?? deliveryISO;
+      const endISO = deliveryISO; // delivery date drives the receipt calculation
       const colorIndex = deliveries.length % COLOR_PALETTE.length;
       const color = COLOR_PALETTE[colorIndex];
 
@@ -159,7 +159,7 @@ export default function FinanceCalendar() {
         .single() as any);
       if (error) throw error;
 
-      const receiptISO = calcReceiptDate(endISO);
+      const receiptISO = calcReceiptDate(deliveryISO);
       const { error: rErr } = await (supabase
         .from('calendar_receipts' as any)
         .insert({ delivery_id: (del as any).id, receipt_date: receiptISO, value: 0 } as any) as any);
@@ -594,7 +594,7 @@ export default function FinanceCalendar() {
           {/* Legend */}
           <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground border-t border-border pt-3 no-print">
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-primary" /> Entrega (clique para criar)</div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded border-2 border-dashed border-primary" /> Recebimento (auto, +7 dias)</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded border-2 border-dashed border-primary" /> Recebimento (auto, +7 dias da entrega)</div>
           </div>
         </Card>
 
@@ -644,7 +644,7 @@ export default function FinanceCalendar() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Recebimento será gerado 7 dias após o último dia selecionado.
+                  Recebimento será gerado 7 dias após a data de entrega selecionada.
                 </p>
               </div>
             </div>
