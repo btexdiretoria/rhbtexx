@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import FileUpload from "@/components/FileUpload";
 import CategoryBuckets from "@/components/CategoryBuckets";
 import MonthlyBalance from "@/components/MonthlyBalance";
@@ -20,6 +20,8 @@ interface ChangeHistoryEntry {
   timestamp: string;
 }
 
+const STORAGE_KEY = "fluxo_data_v1";
+
 const Index = () => {
   const [data, setData] = useState<CashFlowData | null>(null);
   const [entries, setEntries] = useState<RawEntry[]>([]);
@@ -31,11 +33,52 @@ const Index = () => {
   const [dateEdits, setDateEdits] = useState<DateEdits>({});
   const [savedEdits, setSavedEdits] = useState<DateEdits>({});
   const [changeHistory, setChangeHistory] = useState<ChangeHistoryEntry[]>([]);
+  const [lastSaved, setLastSaved] = useState<string>("");
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restore persisted state on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (Array.isArray(s.entries) && s.entries.length > 0) {
+          setEntries(s.entries);
+          setData(buildCashFlow(s.entries));
+        }
+        if (s.fileName) setFileName(s.fileName);
+        if (s.startDate) setStartDate(s.startDate);
+        if (s.endDate) setEndDate(s.endDate);
+        if (s.savedEdits) setSavedEdits(s.savedEdits);
+        if (s.dateEdits) setDateEdits(s.dateEdits);
+        if (s.changeHistory) setChangeHistory(s.changeHistory);
+        if (s.lastSaved) setLastSaved(s.lastSaved);
+      }
+    } catch (e) {
+      console.warn("Falha ao restaurar Fluxo:", e);
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  // Auto-save on changes (after hydration)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const ts = new Date().toLocaleString("pt-BR");
+      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, lastSaved: ts };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      setLastSaved(ts);
+    } catch (e) {
+      console.warn("Falha ao salvar Fluxo:", e);
+    }
+  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, hydrated]);
 
   const handleFile = async (file: File) => {
     setLoading(true);
     try {
       const parsed = await parseFile(file);
+      // New upload overwrites previous data
       setEntries(parsed);
       const cf = buildCashFlow(parsed);
       setData(cf);
@@ -172,9 +215,17 @@ const Index = () => {
           <CardContent className="pt-6">
             <FileUpload onFileSelected={handleFile} isLoading={loading} />
             {fileName && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Arquivo carregado: <span className="font-medium text-foreground">{fileName}</span>
-              </p>
+              <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  Arquivo carregado: <span className="font-medium text-foreground">{fileName}</span>
+                </p>
+                {lastSaved && (
+                  <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Dados salvos · {lastSaved}
+                  </p>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

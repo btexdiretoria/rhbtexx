@@ -204,14 +204,12 @@ export default function Dashboard() {
         className="kpi-card cursor-pointer border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent"
         onClick={() => setKpiModal({ label: totalKpi.label, employees: kpiEmployees[totalKpi.label as keyof typeof kpiEmployees] || [] })}
       >
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${totalKpi.color}`}>
-            <totalKpi.icon className="w-7 h-7" />
+        <div className="flex flex-col items-center justify-center text-center gap-2 py-2">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${totalKpi.color}`}>
+            <totalKpi.icon className="w-6 h-6" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{totalKpi.label}</p>
-            <p className="text-4xl font-heading font-bold text-foreground leading-tight">{totalKpi.value}</p>
-          </div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{totalKpi.label}</p>
+          <p className="text-3xl font-heading font-bold text-foreground leading-tight">{totalKpi.value}</p>
         </div>
       </div>
 
