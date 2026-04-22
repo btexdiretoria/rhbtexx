@@ -483,8 +483,10 @@ export default function FinanceCalendar() {
                       const isToday = toISO(new Date()) === cell.iso;
                       const isReference = cell.date.getDate() === referenceDay;
 
-                      const cellBg = delivery ? `${delivery.color}1F` : 'transparent';
-                      const cellBorder = delivery ? delivery.color : 'hsl(var(--border))';
+                      // Delivery day: no background/border change — only the "Entrega" badge inside.
+                      // Receipt-only day: keep colored dashed border to highlight receipts.
+                      const cellBg = receipt && !delivery && receiptDelivery ? `${receiptDelivery.color}10` : 'transparent';
+                      const cellBorder = receipt && !delivery && receiptDelivery ? receiptDelivery.color : 'hsl(var(--border))';
 
                       const cellContent = (
                         <button
@@ -492,9 +494,8 @@ export default function FinanceCalendar() {
                           className={`group relative w-full h-16 rounded-md border-2 p-1 text-left transition-all hover:shadow-md hover:scale-[1.02] flex flex-col ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''} ${isReference && !isToday ? 'ring-1 ring-primary/40' : ''}`}
                           style={{
                             backgroundColor: cellBg,
-                            borderColor: receipt && !delivery && receiptDelivery ? receiptDelivery.color : cellBorder,
+                            borderColor: cellBorder,
                             borderStyle: receipt && !delivery ? 'dashed' : 'solid',
-                            ...(receipt && receiptDelivery && !delivery ? { backgroundColor: `${receiptDelivery.color}10` } : {}),
                           }}
                         >
                           <div className="flex items-start justify-between leading-none">
