@@ -98,10 +98,7 @@ export default function FinanceCalendar() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createDate, setCreateDate] = useState<string | null>(null);
   const [selectedProductionDays, setSelectedProductionDays] = useState<Set<string>>(new Set());
-
-  const [editReceiptOpen, setEditReceiptOpen] = useState(false);
-  const [editingReceipt, setEditingReceipt] = useState<Receipt | null>(null);
-  const [receiptValueInput, setReceiptValueInput] = useState('');
+  const [createReceiptValue, setCreateReceiptValue] = useState('');
 
   const [clearAllOpen, setClearAllOpen] = useState(false);
 
