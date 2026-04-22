@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import FileUpload from "@/components/FileUpload";
 import CategoryBuckets from "@/components/CategoryBuckets";
 import MonthlyBalance from "@/components/MonthlyBalance";
+import AlteracoesPanel, { type AlteracaoItem } from "@/components/AlteracoesPanel";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import CashFlowTable from "@/components/CashFlowTable";
 import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, type CashFlowData } from "@/lib/cashflow";
@@ -34,6 +35,7 @@ const Index = () => {
   const [savedEdits, setSavedEdits] = useState<DateEdits>({});
   const [changeHistory, setChangeHistory] = useState<ChangeHistoryEntry[]>([]);
   const [lastSaved, setLastSaved] = useState<string>("");
+  const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Restore persisted state on mount
@@ -52,6 +54,7 @@ const Index = () => {
         if (s.savedEdits) setSavedEdits(s.savedEdits);
         if (s.dateEdits) setDateEdits(s.dateEdits);
         if (s.changeHistory) setChangeHistory(s.changeHistory);
+        if (Array.isArray(s.alteracoes)) setAlteracoes(s.alteracoes);
         if (s.lastSaved) setLastSaved(s.lastSaved);
       }
     } catch (e) {
@@ -66,13 +69,13 @@ const Index = () => {
     if (!hydrated) return;
     try {
       const ts = new Date().toLocaleString("pt-BR");
-      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, lastSaved: ts };
+      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, lastSaved: ts };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       setLastSaved(ts);
     } catch (e) {
       console.warn("Falha ao salvar Fluxo:", e);
     }
-  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, hydrated]);
+  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, hydrated]);
 
   const handleFile = async (file: File) => {
     setLoading(true);
@@ -87,6 +90,7 @@ const Index = () => {
       setSavedEdits({});
       setSimulationMode(false);
       setChangeHistory([]);
+      setAlteracoes([]);
       if (cf.dates.length > 0) {
         setStartDate(cf.dates[0]);
         setEndDate(cf.dates[cf.dates.length - 1]);
@@ -312,6 +316,25 @@ const Index = () => {
 
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
+
+            {/* Alterações */}
+            <AlteracoesPanel
+              items={alteracoes}
+              onChange={setAlteracoes}
+              baseSaldoFinal={(() => {
+                const activeData = simulationMode && simulatedData ? simulatedData : data;
+                const activeDates = simulationMode ? simulatedFilteredDates : filteredDates;
+                if (!activeData || activeDates.length === 0) return 0;
+                let prev = 0;
+                for (const d of activeDates) {
+                  let rev = 0, exp = 0;
+                  for (const cat of activeData.revenueCategories) rev += activeData.matrix[`rev::${cat}`]?.[d] || 0;
+                  for (const cat of activeData.expenseCategories) exp += activeData.matrix[`exp::${cat}`]?.[d] || 0;
+                  prev = prev + rev + exp;
+                }
+                return prev;
+              })()}
+            />
 
             {/* Monthly balance */}
             <MonthlyBalance data={data} />
