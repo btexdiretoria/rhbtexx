@@ -317,6 +317,25 @@ const Index = () => {
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
 
+            {/* Alterações */}
+            <AlteracoesPanel
+              items={alteracoes}
+              onChange={setAlteracoes}
+              baseSaldoFinal={(() => {
+                const activeData = simulationMode && simulatedData ? simulatedData : data;
+                const activeDates = simulationMode ? simulatedFilteredDates : filteredDates;
+                if (!activeData || activeDates.length === 0) return 0;
+                let prev = 0;
+                for (const d of activeDates) {
+                  let rev = 0, exp = 0;
+                  for (const cat of activeData.revenueCategories) rev += activeData.matrix[`rev::${cat}`]?.[d] || 0;
+                  for (const cat of activeData.expenseCategories) exp += activeData.matrix[`exp::${cat}`]?.[d] || 0;
+                  prev = prev + rev + exp;
+                }
+                return prev;
+              })()}
+            />
+
             {/* Monthly balance */}
             <MonthlyBalance data={data} />
 
