@@ -524,8 +524,7 @@ export default function FinanceCalendar() {
                             )}
                             {receipt && receiptDelivery && (
                               <div
-                                onClick={(e) => handleReceiptClick(e, receipt)}
-                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded cursor-pointer hover:brightness-110 leading-tight"
+                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded leading-tight"
                                 style={{ backgroundColor: receiptDelivery.color, color: '#fff', border: `1.5px dashed #fff`, boxShadow: `inset 0 0 0 1.5px ${receiptDelivery.color}` }}
                               >
                                 <DollarSign className="w-3 h-3 shrink-0" />
