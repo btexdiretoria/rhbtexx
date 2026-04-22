@@ -109,26 +109,27 @@
   }
 
   :root[data-theme="violet-pro"] {
-    --background: 270 100% 98%;
-    --foreground: 244 47% 20%;
+    /* Slate Gray theme — neutral grays, no purple */
+    --background: 210 20% 98%;          /* #F8FAFC */
+    --foreground: 222 47% 11%;          /* #0F172A */
     --card: 0 0% 100%;
-    --card-foreground: 244 47% 20%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 244 47% 20%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 262 83% 58%;
+    --primary: 215 16% 47%;             /* #64748B slate-500 */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 263 70% 50%;
-    --secondary: 263 69% 35%;
-    --secondary-foreground: 269 100% 92%;
-    --accent: 271 91% 65%;
+    --primary-hover: 215 19% 35%;       /* #475569 slate-600 */
+    --secondary: 217 33% 17%;           /* #1F2937 gray-800 */
+    --secondary-foreground: 220 14% 96%;
+    --accent: 215 25% 27%;              /* #374151 gray-700 */
     --accent-foreground: 0 0% 100%;
 
-    --muted: 269 100% 95%;
-    --muted-foreground: 263 70% 42%;
-    --border: 270 95% 88%;
-    --input: 270 95% 88%;
-    --ring: 262 83% 58%;
+    --muted: 220 14% 96%;               /* #F3F4F6 */
+    --muted-foreground: 215 16% 47%;
+    --border: 216 12% 84%;              /* #E5E7EB */
+    --input: 216 12% 84%;
+    --ring: 215 19% 35%;
 
     --destructive: 0 73% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -139,15 +140,15 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 264 100% 97%;
-    --sidebar-foreground: 263 69% 35%;
-    --sidebar-primary: 262 83% 58%;
+    --sidebar-background: 220 14% 96%;  /* #F3F4F6 */
+    --sidebar-foreground: 217 19% 27%;  /* #374151 */
+    --sidebar-primary: 215 19% 35%;     /* #475569 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 95% 92%;
-    --sidebar-accent-foreground: 262 83% 58%;
-    --sidebar-border: 270 95% 88%;
-    --sidebar-ring: 262 83% 58%;
-    --sidebar-muted: 263 30% 50%;
+    --sidebar-accent: 216 12% 90%;      /* #E5E7EB tint */
+    --sidebar-accent-foreground: 215 19% 35%;
+    --sidebar-border: 216 12% 84%;
+    --sidebar-ring: 215 19% 35%;
+    --sidebar-muted: 215 14% 50%;
   }
 
   :root[data-theme="cosmic"] {
