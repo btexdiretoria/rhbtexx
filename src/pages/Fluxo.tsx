@@ -54,6 +54,7 @@ const Index = () => {
         if (s.savedEdits) setSavedEdits(s.savedEdits);
         if (s.dateEdits) setDateEdits(s.dateEdits);
         if (s.changeHistory) setChangeHistory(s.changeHistory);
+        if (Array.isArray(s.alteracoes)) setAlteracoes(s.alteracoes);
         if (s.lastSaved) setLastSaved(s.lastSaved);
       }
     } catch (e) {
