@@ -149,7 +149,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="font-heading text-lg font-semibold text-foreground truncate flex-1">
             {allItems.find(i => isPathActive(location.pathname, i.path))?.label || companyName}
           </h1>
-          <ThemeSwitcher />
           <div className="flex items-center gap-2 px-3 py-1.5">
             {currentUser.avatar ? (
               <img src={currentUser.avatar} alt={currentUser.nome} className="w-6 h-6 rounded-full object-cover" />

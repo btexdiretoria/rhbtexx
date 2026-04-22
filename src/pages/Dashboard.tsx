@@ -153,12 +153,12 @@ export default function Dashboard() {
     else setAcknowledgedAvisoIds(prev => prev.filter(i => i !== id));
   };
 
+  const totalKpi = { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' };
   const kpis = [
-    { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
     { label: 'Afastados', value: stats.afastados, icon: UserMinus, color: 'bg-orange-50 text-orange-600' },
-    { label: 'Teste', value: stats.teste, icon: UserCheck, color: 'bg-violet-50 text-violet-600' },
+    { label: 'Teste', value: stats.teste, icon: UserCheck, color: 'bg-slate-100 text-slate-600' },
     { label: 'Aviso Prévio', value: stats.avisoPrevio, icon: Clock, color: 'bg-amber-50 text-amber-600' },
     { label: 'Desligados no Mês', value: stats.desligadosMes, icon: UserMinus, color: 'bg-muted text-muted-foreground' },
   ];
@@ -199,14 +199,31 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      {/* Card de destaque: Total de Funcionários */}
+      <div
+        className="kpi-card cursor-pointer border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent"
+        onClick={() => setKpiModal({ label: totalKpi.label, employees: kpiEmployees[totalKpi.label as keyof typeof kpiEmployees] || [] })}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${totalKpi.color}`}>
+            <totalKpi.icon className="w-7 h-7" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{totalKpi.label}</p>
+            <p className="text-4xl font-heading font-bold text-foreground leading-tight">{totalKpi.value}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Cards secundários: 6 colunas em desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="kpi-card cursor-pointer" onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}>
+          <div key={kpi.label} className="kpi-card cursor-pointer min-w-0" onClick={() => setKpiModal({ label: kpi.label, employees: kpiEmployees[kpi.label as keyof typeof kpiEmployees] || [] })}>
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${kpi.color}`}><kpi.icon className="w-5 h-5" /></div>
             </div>
             <p className="text-2xl font-heading font-bold text-foreground">{kpi.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{kpi.label}</p>
+            <p className="text-sm text-muted-foreground mt-1 truncate">{kpi.label}</p>
           </div>
         ))}
       </div>

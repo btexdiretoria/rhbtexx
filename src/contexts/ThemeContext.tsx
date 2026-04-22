@@ -14,7 +14,7 @@ export interface ThemeDefinition {
 export const THEMES: ThemeDefinition[] = [
   { id: 'corporate-blue', name: 'Corporate Blue', category: 'Corporativo', description: 'Azul & sidebar escuro', swatch: '#2563EB' },
   { id: 'navy-pro',       name: 'Navy Pro',       category: 'Profissional', description: 'Azul marinho suave',   swatch: '#2B5FA0' },
-  { id: 'violet-pro',     name: 'Violet Pro',     category: 'Moderno',     description: 'Roxo & lavanda',       swatch: '#7C3AED' },
+  { id: 'violet-pro',     name: 'Slate Gray',     category: 'Neutro',      description: 'Cinza & prata neutro', swatch: '#64748B' },
   { id: 'cosmic',         name: 'Cosmic',         category: 'Criativo',    description: 'Índigo & violeta',     swatch: '#6C63FF' },
 ];
 
