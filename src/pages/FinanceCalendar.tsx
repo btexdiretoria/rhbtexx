@@ -136,7 +136,7 @@ export default function FinanceCalendar() {
 
   // Mutations
   const createDelivery = useMutation({
-    mutationFn: async ({ daysISO, deliveryISO }: { daysISO: string[]; deliveryISO: string }) => {
+    mutationFn: async ({ daysISO, deliveryISO, receiptValue }: { daysISO: string[]; deliveryISO: string; receiptValue: number }) => {
       const sorted = [...daysISO].sort();
       const startISO = sorted[0] ?? deliveryISO;
       const endISO = deliveryISO; // delivery date drives the receipt calculation
@@ -159,7 +159,7 @@ export default function FinanceCalendar() {
       const receiptISO = calcReceiptDate(deliveryISO);
       const { error: rErr } = await (supabase
         .from('calendar_receipts' as any)
-        .insert({ delivery_id: (del as any).id, receipt_date: receiptISO, value: 0 } as any) as any);
+        .insert({ delivery_id: (del as any).id, receipt_date: receiptISO, value: receiptValue } as any) as any);
       if (rErr) throw rErr;
     },
     onSuccess: () => {
