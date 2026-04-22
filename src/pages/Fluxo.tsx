@@ -215,9 +215,17 @@ const Index = () => {
           <CardContent className="pt-6">
             <FileUpload onFileSelected={handleFile} isLoading={loading} />
             {fileName && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Arquivo carregado: <span className="font-medium text-foreground">{fileName}</span>
-              </p>
+              <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  Arquivo carregado: <span className="font-medium text-foreground">{fileName}</span>
+                </p>
+                {lastSaved && (
+                  <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Dados salvos · {lastSaved}
+                  </p>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
