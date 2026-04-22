@@ -636,37 +636,24 @@ export default function FinanceCalendar() {
                   Recebimento será gerado 7 dias após a data de entrega selecionada.
                 </p>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
-              <Button onClick={handleConfirmCreate}>Confirmar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
-        {/* Edit receipt dialog */}
-        <Dialog open={editReceiptOpen} onOpenChange={setEditReceiptOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Valor do Recebimento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2">
               <div className="space-y-1">
-                <Label htmlFor="receipt-value">Valor (R$)</Label>
+                <Label htmlFor="create-receipt-value" className="text-xs text-muted-foreground">Valor do recebimento (R$)</Label>
                 <Input
-                  id="receipt-value"
+                  id="create-receipt-value"
                   type="number"
                   step="0.01"
-                  value={receiptValueInput}
-                  onChange={(e) => setReceiptValueInput(e.target.value)}
+                  placeholder="0,00"
+                  value={createReceiptValue}
+                  onChange={(e) => setCreateReceiptValue(e.target.value)}
                   onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditReceiptOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSaveReceipt}>Salvar</Button>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button onClick={handleConfirmCreate}>Confirmar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
