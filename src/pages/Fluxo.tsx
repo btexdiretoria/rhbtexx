@@ -35,6 +35,7 @@ const Index = () => {
   const [savedEdits, setSavedEdits] = useState<DateEdits>({});
   const [changeHistory, setChangeHistory] = useState<ChangeHistoryEntry[]>([]);
   const [lastSaved, setLastSaved] = useState<string>("");
+  const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Restore persisted state on mount
