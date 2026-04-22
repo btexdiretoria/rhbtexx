@@ -98,10 +98,7 @@ export default function FinanceCalendar() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createDate, setCreateDate] = useState<string | null>(null);
   const [selectedProductionDays, setSelectedProductionDays] = useState<Set<string>>(new Set());
-
-  const [editReceiptOpen, setEditReceiptOpen] = useState(false);
-  const [editingReceipt, setEditingReceipt] = useState<Receipt | null>(null);
-  const [receiptValueInput, setReceiptValueInput] = useState('');
+  const [createReceiptValue, setCreateReceiptValue] = useState('');
 
   const [clearAllOpen, setClearAllOpen] = useState(false);
 
@@ -139,7 +136,7 @@ export default function FinanceCalendar() {
 
   // Mutations
   const createDelivery = useMutation({
-    mutationFn: async ({ daysISO, deliveryISO }: { daysISO: string[]; deliveryISO: string }) => {
+    mutationFn: async ({ daysISO, deliveryISO, receiptValue }: { daysISO: string[]; deliveryISO: string; receiptValue: number }) => {
       const sorted = [...daysISO].sort();
       const startISO = sorted[0] ?? deliveryISO;
       const endISO = deliveryISO; // delivery date drives the receipt calculation
@@ -162,7 +159,7 @@ export default function FinanceCalendar() {
       const receiptISO = calcReceiptDate(deliveryISO);
       const { error: rErr } = await (supabase
         .from('calendar_receipts' as any)
-        .insert({ delivery_id: (del as any).id, receipt_date: receiptISO, value: 0 } as any) as any);
+        .insert({ delivery_id: (del as any).id, receipt_date: receiptISO, value: receiptValue } as any) as any);
       if (rErr) throw rErr;
     },
     onSuccess: () => {
@@ -287,6 +284,7 @@ export default function FinanceCalendar() {
   const handleDayClick = (iso: string) => {
     setCreateDate(iso);
     setSelectedProductionDays(new Set([iso]));
+    setCreateReceiptValue('');
     setCreateOpen(true);
   };
 
@@ -307,22 +305,9 @@ export default function FinanceCalendar() {
       toast({ title: 'Selecione ao menos um dia', variant: 'destructive' });
       return;
     }
-    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays), deliveryISO: createDate });
+    const receiptValue = parseFloat(createReceiptValue.replace(',', '.')) || 0;
+    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays), deliveryISO: createDate, receiptValue });
     setCreateOpen(false);
-  };
-
-  const handleReceiptClick = (e: React.MouseEvent, receipt: Receipt) => {
-    e.stopPropagation();
-    setEditingReceipt(receipt);
-    setReceiptValueInput(String(receipt.value));
-    setEditReceiptOpen(true);
-  };
-
-  const handleSaveReceipt = () => {
-    if (!editingReceipt) return;
-    const v = parseFloat(receiptValueInput.replace(',', '.')) || 0;
-    updateReceiptValue.mutate({ id: editingReceipt.id, value: v });
-    setEditReceiptOpen(false);
   };
 
   const handleDeleteDelivery = (e: React.MouseEvent, deliveryId: string) => {
@@ -483,8 +468,10 @@ export default function FinanceCalendar() {
                       const isToday = toISO(new Date()) === cell.iso;
                       const isReference = cell.date.getDate() === referenceDay;
 
-                      const cellBg = delivery ? `${delivery.color}1F` : 'transparent';
-                      const cellBorder = delivery ? delivery.color : 'hsl(var(--border))';
+                      // Delivery day: no background/border change — only the "Entrega" badge inside.
+                      // Receipt-only day: keep colored dashed border to highlight receipts.
+                      const cellBg = receipt && !delivery && receiptDelivery ? `${receiptDelivery.color}10` : 'transparent';
+                      const cellBorder = receipt && !delivery && receiptDelivery ? receiptDelivery.color : 'hsl(var(--border))';
 
                       const cellContent = (
                         <button
@@ -492,9 +479,8 @@ export default function FinanceCalendar() {
                           className={`group relative w-full h-16 rounded-md border-2 p-1 text-left transition-all hover:shadow-md hover:scale-[1.02] flex flex-col ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''} ${isReference && !isToday ? 'ring-1 ring-primary/40' : ''}`}
                           style={{
                             backgroundColor: cellBg,
-                            borderColor: receipt && !delivery && receiptDelivery ? receiptDelivery.color : cellBorder,
+                            borderColor: cellBorder,
                             borderStyle: receipt && !delivery ? 'dashed' : 'solid',
-                            ...(receipt && receiptDelivery && !delivery ? { backgroundColor: `${receiptDelivery.color}10` } : {}),
                           }}
                         >
                           <div className="flex items-start justify-between leading-none">
@@ -523,8 +509,7 @@ export default function FinanceCalendar() {
                             )}
                             {receipt && receiptDelivery && (
                               <div
-                                onClick={(e) => handleReceiptClick(e, receipt)}
-                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded cursor-pointer hover:brightness-110 leading-tight"
+                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded leading-tight"
                                 style={{ backgroundColor: receiptDelivery.color, color: '#fff', border: `1.5px dashed #fff`, boxShadow: `inset 0 0 0 1.5px ${receiptDelivery.color}` }}
                               >
                                 <DollarSign className="w-3 h-3 shrink-0" />
@@ -651,37 +636,24 @@ export default function FinanceCalendar() {
                   Recebimento será gerado 7 dias após a data de entrega selecionada.
                 </p>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
-              <Button onClick={handleConfirmCreate}>Confirmar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
-        {/* Edit receipt dialog */}
-        <Dialog open={editReceiptOpen} onOpenChange={setEditReceiptOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Valor do Recebimento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2">
               <div className="space-y-1">
-                <Label htmlFor="receipt-value">Valor (R$)</Label>
+                <Label htmlFor="create-receipt-value" className="text-xs text-muted-foreground">Valor do recebimento (R$)</Label>
                 <Input
-                  id="receipt-value"
+                  id="create-receipt-value"
                   type="number"
                   step="0.01"
-                  value={receiptValueInput}
-                  onChange={(e) => setReceiptValueInput(e.target.value)}
+                  placeholder="0,00"
+                  value={createReceiptValue}
+                  onChange={(e) => setCreateReceiptValue(e.target.value)}
                   onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditReceiptOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSaveReceipt}>Salvar</Button>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button onClick={handleConfirmCreate}>Confirmar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
