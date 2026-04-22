@@ -284,6 +284,7 @@ export default function FinanceCalendar() {
   const handleDayClick = (iso: string) => {
     setCreateDate(iso);
     setSelectedProductionDays(new Set([iso]));
+    setCreateReceiptValue('');
     setCreateOpen(true);
   };
 
@@ -304,22 +305,9 @@ export default function FinanceCalendar() {
       toast({ title: 'Selecione ao menos um dia', variant: 'destructive' });
       return;
     }
-    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays), deliveryISO: createDate });
+    const receiptValue = parseFloat(createReceiptValue.replace(',', '.')) || 0;
+    createDelivery.mutate({ daysISO: Array.from(selectedProductionDays), deliveryISO: createDate, receiptValue });
     setCreateOpen(false);
-  };
-
-  const handleReceiptClick = (e: React.MouseEvent, receipt: Receipt) => {
-    e.stopPropagation();
-    setEditingReceipt(receipt);
-    setReceiptValueInput(String(receipt.value));
-    setEditReceiptOpen(true);
-  };
-
-  const handleSaveReceipt = () => {
-    if (!editingReceipt) return;
-    const v = parseFloat(receiptValueInput.replace(',', '.')) || 0;
-    updateReceiptValue.mutate({ id: editingReceipt.id, value: v });
-    setEditReceiptOpen(false);
   };
 
   const handleDeleteDelivery = (e: React.MouseEvent, deliveryId: string) => {
