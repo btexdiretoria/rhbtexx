@@ -69,13 +69,13 @@ const Index = () => {
     if (!hydrated) return;
     try {
       const ts = new Date().toLocaleString("pt-BR");
-      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, lastSaved: ts };
+      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, lastSaved: ts };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       setLastSaved(ts);
     } catch (e) {
       console.warn("Falha ao salvar Fluxo:", e);
     }
-  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, hydrated]);
+  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, hydrated]);
 
   const handleFile = async (file: File) => {
     setLoading(true);
