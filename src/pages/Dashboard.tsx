@@ -66,7 +66,7 @@ export default function Dashboard() {
   }, [employees]);
 
   const stats = useMemo(() => {
-    const total = employees.length;
+    const total = employees.filter(f => f.status !== 'Desligado').length;
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
@@ -82,7 +82,7 @@ export default function Dashboard() {
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return {
-      'Total de Funcionários': employees,
+      'Total de Funcionários': employees.filter(f => f.status !== 'Desligado'),
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
@@ -201,15 +201,15 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       {/* Card de destaque: Total de Funcionários */}
       <div
-        className="kpi-card cursor-pointer border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent"
+        className="kpi-card cursor-pointer border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent py-2"
         onClick={() => setKpiModal({ label: totalKpi.label, employees: kpiEmployees[totalKpi.label as keyof typeof kpiEmployees] || [] })}
       >
-        <div className="flex flex-col items-center justify-center text-center gap-2 py-2">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${totalKpi.color}`}>
-            <totalKpi.icon className="w-6 h-6" />
+        <div className="flex flex-col items-center justify-center text-center gap-1 py-0">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${totalKpi.color}`}>
+            <totalKpi.icon className="w-5 h-5" />
           </div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{totalKpi.label}</p>
-          <p className="text-3xl font-heading font-bold text-foreground leading-tight">{totalKpi.value}</p>
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{totalKpi.label}</p>
+          <p className="text-2xl font-heading font-bold text-foreground leading-none">{totalKpi.value}</p>
         </div>
       </div>
 

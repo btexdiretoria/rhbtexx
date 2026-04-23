@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -105,9 +105,9 @@ export default function TransportationVoucher() {
             return (
               <TableRow key={entry.id}>
                 <TableCell className="font-medium">{emp.nome}</TableCell>
-                <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><Input type="number" className="w-28 text-right" value={entry.payment1_value || ''} onChange={e => updateEntry2(entry.id, 'payment1_value', Number(e.target.value))} placeholder="0,00" /></TableCell>
+                <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><BlurNumberInput value={entry.payment1_value} onCommit={v => updateEntry2(entry.id, 'payment1_value', v)} /></TableCell>
                 <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><DatePickerCell value={entry.payment1_date || ''} onChange={d => updateEntry2(entry.id, 'payment1_date', d)} /></TableCell>
-                <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><Input type="number" className="w-28 text-right" value={entry.payment2_value || ''} onChange={e => updateEntry2(entry.id, 'payment2_value', Number(e.target.value))} placeholder="0,00" /></TableCell>
+                <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><BlurNumberInput value={entry.payment2_value} onCommit={v => updateEntry2(entry.id, 'payment2_value', v)} /></TableCell>
                 <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><DatePickerCell value={entry.payment2_date || ''} onChange={d => updateEntry2(entry.id, 'payment2_date', d)} /></TableCell>
                 <TableCell className="text-center font-bold">{formatCurrency(entry.payment1_value + entry.payment2_value)}</TableCell>
                 <TableCell><Button variant="ghost" size="icon" onClick={() => removeEmployee(entry.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button></TableCell>
@@ -117,6 +117,31 @@ export default function TransportationVoucher() {
         </TableBody></Table>
       </div></CardContent></Card>
     </div>
+  );
+}
+
+function BlurNumberInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [local, setLocal] = useState<string>(value ? String(value) : '');
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { setLocal(value ? String(value) : ''); }, [value]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const h = () => el.blur();
+    el.addEventListener('wheel', h, { passive: true });
+    return () => el.removeEventListener('wheel', h);
+  }, []);
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      className="w-28 text-right [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={() => { const n = Number(local) || 0; if (n !== value) onCommit(n); }}
+      onWheel={e => e.currentTarget.blur()}
+      placeholder="0,00"
+    />
   );
 }
 
