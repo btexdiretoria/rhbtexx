@@ -172,6 +172,54 @@ export type Database = {
         }
         Relationships: []
       }
+      cashflow_state: {
+        Row: {
+          alteracoes: Json
+          change_history: Json
+          created_at: string
+          date_edits: Json
+          end_date: string | null
+          entries: Json
+          file_name: string | null
+          file_path: string | null
+          id: string
+          saved_edits: Json
+          start_date: string | null
+          state_key: string
+          updated_at: string
+        }
+        Insert: {
+          alteracoes?: Json
+          change_history?: Json
+          created_at?: string
+          date_edits?: Json
+          end_date?: string | null
+          entries?: Json
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          saved_edits?: Json
+          start_date?: string | null
+          state_key?: string
+          updated_at?: string
+        }
+        Update: {
+          alteracoes?: Json
+          change_history?: Json
+          created_at?: string
+          date_edits?: Json
+          end_date?: string | null
+          entries?: Json
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          saved_edits?: Json
+          start_date?: string | null
+          state_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           cnpj: string
