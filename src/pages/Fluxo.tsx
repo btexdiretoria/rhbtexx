@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import FileUpload from "@/components/FileUpload";
 import CategoryBuckets from "@/components/CategoryBuckets";
 import MonthlyBalance from "@/components/MonthlyBalance";
@@ -9,9 +9,20 @@ import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, 
 import { DateEdits, applyEdits, exportEdits } from "@/lib/simulation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, FlaskConical, Save, Download, Printer } from "lucide-react";
+import { BarChart3, FlaskConical, Save, Download, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ChangeHistoryEntry {
   description: string;
@@ -21,7 +32,8 @@ interface ChangeHistoryEntry {
   timestamp: string;
 }
 
-const STORAGE_KEY = "fluxo_data_v1";
+const STATE_KEY = "default";
+const BUCKET = "cashflow-files";
 
 const Index = () => {
   const [data, setData] = useState<CashFlowData | null>(null);
@@ -30,6 +42,7 @@ const Index = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [fileName, setFileName] = useState("");
+  const [filePath, setFilePath] = useState<string>("");
   const [simulationMode, setSimulationMode] = useState(false);
   const [dateEdits, setDateEdits] = useState<DateEdits>({});
   const [savedEdits, setSavedEdits] = useState<DateEdits>({});
@@ -37,50 +50,99 @@ const Index = () => {
   const [lastSaved, setLastSaved] = useState<string>("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
-  // Restore persisted state on mount
+  const saveTimer = useRef<number | null>(null);
+
+  // Restore persisted state from Supabase on mount
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (Array.isArray(s.entries) && s.entries.length > 0) {
-          setEntries(s.entries);
-          setData(buildCashFlow(s.entries));
+    (async () => {
+      try {
+        const { data: row, error } = await supabase
+          .from("cashflow_state")
+          .select("*")
+          .eq("state_key", STATE_KEY)
+          .maybeSingle();
+        if (error) throw error;
+        if (row) {
+          const rawEntries = (row.entries as unknown as RawEntry[]) || [];
+          if (rawEntries.length > 0) {
+            setEntries(rawEntries);
+            setData(buildCashFlow(rawEntries));
+          }
+          setFileName(row.file_name || "");
+          setFilePath(row.file_path || "");
+          setStartDate(row.start_date || "");
+          setEndDate(row.end_date || "");
+          setSavedEdits((row.saved_edits as unknown as DateEdits) || {});
+          setDateEdits((row.date_edits as unknown as DateEdits) || {});
+          setChangeHistory((row.change_history as unknown as ChangeHistoryEntry[]) || []);
+          setAlteracoes((row.alteracoes as unknown as AlteracaoItem[]) || []);
+          if (row.updated_at) setLastSaved(new Date(row.updated_at).toLocaleString("pt-BR"));
         }
-        if (s.fileName) setFileName(s.fileName);
-        if (s.startDate) setStartDate(s.startDate);
-        if (s.endDate) setEndDate(s.endDate);
-        if (s.savedEdits) setSavedEdits(s.savedEdits);
-        if (s.dateEdits) setDateEdits(s.dateEdits);
-        if (s.changeHistory) setChangeHistory(s.changeHistory);
-        if (Array.isArray(s.alteracoes)) setAlteracoes(s.alteracoes);
-        if (s.lastSaved) setLastSaved(s.lastSaved);
+      } catch (e) {
+        console.warn("Falha ao restaurar Fluxo:", e);
+      } finally {
+        setHydrated(true);
       }
-    } catch (e) {
-      console.warn("Falha ao restaurar Fluxo:", e);
-    } finally {
-      setHydrated(true);
-    }
+    })();
   }, []);
 
-  // Auto-save on changes (after hydration)
+  // Auto-save (debounced) to Supabase after hydration
   useEffect(() => {
     if (!hydrated) return;
-    try {
-      const ts = new Date().toLocaleString("pt-BR");
-      const payload = { entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, lastSaved: ts };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      setLastSaved(ts);
-    } catch (e) {
-      console.warn("Falha ao salvar Fluxo:", e);
-    }
-  }, [entries, fileName, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, hydrated]);
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(async () => {
+      try {
+        const payload = {
+          state_key: STATE_KEY,
+          file_name: fileName || null,
+          file_path: filePath || null,
+          entries: entries as unknown as never,
+          start_date: startDate || null,
+          end_date: endDate || null,
+          saved_edits: savedEdits as unknown as never,
+          date_edits: dateEdits as unknown as never,
+          change_history: changeHistory as unknown as never,
+          alteracoes: alteracoes as unknown as never,
+        };
+        const { error } = await supabase
+          .from("cashflow_state")
+          .upsert(payload, { onConflict: "state_key" });
+        if (error) throw error;
+        setLastSaved(new Date().toLocaleString("pt-BR"));
+      } catch (e) {
+        console.warn("Falha ao salvar Fluxo:", e);
+      }
+    }, 600);
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    };
+  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, hydrated]);
 
   const handleFile = async (file: File) => {
     setLoading(true);
     try {
       const parsed = await parseFile(file);
+
+      // If a previous file exists, remove it from storage
+      if (filePath) {
+        await supabase.storage.from(BUCKET).remove([filePath]).catch(() => {});
+      }
+
+      // Upload new file to Supabase Storage
+      const ext = file.name.split(".").pop() || "xlsx";
+      const newPath = `${STATE_KEY}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(newPath, file, { upsert: true, contentType: file.type || undefined });
+      if (upErr) {
+        console.warn("Falha ao enviar arquivo:", upErr);
+        toast.error("Falha ao enviar arquivo para o servidor.");
+      } else {
+        setFilePath(newPath);
+      }
+
       // New upload overwrites previous data
       setEntries(parsed);
       const cf = buildCashFlow(parsed);
@@ -97,10 +159,43 @@ const Index = () => {
       }
     } catch (err) {
       console.error("Erro ao processar arquivo:", err);
+      toast.error("Erro ao processar arquivo.");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleClearAll = useCallback(async () => {
+    try {
+      if (filePath) {
+        await supabase.storage.from(BUCKET).remove([filePath]).catch(() => {});
+      }
+      const { error } = await supabase
+        .from("cashflow_state")
+        .delete()
+        .eq("state_key", STATE_KEY);
+      if (error) throw error;
+
+      setData(null);
+      setEntries([]);
+      setFileName("");
+      setFilePath("");
+      setStartDate("");
+      setEndDate("");
+      setSavedEdits({});
+      setDateEdits({});
+      setChangeHistory([]);
+      setAlteracoes([]);
+      setSimulationMode(false);
+      setLastSaved("");
+      toast.success("Dados do Fluxo apagados.");
+    } catch (e) {
+      console.error("Falha ao limpar Fluxo:", e);
+      toast.error("Não foi possível limpar os dados.");
+    } finally {
+      setConfirmClearOpen(false);
+    }
+  }, [filePath]);
 
   const filteredDates = useMemo(() => {
     if (!data) return [];
@@ -120,7 +215,6 @@ const Index = () => {
 
   const simulatedFilteredDates = useMemo(() => {
     if (!simulatedData) return [];
-    // Union of original + simulated dates within filter range
     const allDates = new Set([...(data?.dates || []), ...simulatedData.dates]);
     return Array.from(allDates).sort().filter((d) => {
       if (startDate && d < startDate) return false;
@@ -129,7 +223,6 @@ const Index = () => {
     });
   }, [simulatedData, data, startDate, endDate]);
 
-  // Compute original saldo final for comparison highlighting
   const originalSaldoFinal = useMemo(() => {
     if (!data) return {};
     const dates = simulatedFilteredDates;
@@ -210,6 +303,10 @@ const Index = () => {
                   </Button>
                 </>
               )}
+              <Button variant="destructive" onClick={() => setConfirmClearOpen(true)} className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                Limpar
+              </Button>
             </div>
           )}
         </div>
@@ -349,6 +446,23 @@ const Index = () => {
           </>
         )}
       </div>
+
+      <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpar dados do Fluxo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação remove o arquivo carregado e todos os dados associados (filtros, alterações, simulações e histórico). Não é possível desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Sim, limpar tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
