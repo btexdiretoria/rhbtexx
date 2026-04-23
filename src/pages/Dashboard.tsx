@@ -82,7 +82,7 @@ export default function Dashboard() {
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return {
-      'Total de Funcionários': employees,
+      'Total de Funcionários': employees.filter(f => f.status !== 'Desligado'),
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
