@@ -468,10 +468,25 @@ export default function FinanceCalendar() {
                       const isToday = toISO(new Date()) === cell.iso;
                       const isReference = cell.date.getDate() === referenceDay;
 
-                      // Delivery day: no background/border change — only the "Entrega" badge inside.
-                      // Receipt-only day: keep colored dashed border to highlight receipts.
-                      const cellBg = receipt && !delivery && receiptDelivery ? `${receiptDelivery.color}10` : 'transparent';
-                      const cellBorder = receipt && !delivery && receiptDelivery ? receiptDelivery.color : 'hsl(var(--border))';
+                      // Is this cell the delivery date itself? It must look completely neutral.
+                      const isDeliveryDate = !!delivery && delivery.end_date === cell.iso;
+                      // Production day = part of a delivery range but NOT the delivery date itself.
+                      const isProductionDay = !!delivery && !isDeliveryDate;
+
+                      // Production day: colored background + solid border using delivery color.
+                      // Receipt-only day: colored dashed border to highlight receipts.
+                      // Delivery date / blank day: completely neutral.
+                      let cellBg = 'transparent';
+                      let cellBorder = 'hsl(var(--border))';
+                      let borderStyle: 'solid' | 'dashed' = 'solid';
+                      if (isProductionDay && delivery) {
+                        cellBg = `${delivery.color}20`;
+                        cellBorder = delivery.color;
+                      } else if (receipt && !delivery && receiptDelivery) {
+                        cellBg = `${receiptDelivery.color}10`;
+                        cellBorder = receiptDelivery.color;
+                        borderStyle = 'dashed';
+                      }
 
                       const cellContent = (
                         <button
@@ -480,12 +495,12 @@ export default function FinanceCalendar() {
                           style={{
                             backgroundColor: cellBg,
                             borderColor: cellBorder,
-                            borderStyle: receipt && !delivery ? 'dashed' : 'solid',
+                            borderStyle,
                           }}
                         >
                           <div className="flex items-start justify-between leading-none">
                             <span className="text-xs font-bold text-foreground">{cell.date.getDate()}</span>
-                            {delivery && (
+                            {isProductionDay && delivery && (
                               <span
                                 role="button"
                                 tabIndex={0}
@@ -498,15 +513,6 @@ export default function FinanceCalendar() {
                             )}
                           </div>
                           <div className="mt-auto space-y-0.5">
-                            {delivery && (
-                              <div
-                                className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded leading-tight"
-                                style={{ backgroundColor: delivery.color, color: '#fff' }}
-                              >
-                                <Package className="w-3 h-3 shrink-0" />
-                                <span className="truncate">Entrega</span>
-                              </div>
-                            )}
                             {receipt && receiptDelivery && (
                               <div
                                 className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded leading-tight"
