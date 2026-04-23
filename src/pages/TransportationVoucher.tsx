@@ -120,6 +120,31 @@ export default function TransportationVoucher() {
   );
 }
 
+function BlurNumberInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [local, setLocal] = useState<string>(value ? String(value) : '');
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { setLocal(value ? String(value) : ''); }, [value]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const h = () => el.blur();
+    el.addEventListener('wheel', h, { passive: true });
+    return () => el.removeEventListener('wheel', h);
+  }, []);
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      className="w-28 text-right [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={() => { const n = Number(local) || 0; if (n !== value) onCommit(n); }}
+      onWheel={e => e.currentTarget.blur()}
+      placeholder="0,00"
+    />
+  );
+}
+
 function DatePickerCell({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const date = value ? new Date(value) : undefined;
   return (
