@@ -526,7 +526,7 @@ export default function FinanceCalendar() {
                         </button>
                       );
 
-                      if (delivery || receipt) {
+                      if ((delivery && !isDeliveryDate) || receipt) {
                         return (
                           <Tooltip key={cell.iso} delayDuration={200}>
                             <TooltipTrigger asChild>
