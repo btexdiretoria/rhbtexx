@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil } from 'lucide-react';
+import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
 
@@ -11,14 +13,7 @@ type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serv
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste' };
 
 
-const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
-  { value: 'Todos', label: 'Todos' },
-  { value: 'Ativo', label: 'Ativo' },
-  { value: 'Teste', label: 'Teste' },
-  { value: 'Afastado', label: 'Afastado' },
-  { value: 'Desligado', label: 'Desligado' },
-  { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },
-];
+const ALL_STATUSES: StatusFuncionario[] = ['Ativo', 'Teste', 'Afastado', 'Desligado', 'Prestador de Serviço'];
 const pageSizeOptions = [10, 25, 50, 100];
 
 const deptColors: Record<string, string> = {
