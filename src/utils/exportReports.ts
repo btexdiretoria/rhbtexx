@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import type { Employee } from '@/hooks/useEmployees';
+import { formatHorasFromFraction } from '@/lib/overtime';
 
 const EMPRESA = 'BTEX INDUSTRIA TEXTIL';
 
