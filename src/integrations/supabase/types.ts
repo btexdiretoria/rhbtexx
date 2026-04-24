@@ -781,6 +781,59 @@ export type Database = {
           },
         ]
       }
+      overtime_entries: {
+        Row: {
+          colaborador: string
+          created_at: string
+          employee_id: string | null
+          file_name: string | null
+          file_path: string | null
+          horas: number
+          id: string
+          matched: boolean
+          month: number
+          updated_at: string
+          valor: number
+          year: number
+        }
+        Insert: {
+          colaborador: string
+          created_at?: string
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          horas?: number
+          id?: string
+          matched?: boolean
+          month: number
+          updated_at?: string
+          valor?: number
+          year: number
+        }
+        Update: {
+          colaborador?: string
+          created_at?: string
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          horas?: number
+          id?: string
+          matched?: boolean
+          month?: number
+          updated_at?: string
+          valor?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "overtime_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_users: {
         Row: {
           auth_user_id: string | null
