@@ -400,3 +400,78 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
 
   XLSX.writeFile(wb, `relatorio-financeiro-${periodLabel.replace('/', '-')}.xlsx`);
 }
+
+// ─────────────────────────────────────────────
+// RELATÓRIO: HORAS EXTRAS
+// ─────────────────────────────────────────────
+
+export interface OvertimeReportRow {
+  colaborador: string;
+  horas: number;
+  valor: number;
+  chave_pix: string;
+  matched: boolean;
+}
+
+export function exportHorasExtrasPDF(rows: OvertimeReportRow[], periodLabel: string) {
+  const doc = new jsPDF({ orientation: 'landscape' });
+
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${EMPRESA} — Relatório de Horas Extras`, 14, 18);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Período: ${periodLabel}`, 14, 25);
+  doc.text(`Gerado em: ${hoje()}`, 14, 31);
+  doc.text(`Total: ${rows.length} colaborador(es)`, 14, 37);
+
+  const totalHoras = rows.reduce((s, r) => s + (r.horas || 0), 0);
+  const totalValor = rows.reduce((s, r) => s + (r.valor || 0), 0);
+
+  autoTable(doc, {
+    startY: 42,
+    head: [['Colaborador', 'Horas', 'Chave PIX', 'Valor']],
+    body: [
+      ...rows.map(r => [
+        r.colaborador + (r.matched ? '' : ' (sem cadastro)'),
+        r.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 }),
+        r.chave_pix || '-',
+        formatCurrency(r.valor),
+      ]),
+      [
+        { content: 'TOTAL', styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: totalHoras.toLocaleString('pt-BR', { maximumFractionDigits: 2 }), styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: '', styles: {} },
+        { content: formatCurrency(totalValor), styles: { fontStyle: 'bold', halign: 'right' } },
+      ],
+    ],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [142, 68, 173], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [248, 245, 252] },
+    columnStyles: { 1: { halign: 'right' }, 3: { halign: 'right' } },
+  });
+
+  doc.save(`horas-extras-${periodLabel.replace('/', '-')}.pdf`);
+}
+
+export function exportHorasExtrasExcel(rows: OvertimeReportRow[], periodLabel: string) {
+  const dados = rows.map(r => ({
+    Colaborador: r.colaborador,
+    Vinculado: r.matched ? 'Sim' : 'Não',
+    Horas: r.horas,
+    'Chave PIX': r.chave_pix || '',
+    Valor: r.valor,
+  }));
+  dados.push({
+    Colaborador: 'TOTAL',
+    Vinculado: '',
+    Horas: rows.reduce((s, r) => s + (r.horas || 0), 0),
+    'Chave PIX': '',
+    Valor: rows.reduce((s, r) => s + (r.valor || 0), 0),
+  });
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Horas Extras');
+  XLSX.writeFile(wb, `horas-extras-${periodLabel.replace('/', '-')}.xlsx`);
+}
