@@ -179,13 +179,14 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
   } else {
     autoTable(doc, {
       startY: 36,
-      head: [['Nome', 'Cargo', 'Departamento', 'Data Nascimento', 'Dia']],
+      head: [['Nome', 'Cargo', 'Departamento', 'Status', 'Data Nascimento', 'Dia']],
       body: aniversariantes.map(f => {
         const parts = f.data_nascimento!.split('-');
         return [
           f.nome,
           f.cargo,
           f.departamento,
+          f.status,
           formatDate(f.data_nascimento),
           parts[2],
         ];
