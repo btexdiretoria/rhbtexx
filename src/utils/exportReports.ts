@@ -436,13 +436,13 @@ export function exportHorasExtrasPDF(rows: OvertimeReportRow[], periodLabel: str
     body: [
       ...rows.map(r => [
         r.colaborador + (r.matched ? '' : ' (sem cadastro)'),
-        r.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 }),
+        formatHorasFromFraction(r.horas),
         r.chave_pix || '-',
         formatCurrency(r.valor),
       ]),
       [
         { content: 'TOTAL', styles: { fontStyle: 'bold', halign: 'right' } },
-        { content: totalHoras.toLocaleString('pt-BR', { maximumFractionDigits: 2 }), styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: formatHorasFromFraction(totalHoras), styles: { fontStyle: 'bold', halign: 'right' } },
         { content: '', styles: {} },
         { content: formatCurrency(totalValor), styles: { fontStyle: 'bold', halign: 'right' } },
       ],
