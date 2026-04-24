@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye } from 'lucide-react';
+import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,8 +17,12 @@ import {
   exportAniversariantesPDF,
   exportFinanceiroPDF,
   exportFinanceiroExcel,
+  exportHorasExtrasPDF,
+  exportHorasExtrasExcel,
   type FinancialReportType,
+  type OvertimeReportRow,
 } from '@/utils/exportReports';
+import { supabase } from '@/integrations/supabase/client';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -61,7 +65,7 @@ export default function Reports() {
     );
   };
 
-  const handleExport = (title: string, format: string) => {
+  const handleExport = async (title: string, format: string) => {
     try {
       if (title === 'Quadro Atual de Funcionários') {
         const ativos = employees.filter(f => f.status !== 'Desligado');
@@ -72,6 +76,29 @@ export default function Reports() {
         else exportDesligamentosExcel(employees);
       } else if (title === 'Relatório de Aniversariantes') {
         exportAniversariantesPDF(employees, singleMonth + 1);
+      } else if (title === 'Relatório de Horas Extras') {
+        const { data, error } = await supabase
+          .from('overtime_entries')
+          .select('colaborador, horas, valor, matched, employee_id')
+          .eq('year', singleYear)
+          .eq('month', singleMonth)
+          .order('colaborador');
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          toast({ title: 'Sem dados', description: `Não há horas extras para ${MONTHS[singleMonth]}/${singleYear}.`, variant: 'destructive' });
+          return;
+        }
+        const empById = new Map(employees.map(e => [e.id, e]));
+        const rows: OvertimeReportRow[] = data.map(d => ({
+          colaborador: d.colaborador,
+          horas: Number(d.horas) || 0,
+          valor: Number(d.valor) || 0,
+          chave_pix: (d.employee_id ? empById.get(d.employee_id)?.chave_pix : '') || '',
+          matched: !!d.matched,
+        }));
+        const periodLabel = `${MONTHS[singleMonth]}/${singleYear}`;
+        if (format === 'PDF') exportHorasExtrasPDF(rows, periodLabel);
+        else exportHorasExtrasExcel(rows, periodLabel);
       }
       toast({ title: 'Exportação concluída!', description: `${title} foi baixado com sucesso.` });
     } catch (err) {
@@ -124,6 +151,7 @@ export default function Reports() {
     { title: 'Quadro Atual de Funcionários', description: 'Lista completa de todos os funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
     { title: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise comparativa por período.', icon: FileText, formats: ['PDF', 'Excel'] },
     { title: 'Relatório de Aniversariantes', description: 'Lista de funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
+    { title: 'Relatório de Horas Extras', description: `Horas extras importadas para ${MONTHS[singleMonth]}/${singleYear}, com Chave PIX antes do valor para facilitar pagamento.`, icon: Clock, formats: ['PDF', 'Excel'] },
   ];
 
   return (

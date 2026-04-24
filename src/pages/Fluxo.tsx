@@ -165,16 +165,37 @@ const Index = () => {
     }
   };
 
-  const handleClearAll = useCallback(async () => {
+  const handleClearAll = useCallback(async (keepAlteracoes: boolean) => {
     try {
       if (filePath) {
         await supabase.storage.from(BUCKET).remove([filePath]).catch(() => {});
       }
-      const { error } = await supabase
-        .from("cashflow_state")
-        .delete()
-        .eq("state_key", STATE_KEY);
-      if (error) throw error;
+
+      if (keepAlteracoes) {
+        // Reset everything but keep the alteracoes records
+        const payload = {
+          state_key: STATE_KEY,
+          file_name: null,
+          file_path: null,
+          entries: [] as unknown as never,
+          start_date: null,
+          end_date: null,
+          saved_edits: {} as unknown as never,
+          date_edits: {} as unknown as never,
+          change_history: [] as unknown as never,
+          alteracoes: alteracoes as unknown as never,
+        };
+        const { error } = await supabase
+          .from("cashflow_state")
+          .upsert(payload, { onConflict: "state_key" });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("cashflow_state")
+          .delete()
+          .eq("state_key", STATE_KEY);
+        if (error) throw error;
+      }
 
       setData(null);
       setEntries([]);
@@ -185,17 +206,17 @@ const Index = () => {
       setSavedEdits({});
       setDateEdits({});
       setChangeHistory([]);
-      setAlteracoes([]);
+      if (!keepAlteracoes) setAlteracoes([]);
       setSimulationMode(false);
       setLastSaved("");
-      toast.success("Dados do Fluxo apagados.");
+      toast.success(keepAlteracoes ? "Dados apagados (Acontecimentos preservados)." : "Dados do Fluxo apagados.");
     } catch (e) {
       console.error("Falha ao limpar Fluxo:", e);
       toast.error("Não foi possível limpar os dados.");
     } finally {
       setConfirmClearOpen(false);
     }
-  }, [filePath]);
+  }, [filePath, alteracoes]);
 
   const filteredDates = useMemo(() => {
     if (!data) return [];
@@ -452,13 +473,22 @@ const Index = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Limpar dados do Fluxo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação remove o arquivo carregado e todos os dados associados (filtros, alterações, simulações e histórico). Não é possível desfazer.
+              Escolha como deseja limpar os dados. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sim, limpar tudo
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="sm:mr-auto">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleClearAll(true)}
+              className="bg-amber-600 text-white hover:bg-amber-700"
+            >
+              Apagar tudo, exceto Acontecimentos
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => handleClearAll(false)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Apagar tudo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

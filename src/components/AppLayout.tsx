@@ -24,6 +24,7 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
     { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
     { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
+    { label: 'Horas Extras', icon: DollarSign, path: '/horas-extras' },
   ]},
   { label: 'Finanças', icon: Receipt, items: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },

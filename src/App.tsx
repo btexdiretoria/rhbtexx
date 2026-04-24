@@ -21,6 +21,7 @@ import AuditLog from "@/pages/AuditLog";
 import Salaries from "@/pages/Salaries";
 import NetSalary from "@/pages/NetSalary";
 import TransportationVoucher from "@/pages/TransportationVoucher";
+import Overtime from "@/pages/Overtime";
 import FoodVoucher from "@/pages/FoodVoucher";
 import ExpenseControl from "@/pages/ExpenseControl";
 import Fluxo from "@/pages/Fluxo";
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/salario-liquido" element={<ProtectedPage><NetSalary /></ProtectedPage>} />
               <Route path="/vale-alimentacao" element={<ProtectedPage><FoodVoucher /></ProtectedPage>} />
               <Route path="/vale-transporte" element={<ProtectedPage><TransportationVoucher /></ProtectedPage>} />
+              <Route path="/horas-extras" element={<ProtectedPage><Overtime /></ProtectedPage>} />
               <Route path="/controle-despesas" element={<ProtectedPage><ExpenseControl /></ProtectedPage>} />
               <Route path="/fluxo" element={<ProtectedPage><Fluxo /></ProtectedPage>} />
               <Route path="/dashboard-financas" element={<ProtectedPage><FinanceDashboard /></ProtectedPage>} />
