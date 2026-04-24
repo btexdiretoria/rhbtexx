@@ -20,6 +20,7 @@ import FileUpload from '@/components/FileUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from 'sonner';
+import { formatHorasFromFraction, parseHorasToFraction } from '@/lib/overtime';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const BUCKET = 'overtime-files';
@@ -110,7 +111,7 @@ export default function Overtime() {
           const colaborador = String(row[colKey] ?? '').trim();
           if (!colaborador) return null;
 
-          const horas = Number(String(row[horasKey] ?? '0').toString().replace(',', '.')) || 0;
+          const horas = parseHorasToFraction(row[horasKey]);
           const valor = Number(String(row[valorKey] ?? '0').toString().replace(',', '.')) || 0;
 
           const emp = empByName.get(stripAccents(colaborador));
@@ -233,7 +234,7 @@ export default function Overtime() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold text-foreground">{totals.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
+              <span className="text-2xl font-bold text-foreground">{formatHorasFromFraction(totals.horas)}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{rows.length} colaborador(es)</p>
           </CardContent>
@@ -302,7 +303,7 @@ export default function Overtime() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">{r.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-right font-mono">{formatHorasFromFraction(r.horas)}</TableCell>
                     <TableCell className="text-right font-semibold">{formatCurrency(r.valor)}</TableCell>
                   </TableRow>
                 ))}
