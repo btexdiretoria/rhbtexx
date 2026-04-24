@@ -111,7 +111,7 @@ export default function Overtime() {
           const colaborador = String(row[colKey] ?? '').trim();
           if (!colaborador) return null;
 
-          const horas = Number(String(row[horasKey] ?? '0').toString().replace(',', '.')) || 0;
+          const horas = parseHorasToFraction(row[horasKey]);
           const valor = Number(String(row[valorKey] ?? '0').toString().replace(',', '.')) || 0;
 
           const emp = empByName.get(stripAccents(colaborador));
