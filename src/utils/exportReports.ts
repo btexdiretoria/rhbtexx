@@ -151,7 +151,7 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
   const nomeMes = new Date(2000, mesAlvo - 1).toLocaleString('pt-BR', { month: 'long' });
 
   const aniversariantes = funcionarios
-    .filter(f => f.status === 'Ativo' && f.data_nascimento)
+    .filter(f => !!f.data_nascimento)
     .filter(f => {
       const m = parseInt(f.data_nascimento!.split('-')[1]);
       return m === mesAlvo;
