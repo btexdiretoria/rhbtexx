@@ -460,14 +460,14 @@ export function exportHorasExtrasExcel(rows: OvertimeReportRow[], periodLabel: s
   const dados = rows.map(r => ({
     Colaborador: r.colaborador,
     Vinculado: r.matched ? 'Sim' : 'Não',
-    Horas: r.horas,
+    Horas: formatHorasFromFraction(r.horas),
     'Chave PIX': r.chave_pix || '',
     Valor: r.valor,
   }));
   dados.push({
     Colaborador: 'TOTAL',
     Vinculado: '',
-    Horas: rows.reduce((s, r) => s + (r.horas || 0), 0),
+    Horas: formatHorasFromFraction(rows.reduce((s, r) => s + (r.horas || 0), 0)),
     'Chave PIX': '',
     Valor: rows.reduce((s, r) => s + (r.valor || 0), 0),
   });
