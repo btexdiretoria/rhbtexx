@@ -234,7 +234,7 @@ export default function Overtime() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold text-foreground">{totals.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
+              <span className="text-2xl font-bold text-foreground">{formatHorasFromFraction(totals.horas)}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{rows.length} colaborador(es)</p>
           </CardContent>
