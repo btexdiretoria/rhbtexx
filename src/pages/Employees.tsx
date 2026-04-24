@@ -39,16 +39,29 @@ export default function Employees() {
   const { data: departments = [] } = useDepartments();
   const departamentos = ['Todos', ...departments.map(d => d.name)];
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState<StatusFuncionario[]>([...ALL_STATUSES]);
   const [deptFilter, setDeptFilter] = useState('Todos');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
+  const toggleStatus = (s: StatusFuncionario) => {
+    setStatusFilter(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+    setPage(1);
+  };
+  const allStatusesSelected = statusFilter.length === ALL_STATUSES.length;
+  const statusLabel = allStatusesSelected
+    ? 'Todos os status'
+    : statusFilter.length === 0
+      ? 'Nenhum status'
+      : statusFilter.length === 1
+        ? statusDisplayLabel[statusFilter[0]]
+        : `${statusFilter.length} status`;
+
   const filtered = useMemo(() => {
     return employees.filter(f => {
       const matchSearch = f.nome.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = statusFilter === 'Todos' || f.status === statusFilter;
+      const matchStatus = statusFilter.includes(f.status as StatusFuncionario);
       const matchDept = deptFilter === 'Todos' || f.departamento === deptFilter;
       return matchSearch && matchStatus && matchDept;
     });
