@@ -303,7 +303,7 @@ export default function Overtime() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">{r.horas.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-right font-mono">{formatHorasFromFraction(r.horas)}</TableCell>
                     <TableCell className="text-right font-semibold">{formatCurrency(r.valor)}</TableCell>
                   </TableRow>
                 ))}
