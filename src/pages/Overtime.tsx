@@ -20,6 +20,7 @@ import FileUpload from '@/components/FileUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from 'sonner';
+import { formatHorasFromFraction, parseHorasToFraction } from '@/lib/overtime';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const BUCKET = 'overtime-files';
