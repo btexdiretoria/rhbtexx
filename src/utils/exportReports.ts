@@ -151,7 +151,7 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
   const nomeMes = new Date(2000, mesAlvo - 1).toLocaleString('pt-BR', { month: 'long' });
 
   const aniversariantes = funcionarios
-    .filter(f => f.status === 'Ativo' && f.data_nascimento)
+    .filter(f => !!f.data_nascimento)
     .filter(f => {
       const m = parseInt(f.data_nascimento!.split('-')[1]);
       return m === mesAlvo;
@@ -179,13 +179,14 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
   } else {
     autoTable(doc, {
       startY: 36,
-      head: [['Nome', 'Cargo', 'Departamento', 'Data Nascimento', 'Dia']],
+      head: [['Nome', 'Cargo', 'Departamento', 'Status', 'Data Nascimento', 'Dia']],
       body: aniversariantes.map(f => {
         const parts = f.data_nascimento!.split('-');
         return [
           f.nome,
           f.cargo,
           f.departamento,
+          f.status,
           formatDate(f.data_nascimento),
           parts[2],
         ];

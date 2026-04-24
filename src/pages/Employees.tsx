@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil } from 'lucide-react';
+import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
 
@@ -11,14 +13,7 @@ type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serv
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste' };
 
 
-const statusOptions: { value: 'Todos' | StatusFuncionario; label: string }[] = [
-  { value: 'Todos', label: 'Todos' },
-  { value: 'Ativo', label: 'Ativo' },
-  { value: 'Teste', label: 'Teste' },
-  { value: 'Afastado', label: 'Afastado' },
-  { value: 'Desligado', label: 'Desligado' },
-  { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },
-];
+const ALL_STATUSES: StatusFuncionario[] = ['Ativo', 'Teste', 'Afastado', 'Desligado', 'Prestador de Serviço'];
 const pageSizeOptions = [10, 25, 50, 100];
 
 const deptColors: Record<string, string> = {
@@ -44,16 +39,29 @@ export default function Employees() {
   const { data: departments = [] } = useDepartments();
   const departamentos = ['Todos', ...departments.map(d => d.name)];
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState<StatusFuncionario[]>([...ALL_STATUSES]);
   const [deptFilter, setDeptFilter] = useState('Todos');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
+  const toggleStatus = (s: StatusFuncionario) => {
+    setStatusFilter(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+    setPage(1);
+  };
+  const allStatusesSelected = statusFilter.length === ALL_STATUSES.length;
+  const statusLabel = allStatusesSelected
+    ? 'Todos os status'
+    : statusFilter.length === 0
+      ? 'Nenhum status'
+      : statusFilter.length === 1
+        ? statusDisplayLabel[statusFilter[0]]
+        : `${statusFilter.length} status`;
+
   const filtered = useMemo(() => {
     return employees.filter(f => {
       const matchSearch = f.nome.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = statusFilter === 'Todos' || f.status === statusFilter;
+      const matchStatus = statusFilter.includes(f.status as StatusFuncionario);
       const matchDept = deptFilter === 'Todos' || f.departamento === deptFilter;
       return matchSearch && matchStatus && matchDept;
     });
@@ -77,10 +85,38 @@ export default function Employees() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome..." className="pl-9" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
           </div>
-          <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1); }}>
-            <SelectTrigger className="w-full md:w-40"><Filter className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
-            <SelectContent>{statusOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full md:w-48 justify-start font-normal h-10">
+                <Filter className="w-4 h-4 mr-2" />
+                <span className="truncate">{statusLabel}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start">
+              <div className="flex items-center justify-between px-2 py-1.5 mb-1 border-b border-border">
+                <span className="text-xs font-medium text-muted-foreground">Status</span>
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => { setStatusFilter(allStatusesSelected ? [] : [...ALL_STATUSES]); setPage(1); }}
+                >
+                  {allStatusesSelected ? 'Limpar' : 'Todos'}
+                </button>
+              </div>
+              <div className="space-y-0.5">
+                {ALL_STATUSES.map(s => {
+                  const checked = statusFilter.includes(s);
+                  return (
+                    <label key={s} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer">
+                      <Checkbox checked={checked} onCheckedChange={() => toggleStatus(s)} />
+                      <span className="text-sm text-foreground flex-1">{statusDisplayLabel[s]}</span>
+                      {checked && <Check className="w-3.5 h-3.5 text-primary" />}
+                    </label>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
           <Select value={deptFilter} onValueChange={v => { setDeptFilter(v); setPage(1); }}>
             <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
             <SelectContent>{departamentos.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
