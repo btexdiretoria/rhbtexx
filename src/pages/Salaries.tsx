@@ -12,13 +12,24 @@ const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 type SortKey = 'nome' | 'departamento' | 'cargo' | 'salario' | 'status';
 type SortDir = 'asc' | 'desc';
-type StatusOption = 'Ativo' | 'Afastado' | 'Desligado';
+type StatusOption = 'Ativo' | 'Afastado' | 'Desligado' | 'Teste' | 'Prestador de Serviço' | 'Aviso Prévio';
 const STATUS_OPTIONS: { value: StatusOption; label: string }[] = [
-  { value: 'Ativo', label: 'Ativo' }, { value: 'Afastado', label: 'Afastado' }, { value: 'Desligado', label: 'Desligado' },
+  { value: 'Ativo', label: 'Ativo' },
+  { value: 'Teste', label: 'Teste' },
+  { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },
+  { value: 'Afastado', label: 'Afastado' },
+  { value: 'Aviso Prévio', label: 'Aviso Prévio' },
+  { value: 'Desligado', label: 'Desligado' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
-  const styles = status === 'Ativo' ? 'bg-emerald-100 text-emerald-700' : status === 'Afastado' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+  const styles =
+    status === 'Ativo' ? 'bg-emerald-100 text-emerald-700'
+    : status === 'Afastado' ? 'bg-amber-100 text-amber-700'
+    : status === 'Teste' ? 'bg-sky-100 text-sky-700'
+    : status === 'Prestador de Serviço' ? 'bg-violet-100 text-violet-700'
+    : status === 'Aviso Prévio' ? 'bg-orange-100 text-orange-700'
+    : 'bg-red-100 text-red-700';
   return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles}`}>{status}</span>;
 }
 
@@ -93,7 +104,7 @@ export default function Salaries() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Buscar por nome</label><Input placeholder="Nome do funcionário..." value={search} onChange={e => setSearch(e.target.value)} /></div>
           <div className="w-[180px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Departamento</label><Select value={deptFilter} onValueChange={setDeptFilter}><SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem>{departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select></div>
-          <div className="min-w-[200px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label><div className="flex items-center gap-3 border border-border rounded-md px-3 py-2">{STATUS_OPTIONS.map(opt => (<label key={opt.value} className="flex items-center gap-1.5 text-sm cursor-pointer"><Checkbox checked={selectedStatuses.includes(opt.value)} onCheckedChange={() => toggleStatus(opt.value)} /><span>{opt.label}</span></label>))}</div></div>
+          <div className="min-w-[200px] flex-1"><label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label><div className="flex flex-wrap items-center gap-x-3 gap-y-2 border border-border rounded-md px-3 py-2">{STATUS_OPTIONS.map(opt => (<label key={opt.value} className="flex items-center gap-1.5 text-sm cursor-pointer"><Checkbox checked={selectedStatuses.includes(opt.value)} onCheckedChange={() => toggleStatus(opt.value)} /><span>{opt.label}</span></label>))}</div></div>
           <div className="w-[130px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Salário mín.</label><Input type="number" placeholder="0" value={minSalary} onChange={e => setMinSalary(e.target.value)} /></div>
           <div className="w-[130px]"><label className="text-xs font-medium text-muted-foreground mb-1 block">Salário máx.</label><Input type="number" placeholder="∞" value={maxSalary} onChange={e => setMaxSalary(e.target.value)} /></div>
           {hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground"><X className="w-4 h-4 mr-1" /> Limpar</Button>}
