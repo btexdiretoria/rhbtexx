@@ -23,7 +23,13 @@ const STATUS_OPTIONS: { value: StatusOption; label: string }[] = [
 ];
 
 function StatusBadge({ status }: { status: string }) {
-  const styles = status === 'Ativo' ? 'bg-emerald-100 text-emerald-700' : status === 'Afastado' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+  const styles =
+    status === 'Ativo' ? 'bg-emerald-100 text-emerald-700'
+    : status === 'Afastado' ? 'bg-amber-100 text-amber-700'
+    : status === 'Teste' ? 'bg-sky-100 text-sky-700'
+    : status === 'Prestador de Serviço' ? 'bg-violet-100 text-violet-700'
+    : status === 'Aviso Prévio' ? 'bg-orange-100 text-orange-700'
+    : 'bg-red-100 text-red-700';
   return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles}`}>{status}</span>;
 }
 
