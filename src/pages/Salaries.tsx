@@ -12,9 +12,14 @@ const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 type SortKey = 'nome' | 'departamento' | 'cargo' | 'salario' | 'status';
 type SortDir = 'asc' | 'desc';
-type StatusOption = 'Ativo' | 'Afastado' | 'Desligado';
+type StatusOption = 'Ativo' | 'Afastado' | 'Desligado' | 'Teste' | 'Prestador de Serviço' | 'Aviso Prévio';
 const STATUS_OPTIONS: { value: StatusOption; label: string }[] = [
-  { value: 'Ativo', label: 'Ativo' }, { value: 'Afastado', label: 'Afastado' }, { value: 'Desligado', label: 'Desligado' },
+  { value: 'Ativo', label: 'Ativo' },
+  { value: 'Teste', label: 'Teste' },
+  { value: 'Prestador de Serviço', label: 'Prestador de Serviço' },
+  { value: 'Afastado', label: 'Afastado' },
+  { value: 'Aviso Prévio', label: 'Aviso Prévio' },
+  { value: 'Desligado', label: 'Desligado' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
