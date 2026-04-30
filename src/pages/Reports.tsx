@@ -157,12 +157,6 @@ export default function Reports() {
     return { grossTotal, foodTotal, transportTotal, employeeCount: filtered.length };
   }, [employees, departmentFilter, employeeFilter, foodTotal, transportTotal]);
 
-  const reports = [
-    { title: 'Quadro Atual de Funcionários', description: 'Lista completa de todos os funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
-    { title: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise comparativa por período.', icon: FileText, formats: ['PDF', 'Excel'] },
-    { title: 'Relatório de Aniversariantes', description: 'Lista de funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
-    { title: 'Relatório de Horas Extras', description: `Horas extras importadas para ${MONTHS[singleMonth]}/${singleYear}, com Chave PIX antes do valor para facilitar pagamento.`, icon: Clock, formats: ['PDF', 'Excel'] },
-  ];
 
   const currentEmployeeReport = employeeReportOptions.find(o => o.id === selectedEmployeeReport)!;
 
