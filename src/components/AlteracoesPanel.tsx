@@ -99,18 +99,15 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   };
 
   const sorted = useMemo(() => {
-    const filtered =
-      monthFilter === "all"
-        ? items
-        : items.filter((i) => i.date?.slice(0, 7) === monthFilter);
+    const filtered = items.filter((i) => {
+      if (!i.date) return monthFilter === "all";
+      const [y, m] = i.date.split("-");
+      if (yearFilter !== "all" && y !== yearFilter) return false;
+      if (monthFilter !== "all" && m !== monthFilter) return false;
+      return true;
+    });
     return [...filtered].sort((a, b) => a.date.localeCompare(b.date));
-  }, [items, monthFilter]);
-
-  const formatMonthLabel = (ym: string) => {
-    const [y, m] = ym.split("-");
-    const idx = parseInt(m, 10) - 1;
-    return `${MONTH_NAMES[idx] ?? m}/${y}`;
-  };
+  }, [items, monthFilter, yearFilter]);
 
   return (
     <>
