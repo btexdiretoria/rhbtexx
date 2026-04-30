@@ -250,22 +250,6 @@ export default function Reports() {
           </div>
         </div>
       </div>
-          {reports.map(r => (
-            <div key={r.title} className="kpi-card flex flex-col">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <r.icon className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="font-heading font-semibold text-foreground mb-1">{r.title}</h3>
-              <p className="text-sm text-muted-foreground flex-1 mb-4">{r.description}</p>
-              <div className="flex gap-2">
-                {r.formats.map(f => (
-                  <Button key={f} variant="outline" size="sm" onClick={() => handleExport(r.title, f)}>{f}</Button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       <Separator />
 
