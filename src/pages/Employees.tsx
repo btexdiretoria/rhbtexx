@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
+import { exportFuncionariosPDF } from '@/utils/exportReports';
 
 type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Teste';
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste' };
@@ -133,7 +134,7 @@ export default function Employees() {
               <LayoutGrid className="w-4 h-4" /><span className="hidden sm:inline">Quadro</span>
             </Button>
           </div>
-          <Button variant="outline" className="gap-2"><Download className="w-4 h-4" />Exportar</Button>
+          <Button variant="outline" className="gap-2" onClick={() => exportFuncionariosPDF(filtered)} disabled={filtered.length === 0}><Download className="w-4 h-4" />Exportar</Button>
         </div>
         <p className="text-sm text-muted-foreground mt-3">
           Exibindo {filtered.length > 0 ? `${startItem}–${endItem}` : '0'} de {filtered.length} funcionários
