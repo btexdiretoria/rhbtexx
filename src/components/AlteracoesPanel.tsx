@@ -109,6 +109,11 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
     return [...filtered].sort((a, b) => a.date.localeCompare(b.date));
   }, [items, monthFilter, yearFilter]);
 
+  const totalAcontecimentos = useMemo(
+    () => sorted.reduce((acc, it) => acc + (it.value || 0), 0),
+    [sorted],
+  );
+
   return (
     <>
       <Card>
@@ -235,6 +240,24 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
               </table>
             </div>
           )}
+
+          <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
+            <span className="text-sm font-medium text-foreground">
+              Valor total de acontecimentos do mês
+            </span>
+            <span
+              className={cn(
+                "text-base font-semibold tabular-nums",
+                totalAcontecimentos > 0
+                  ? "text-positive-foreground"
+                  : totalAcontecimentos < 0
+                    ? "text-negative-foreground"
+                    : "text-muted-foreground",
+              )}
+            >
+              {formatCurrency(totalAcontecimentos)}
+            </span>
+          </div>
         </CardContent>
       </Card>
 
