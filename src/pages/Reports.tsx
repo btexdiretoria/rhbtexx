@@ -39,7 +39,17 @@ const financialReportOptions: { id: FinancialReportType; label: string; descript
   { id: 'transport', label: 'Vale Transporte', description: 'Pagamentos de vale transporte do período' },
 ];
 
+type EmployeeReportType = 'quadro' | 'desligamentos' | 'aniversariantes' | 'horas_extras';
+
+const employeeReportOptions: { id: EmployeeReportType; label: string; description: string; icon: typeof FileSpreadsheet; formats: ('PDF' | 'Excel')[] }[] = [
+  { id: 'quadro', label: 'Quadro Atual de Funcionários', description: 'Lista completa de funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
+  { id: 'desligamentos', label: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise por período.', icon: FileText, formats: ['PDF', 'Excel'] },
+  { id: 'aniversariantes', label: 'Relatório de Aniversariantes', description: 'Funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
+  { id: 'horas_extras', label: 'Relatório de Horas Extras', description: 'Horas extras importadas no período, com Chave PIX antes do valor.', icon: Clock, formats: ['PDF', 'Excel'] },
+];
+
 export default function Reports() {
+  const [selectedEmployeeReport, setSelectedEmployeeReport] = useState<EmployeeReportType>('quadro');
   const [selectedReports, setSelectedReports] = useState<FinancialReportType[]>([]);
   const [periodType, setPeriodType] = useState<'single' | 'range'>('single');
   const [singleMonth, setSingleMonth] = useState(new Date().getMonth());
