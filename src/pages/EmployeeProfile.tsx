@@ -272,6 +272,7 @@ export default function EmployeeProfile() {
                 <EditableRow label="Valor Rescisão Líquido" value={d.valor_rescisao} editing={editing} onChange={v => updateField('valor_rescisao', Number(v))} type="number" error={errors.valor_rescisao} />
                 <EditableRow label="Desconto Alimentação" value={d.desconto_alimentacao} editing={editing} onChange={v => updateField('desconto_alimentacao', Number(v))} type="number" />
                 <EditableRow label="Desconto Faltas" value={d.desconto_faltas} editing={editing} onChange={v => updateField('desconto_faltas', Number(v))} type="number" />
+                <EditableRow label="Desconto Farmácia" value={(d as any).desconto_farmacia} editing={editing} onChange={v => updateField('desconto_farmacia' as any, Number(v))} type="number" />
                 <EditableRow label="Data Desligamento" value={editing ? d.data_desligamento : formatDateLocal(d.data_desligamento)} editing={editing} onChange={v => updateField('data_desligamento', v)} type="date" />
                 <EditableRow label="Data Pgto Rescisão" value={editing ? d.data_pagamento_rescisao : formatDateLocal(d.data_pagamento_rescisao)} editing={editing} onChange={v => updateField('data_pagamento_rescisao', v)} type="date" error={errors.data_pagamento_rescisao} />
                 <EditableRow label="Motivo" value={d.motivo_desligamento} editing={editing} onChange={v => updateField('motivo_desligamento', v)} />
