@@ -46,17 +46,21 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
+  const currentYear = new Date().getFullYear();
   const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
+  const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState("");
 
-  // Build available month options from items
-  const monthOptions = useMemo(() => {
-    const set = new Set<string>();
+  // Years: current year ± 5 plus any years present in items
+  const yearOptions = useMemo(() => {
+    const set = new Set<number>();
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) set.add(y);
     for (const it of items) {
-      if (it.date && it.date.length >= 7) set.add(it.date.slice(0, 7));
+      const y = parseInt(it.date?.slice(0, 4) || "", 10);
+      if (!isNaN(y)) set.add(y);
     }
-    return Array.from(set).sort();
-  }, [items]);
+    return Array.from(set).sort((a, b) => b - a);
+  }, [items, currentYear]);
 
   const reset = () => {
     setDate("");
