@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye, Clock } from 'lucide-react';
+import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,7 +39,17 @@ const financialReportOptions: { id: FinancialReportType; label: string; descript
   { id: 'transport', label: 'Vale Transporte', description: 'Pagamentos de vale transporte do período' },
 ];
 
+type EmployeeReportType = 'quadro' | 'desligamentos' | 'aniversariantes' | 'horas_extras';
+
+const employeeReportOptions: { id: EmployeeReportType; label: string; description: string; icon: typeof FileSpreadsheet; formats: ('PDF' | 'Excel')[] }[] = [
+  { id: 'quadro', label: 'Quadro Atual de Funcionários', description: 'Lista completa de funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
+  { id: 'desligamentos', label: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise por período.', icon: FileText, formats: ['PDF', 'Excel'] },
+  { id: 'aniversariantes', label: 'Relatório de Aniversariantes', description: 'Funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
+  { id: 'horas_extras', label: 'Relatório de Horas Extras', description: 'Horas extras importadas no período, com Chave PIX antes do valor.', icon: Clock, formats: ['PDF', 'Excel'] },
+];
+
 export default function Reports() {
+  const [selectedEmployeeReport, setSelectedEmployeeReport] = useState<EmployeeReportType>('quadro');
   const [selectedReports, setSelectedReports] = useState<FinancialReportType[]>([]);
   const [periodType, setPeriodType] = useState<'single' | 'range'>('single');
   const [singleMonth, setSingleMonth] = useState(new Date().getMonth());
@@ -147,33 +157,91 @@ export default function Reports() {
     return { grossTotal, foodTotal, transportTotal, employeeCount: filtered.length };
   }, [employees, departmentFilter, employeeFilter, foodTotal, transportTotal]);
 
-  const reports = [
-    { title: 'Quadro Atual de Funcionários', description: 'Lista completa de todos os funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
-    { title: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise comparativa por período.', icon: FileText, formats: ['PDF', 'Excel'] },
-    { title: 'Relatório de Aniversariantes', description: 'Lista de funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
-    { title: 'Relatório de Horas Extras', description: `Horas extras importadas para ${MONTHS[singleMonth]}/${singleYear}, com Chave PIX antes do valor para facilitar pagamento.`, icon: Clock, formats: ['PDF', 'Excel'] },
-  ];
+
+  const currentEmployeeReport = employeeReportOptions.find(o => o.id === selectedEmployeeReport)!;
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* General Reports */}
+      {/* Employee Reports */}
       <div>
-        <h2 className="font-heading text-xl font-bold text-foreground mb-4">Relatórios Gerais</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {reports.map(r => (
-            <div key={r.title} className="kpi-card flex flex-col">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <r.icon className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="font-heading font-semibold text-foreground mb-1">{r.title}</h3>
-              <p className="text-sm text-muted-foreground flex-1 mb-4">{r.description}</p>
-              <div className="flex gap-2">
-                {r.formats.map(f => (
-                  <Button key={f} variant="outline" size="sm" onClick={() => handleExport(r.title, f)}>{f}</Button>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Users className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-heading text-xl font-bold text-foreground">Relatórios de Funcionários</h2>
+            <p className="text-sm text-muted-foreground">Exporte relatórios relacionados ao quadro de funcionários</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Relatório</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {employeeReportOptions.map(opt => {
+                  const checked = selectedEmployeeReport === opt.id;
+                  return (
+                    <label key={opt.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${checked ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/30'}`}>
+                      <input
+                        type="radio"
+                        name="employee-report"
+                        className="accent-primary w-4 h-4"
+                        checked={checked}
+                        onChange={() => setSelectedEmployeeReport(opt.id)}
+                      />
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <opt.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{opt.label}</p>
+                        <p className="text-xs text-muted-foreground">{opt.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Download className="w-3.5 h-3.5" /> Exportar
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {(selectedEmployeeReport === 'aniversariantes' || selectedEmployeeReport === 'horas_extras') && (
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Mês de referência</label>
+                    <div className="flex gap-2">
+                      <Select value={String(singleMonth)} onValueChange={v => setSingleMonth(Number(v))}>
+                        <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+                      </Select>
+                      <Select value={String(singleYear)} onValueChange={v => setSingleYear(Number(v))}>
+                        <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                {currentEmployeeReport.formats.includes('PDF') && (
+                  <Button className="w-full gap-2" onClick={() => handleExport(currentEmployeeReport.label, 'PDF')}>
+                    <FileText className="w-4 h-4" /> Exportar PDF
+                  </Button>
+                )}
+                {currentEmployeeReport.formats.includes('Excel') && (
+                  <Button variant="outline" className="w-full gap-2" onClick={() => handleExport(currentEmployeeReport.label, 'Excel')}>
+                    <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
