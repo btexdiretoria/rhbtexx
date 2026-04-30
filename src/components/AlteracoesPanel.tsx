@@ -46,17 +46,21 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
+  const currentYear = new Date().getFullYear();
   const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
+  const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState("");
 
-  // Build available month options from items
-  const monthOptions = useMemo(() => {
-    const set = new Set<string>();
+  // Years: current year ± 5 plus any years present in items
+  const yearOptions = useMemo(() => {
+    const set = new Set<number>();
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) set.add(y);
     for (const it of items) {
-      if (it.date && it.date.length >= 7) set.add(it.date.slice(0, 7));
+      const y = parseInt(it.date?.slice(0, 4) || "", 10);
+      if (!isNaN(y)) set.add(y);
     }
-    return Array.from(set).sort();
-  }, [items]);
+    return Array.from(set).sort((a, b) => b - a);
+  }, [items, currentYear]);
 
   const reset = () => {
     setDate("");
@@ -95,18 +99,15 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   };
 
   const sorted = useMemo(() => {
-    const filtered =
-      monthFilter === "all"
-        ? items
-        : items.filter((i) => i.date?.slice(0, 7) === monthFilter);
+    const filtered = items.filter((i) => {
+      if (!i.date) return monthFilter === "all";
+      const [y, m] = i.date.split("-");
+      if (yearFilter !== "all" && y !== yearFilter) return false;
+      if (monthFilter !== "all" && m !== monthFilter) return false;
+      return true;
+    });
     return [...filtered].sort((a, b) => a.date.localeCompare(b.date));
-  }, [items, monthFilter]);
-
-  const formatMonthLabel = (ym: string) => {
-    const [y, m] = ym.split("-");
-    const idx = parseInt(m, 10) - 1;
-    return `${MONTH_NAMES[idx] ?? m}/${y}`;
-  };
+  }, [items, monthFilter, yearFilter]);
 
   return (
     <>
@@ -121,7 +122,7 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
         <CardContent className="space-y-4">
           {/* Top controls: Month filter + Valor Previsto Inicial */}
           <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-border pb-4">
-            <div className="space-y-1.5 md:w-56">
+            <div className="space-y-1.5 md:w-44">
               <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
                 Mês
               </Label>
@@ -131,9 +132,31 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os meses</SelectItem>
-                  {monthOptions.map((ym) => (
-                    <SelectItem key={ym} value={ym}>
-                      {formatMonthLabel(ym)}
+                  {MONTH_NAMES.map((name, idx) => {
+                    const mm = String(idx + 1).padStart(2, "0");
+                    return (
+                      <SelectItem key={mm} value={mm}>
+                        {name}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 md:w-32">
+              <Label htmlFor="year-filter" className="text-xs text-muted-foreground">
+                Ano
+              </Label>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger id="year-filter">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
                     </SelectItem>
                   ))}
                 </SelectContent>
