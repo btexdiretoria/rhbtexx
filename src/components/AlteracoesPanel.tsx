@@ -109,6 +109,11 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
     return [...filtered].sort((a, b) => a.date.localeCompare(b.date));
   }, [items, monthFilter, yearFilter]);
 
+  const totalAcontecimentos = useMemo(
+    () => sorted.reduce((acc, it) => acc + (it.value || 0), 0),
+    [sorted],
+  );
+
   return (
     <>
       <Card>
