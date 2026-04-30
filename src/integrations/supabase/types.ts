@@ -392,6 +392,7 @@ export type Database = {
           departamento: string
           desconto_alimentacao: number | null
           desconto_faltas: number | null
+          desconto_farmacia: number | null
           email_corporativo: string | null
           email_pessoal: string | null
           endereco_bairro: string | null
@@ -436,6 +437,7 @@ export type Database = {
           departamento: string
           desconto_alimentacao?: number | null
           desconto_faltas?: number | null
+          desconto_farmacia?: number | null
           email_corporativo?: string | null
           email_pessoal?: string | null
           endereco_bairro?: string | null
@@ -480,6 +482,7 @@ export type Database = {
           departamento?: string
           desconto_alimentacao?: number | null
           desconto_faltas?: number | null
+          desconto_farmacia?: number | null
           email_corporativo?: string | null
           email_pessoal?: string | null
           endereco_bairro?: string | null
