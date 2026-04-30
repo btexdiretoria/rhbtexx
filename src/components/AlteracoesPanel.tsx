@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -29,17 +36,27 @@ interface Props {
   baseSaldoFinal: number;
 }
 
-const AlteracoesPanel = ({ items, onChange, baseSaldoFinal }: Props) => {
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const AlteracoesPanel = ({ items, onChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
+  const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
+  const [valorPrevistoStr, setValorPrevistoStr] = useState("");
 
-  const totalAlteracoes = useMemo(
-    () => items.reduce((acc, i) => acc + (Number(i.value) || 0), 0),
-    [items],
-  );
-  const saldoTotal = baseSaldoFinal + totalAlteracoes;
+  // Build available month options from items
+  const monthOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const it of items) {
+      if (it.date && it.date.length >= 7) set.add(it.date.slice(0, 7));
+    }
+    return Array.from(set).sort();
+  }, [items]);
 
   const reset = () => {
     setDate("");
@@ -77,29 +94,75 @@ const AlteracoesPanel = ({ items, onChange, baseSaldoFinal }: Props) => {
     onChange(items.filter((i) => i.id !== id));
   };
 
-  const sorted = useMemo(
-    () => [...items].sort((a, b) => a.date.localeCompare(b.date)),
-    [items],
-  );
+  const sorted = useMemo(() => {
+    const filtered =
+      monthFilter === "all"
+        ? items
+        : items.filter((i) => i.date?.slice(0, 7) === monthFilter);
+    return [...filtered].sort((a, b) => a.date.localeCompare(b.date));
+  }, [items, monthFilter]);
 
-  const saldoColor =
-    saldoTotal > 0
-      ? "text-positive-foreground"
-      : saldoTotal < 0
-        ? "text-negative-foreground"
-        : "text-muted-foreground";
+  const formatMonthLabel = (ym: string) => {
+    const [y, m] = ym.split("-");
+    const idx = parseInt(m, 10) - 1;
+    return `${MONTH_NAMES[idx] ?? m}/${y}`;
+  };
 
   return (
     <>
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">✍️ Alterações</CardTitle>
+          <CardTitle className="text-base">✍️ Acontecimentos</CardTitle>
           <Button size="sm" onClick={() => setOpen(true)} className="gap-2 print:hidden">
             <Plus className="h-4 w-4" />
             Inserir Acontecimento
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Top controls: Month filter + Valor Previsto Inicial */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-border pb-4">
+            <div className="space-y-1.5 md:w-56">
+              <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
+                Mês
+              </Label>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger id="month-filter">
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os meses</SelectItem>
+                  {monthOptions.map((ym) => (
+                    <SelectItem key={ym} value={ym}>
+                      {formatMonthLabel(ym)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 md:w-64">
+              <Label htmlFor="valor-previsto" className="text-xs text-muted-foreground">
+                Valor Previsto Inicial
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                  R$
+                </span>
+                <Input
+                  id="valor-previsto"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={valorPrevistoStr}
+                  onChange={(e) => setValorPrevistoStr(e.target.value)}
+                  placeholder="0,00"
+                  className="pl-9"
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                />
+              </div>
+            </div>
+          </div>
+
           {sorted.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               Nenhum acontecimento cadastrado. Clique em "Inserir Acontecimento" para começar.
@@ -149,20 +212,6 @@ const AlteracoesPanel = ({ items, onChange, baseSaldoFinal }: Props) => {
               </table>
             </div>
           )}
-
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
-            <div className="text-sm text-muted-foreground">
-              Saldo Final do período:{" "}
-              <span className="font-medium text-foreground">{formatCurrency(baseSaldoFinal)}</span>
-              <span className="mx-2">+</span>
-              Alterações:{" "}
-              <span className="font-medium text-foreground">{formatCurrency(totalAlteracoes)}</span>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Saldo Total</p>
-              <p className={cn("text-lg font-bold", saldoColor)}>{formatCurrency(saldoTotal)}</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
