@@ -121,7 +121,7 @@ export default function Dashboard() {
 
   const setores = useMemo(() => {
     const deptMap = new Map<string, Employee[]>();
-    employees.forEach(f => {
+    employees.filter(f => f.status !== 'Desligado').forEach(f => {
       if (!deptMap.has(f.departamento)) deptMap.set(f.departamento, []);
       deptMap.get(f.departamento)!.push(f);
     });
