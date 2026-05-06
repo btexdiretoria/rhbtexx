@@ -206,6 +206,8 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
 
 export type FinancialReportType = 'gross' | 'net' | 'food' | 'transport';
 
+interface FoodEntry { employee_id: string; value: number; delivery_method?: string | null; }
+
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
   funcionarios: Employee[];
@@ -214,6 +216,7 @@ interface FinancialExportOptions {
   employeeFilter: string;
   foodTotal?: number;
   transportTotal?: number;
+  foodEntries?: FoodEntry[];
 }
 
 function calcINSS(salario: number): number {
