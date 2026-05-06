@@ -359,7 +359,7 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
 }
 
 export function exportFinanceiroExcel(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0 } = opts;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
 
   const ativos = funcionarios.filter(f => {
     if (f.status !== 'Ativo') return false;
