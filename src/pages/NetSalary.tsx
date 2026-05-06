@@ -132,7 +132,10 @@ export default function NetSalary() {
     let list = allEmployees.filter(f => {
       if (f.status === 'Desligado' && f.data_desligamento) {
         const d = new Date(f.data_desligamento);
-        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+        const termIndex = d.getFullYear() * 12 + d.getMonth();
+        const selIndex = selectedYear * 12 + selectedMonth;
+        // mostrar no mês do desligamento e também no mês seguinte
+        return termIndex === selIndex || termIndex === selIndex - 1;
       }
       return f.status !== 'Desligado';
     });
