@@ -235,10 +235,7 @@ function calcIRRF(base: number): number {
 }
 
 export function exportFinanceiroPDF(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0 } = opts;
-
-  const ativos = funcionarios.filter(f => {
-    if (f.status !== 'Ativo') return false;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
     if (departmentFilter !== 'all' && f.departamento !== departmentFilter) return false;
     if (employeeFilter !== 'all' && f.id !== employeeFilter) return false;
     return true;
