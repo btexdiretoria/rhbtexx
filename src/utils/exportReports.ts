@@ -206,6 +206,8 @@ export function exportAniversariantesPDF(funcionarios: Employee[], mes?: number)
 
 export type FinancialReportType = 'gross' | 'net' | 'food' | 'transport';
 
+interface FoodEntry { employee_id: string; value: number; delivery_method?: string | null; }
+
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
   funcionarios: Employee[];
@@ -214,6 +216,7 @@ interface FinancialExportOptions {
   employeeFilter: string;
   foodTotal?: number;
   transportTotal?: number;
+  foodEntries?: FoodEntry[];
 }
 
 function calcINSS(salario: number): number {
@@ -232,7 +235,7 @@ function calcIRRF(base: number): number {
 }
 
 export function exportFinanceiroPDF(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0 } = opts;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
 
   const ativos = funcionarios.filter(f => {
     if (f.status !== 'Ativo') return false;
@@ -314,15 +317,21 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     doc.setFont('helvetica', 'bold');
     doc.text('Vale Alimentação', 14, cursorY); cursorY += 4;
 
+    const foodMap = new Map(foodEntries.filter(e => (e.value || 0) > 0).map(e => [e.employee_id, e]));
+    const foodRows = ativos
+      .map(f => ({ f, entry: foodMap.get(f.id) }))
+      .filter(r => r.entry);
+
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Departamento', 'Status']],
+      head: [['Nome', 'Departamento', 'Status', 'Modalidade', 'Valor']],
       body: [
-        ...ativos.map(f => [f.nome, f.departamento, f.status]),
-        [{ content: `Total do período: ${formatCurrency(foodTotal)}`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'right' } }],
+        ...foodRows.map(({ f, entry }) => [f.nome, f.departamento, f.status, entry!.delivery_method || '-', formatCurrency(entry!.value || 0)]),
+        [{ content: 'TOTAL', colSpan: 4, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(foodRows.reduce((s, r) => s + (r.entry!.value || 0), 0)), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [230, 126, 34], textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 4: { halign: 'right' } },
     });
 
     cursorY = (doc as any).lastAutoTable.finalY + 10;
@@ -350,7 +359,7 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
 }
 
 export function exportFinanceiroExcel(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0 } = opts;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
 
   const ativos = funcionarios.filter(f => {
     if (f.status !== 'Ativo') return false;
@@ -387,8 +396,16 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   }
 
   if (selectedReports.includes('food')) {
-    const dados: any[] = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' });
+    const foodMap = new Map(foodEntries.filter(e => (e.value || 0) > 0).map(e => [e.employee_id, e]));
+    const rows = ativos.map(f => ({ f, entry: foodMap.get(f.id) })).filter(r => r.entry);
+    const dados: any[] = rows.map(({ f, entry }) => ({
+      Nome: f.nome,
+      Departamento: f.departamento,
+      Status: f.status,
+      Modalidade: entry!.delivery_method || '',
+      Valor: entry!.value || 0,
+    }));
+    dados.push({ Nome: 'TOTAL', Departamento: '', Status: '', Modalidade: '', Valor: rows.reduce((s, r) => s + (r.entry!.value || 0), 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Alimentação');
   }
