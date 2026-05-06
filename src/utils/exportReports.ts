@@ -396,8 +396,16 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   }
 
   if (selectedReports.includes('food')) {
-    const dados: any[] = ativos.map(f => ({ Nome: f.nome, Departamento: f.departamento, Status: f.status }));
-    dados.push({ Nome: `TOTAL DO PERÍODO: ${formatCurrency(foodTotal)}`, Departamento: '', Status: '' });
+    const foodMap = new Map(foodEntries.filter(e => (e.value || 0) > 0).map(e => [e.employee_id, e]));
+    const rows = ativos.map(f => ({ f, entry: foodMap.get(f.id) })).filter(r => r.entry);
+    const dados: any[] = rows.map(({ f, entry }) => ({
+      Nome: f.nome,
+      Departamento: f.departamento,
+      Status: f.status,
+      Modalidade: entry!.delivery_method || '',
+      Valor: entry!.value || 0,
+    }));
+    dados.push({ Nome: 'TOTAL', Departamento: '', Status: '', Modalidade: '', Valor: rows.reduce((s, r) => s + (r.entry!.value || 0), 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Vale Alimentação');
   }
