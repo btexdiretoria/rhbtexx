@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye, Clock, Users } from 'lucide-react';
+import { FileSpreadsheet, FileText, Cake, DollarSign, Filter, Download, Eye, Clock, Users, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,8 @@ import {
   exportFinanceiroExcel,
   exportHorasExtrasPDF,
   exportHorasExtrasExcel,
+  exportChavesPixPDF,
+  exportChavesPixExcel,
   type FinancialReportType,
   type OvertimeReportRow,
 } from '@/utils/exportReports';
@@ -436,8 +438,32 @@ export default function Reports() {
                 </p>
               </CardContent>
             </Card>
-          </div>
         </div>
+
+        {/* Chaves PIX Report */}
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <KeyRound className="w-4 h-4" /> Chaves PIX
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+              <p className="text-sm text-muted-foreground">
+                Lista de funcionários (Ativos, Prestadores de Serviço, Afastados, Teste e Aviso Prévio) com nome, status e chave PIX cadastrada.
+              </p>
+              <div className="flex gap-2">
+                <Button className="gap-2" onClick={() => { try { exportChavesPixPDF(employees); toast({ title: 'Exportação concluída!', description: 'Chaves PIX (PDF) baixado.' }); } catch (e) { toast({ title: 'Erro ao exportar', description: String(e), variant: 'destructive' }); } }}>
+                  <FileText className="w-4 h-4" /> PDF
+                </Button>
+                <Button variant="outline" className="gap-2" onClick={() => { try { exportChavesPixExcel(employees); toast({ title: 'Exportação concluída!', description: 'Chaves PIX (Excel) baixado.' }); } catch (e) { toast({ title: 'Erro ao exportar', description: String(e), variant: 'destructive' }); } }}>
+                  <FileSpreadsheet className="w-4 h-4" /> Excel
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       </div>
     </div>
   );
