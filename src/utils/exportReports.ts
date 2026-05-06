@@ -317,15 +317,21 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     doc.setFont('helvetica', 'bold');
     doc.text('Vale Alimentação', 14, cursorY); cursorY += 4;
 
+    const foodMap = new Map(foodEntries.filter(e => (e.value || 0) > 0).map(e => [e.employee_id, e]));
+    const foodRows = ativos
+      .map(f => ({ f, entry: foodMap.get(f.id) }))
+      .filter(r => r.entry);
+
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Departamento', 'Status']],
+      head: [['Nome', 'Departamento', 'Status', 'Modalidade', 'Valor']],
       body: [
-        ...ativos.map(f => [f.nome, f.departamento, f.status]),
-        [{ content: `Total do período: ${formatCurrency(foodTotal)}`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'right' } }],
+        ...foodRows.map(({ f, entry }) => [f.nome, f.departamento, f.status, entry!.delivery_method || '-', formatCurrency(entry!.value || 0)]),
+        [{ content: 'TOTAL', colSpan: 4, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(foodRows.reduce((s, r) => s + (r.entry!.value || 0), 0)), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [230, 126, 34], textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 4: { halign: 'right' } },
     });
 
     cursorY = (doc as any).lastAutoTable.finalY + 10;
