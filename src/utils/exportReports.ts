@@ -477,3 +477,54 @@ export function exportHorasExtrasExcel(rows: OvertimeReportRow[], periodLabel: s
   XLSX.utils.book_append_sheet(wb, ws, 'Horas Extras');
   XLSX.writeFile(wb, `horas-extras-${periodLabel.replace('/', '-')}.xlsx`);
 }
+
+// ─────────────────────────────────────────────
+// RELATÓRIO: CHAVES PIX
+// ─────────────────────────────────────────────
+
+const PIX_STATUSES = ['Ativo', 'Prestador de Serviço', 'Afastado', 'Teste', 'Aviso Prévio'];
+
+function filterPixEmployees(funcionarios: Employee[]) {
+  const norm = (s: string) => (s || '').toLowerCase().trim();
+  const allowed = PIX_STATUSES.map(norm);
+  return funcionarios.filter(f => allowed.includes(norm(f.status)));
+}
+
+export function exportChavesPixPDF(funcionarios: Employee[]) {
+  const lista = filterPixEmployees(funcionarios);
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${EMPRESA} — Chaves PIX`, 14, 18);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Data de geração: ${hoje()}`, 14, 25);
+  doc.text(`Total: ${lista.length} funcionário(s)`, 14, 31);
+
+  autoTable(doc, {
+    startY: 36,
+    head: [['Nome', 'Status', 'Tipo Chave', 'Chave PIX']],
+    body: lista.map(f => [f.nome, f.status, f.tipo_chave_pix || '-', f.chave_pix || '-']),
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [22, 160, 133], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [240, 250, 248] },
+  });
+
+  doc.save('chaves-pix.pdf');
+}
+
+export function exportChavesPixExcel(funcionarios: Employee[]) {
+  const lista = filterPixEmployees(funcionarios);
+  const dados = lista.map(f => ({
+    Nome: f.nome,
+    Status: f.status,
+    'Tipo Chave': f.tipo_chave_pix || '',
+    'Chave PIX': f.chave_pix || '',
+  }));
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Chaves PIX');
+  XLSX.writeFile(wb, 'chaves-pix.xlsx');
+}
