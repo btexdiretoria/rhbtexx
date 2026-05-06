@@ -139,6 +139,7 @@ export default function Reports() {
         employeeFilter,
         foodTotal,
         transportTotal,
+        foodEntries,
       };
       if (format === 'PDF') exportFinanceiroPDF(opts);
       else exportFinanceiroExcel(opts);
