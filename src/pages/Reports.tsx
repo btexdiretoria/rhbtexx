@@ -19,6 +19,8 @@ import {
   exportFinanceiroExcel,
   exportHorasExtrasPDF,
   exportHorasExtrasExcel,
+  exportChavesPixPDF,
+  exportChavesPixExcel,
   type FinancialReportType,
   type OvertimeReportRow,
 } from '@/utils/exportReports';
