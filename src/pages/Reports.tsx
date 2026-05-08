@@ -23,6 +23,7 @@ import {
   exportChavesPixExcel,
   type FinancialReportType,
   type OvertimeReportRow,
+  type NetSalaryRow,
 } from '@/utils/exportReports';
 import { supabase } from '@/integrations/supabase/client';
 
