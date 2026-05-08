@@ -128,8 +128,35 @@ export default function Reports() {
   const foodTotal = useMemo(() => foodEntries.reduce((s, e) => s + (e.value || 0), 0), [foodEntries]);
   const transportTotal = useMemo(() => transportEntries.reduce((s, e) => s + (e.payment1_value || 0) + (e.payment2_value || 0), 0), [transportEntries]);
 
+  const netRows = useMemo<NetSalaryRow[]>(() => {
+    const earningIds = new Set(netColumns.filter(c => c.type === 'earning').map(c => c.column_id));
+    const deductionIds = new Set(netColumns.filter(c => c.type === 'deduction').map(c => c.column_id));
+    const byEmp: Record<string, { p: number; d: number }> = {};
+    netValues.forEach(v => {
+      if (!byEmp[v.employee_id]) byEmp[v.employee_id] = { p: 0, d: 0 };
+      const val = Number(v.value) || 0;
+      if (earningIds.has(v.column_id)) byEmp[v.employee_id].p += val;
+      else if (deductionIds.has(v.column_id)) byEmp[v.employee_id].d += val;
+    });
+    const filtered = employees.filter(f => {
+      if (departmentFilter !== 'all' && f.departamento !== departmentFilter) return false;
+      if (employeeFilter !== 'all' && f.id !== employeeFilter) return false;
+      const t = byEmp[f.id];
+      return t && (t.p > 0 || t.d > 0);
+    });
+    return filtered.map(f => {
+      const t = byEmp[f.id];
+      return { nome: f.nome, matricula: f.matricula, proventos: t.p, descontos: t.d, liquido: t.p - t.d };
+    });
+  }, [employees, netColumns, netValues, departmentFilter, employeeFilter]);
+
+  const netTotal = useMemo(() => netRows.reduce((s, r) => s + r.liquido, 0), [netRows]);
+
   const handleFinancialExport = (format: 'PDF' | 'Excel') => {
     if (selectedReports.length === 0) {
+      toast({ title: 'Selecione ao menos um relatório', description: 'Escolha pelo menos um tipo de relatório financeiro.', variant: 'destructive' });
+      return;
+    }
       toast({ title: 'Selecione ao menos um relatório', description: 'Escolha pelo menos um tipo de relatório financeiro.', variant: 'destructive' });
       return;
     }
