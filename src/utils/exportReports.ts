@@ -405,14 +405,27 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   }
 
   if (selectedReports.includes('net')) {
-    const dados = ativos.map(f => {
-      const inss = calcINSS(f.salario);
-      const irrf = calcIRRF(f.salario - inss);
-      const liquido = f.salario - inss - irrf;
-      return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
-    });
+    let dados: any[];
+    if (netRows && netRows.length > 0) {
+      dados = netRows.map(r => ({
+        Nome: r.nome,
+        Matrícula: r.matricula,
+        Proventos: parseFloat(r.proventos.toFixed(2)),
+        Descontos: parseFloat(r.descontos.toFixed(2)),
+        Líquido: parseFloat(r.liquido.toFixed(2)),
+      }));
+      const totalLiq = netRows.reduce((s, r) => s + r.liquido, 0);
+      dados.push({ Nome: 'TOTAL', Matrícula: '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
+    } else {
+      dados = ativos.map(f => {
+        const inss = calcINSS(f.salario);
+        const irrf = calcIRRF(f.salario - inss);
+        const liquido = f.salario - inss - irrf;
+        return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
+      });
+    }
     const ws = XLSX.utils.json_to_sheet(dados);
-    XLSX.utils.book_append_sheet(wb, ws, 'Folha Líquida');
+    XLSX.utils.book_append_sheet(wb, ws, `Folha Líquida ${periodLabel}`.slice(0, 31));
   }
 
   if (selectedReports.includes('food')) {
