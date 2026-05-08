@@ -69,6 +69,8 @@ export default function Reports() {
   const { data: employees = [] } = useEmployees();
   const { data: foodEntries = [] } = useFoodVoucherEntries(singleYear, singleMonth);
   const { data: transportEntries = [] } = useTransportVoucherEntries(singleYear, singleMonth);
+  const { data: netColumns = [] } = useNetSalaryColumns(singleYear, singleMonth);
+  const { data: netValues = [] } = useNetSalaryValues(singleYear, singleMonth);
 
   const departments = useMemo(() => [...new Set(employees.map(f => f.departamento))], [employees]);
 
