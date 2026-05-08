@@ -210,7 +210,7 @@ interface FoodEntry { employee_id: string; value: number; delivery_method?: stri
 
 export interface NetSalaryRow {
   nome: string;
-  matricula: string;
+  chave_pix: string;
   proventos: number;
   descontos: number;
   liquido: number;
@@ -300,10 +300,10 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     let rows: any[];
     let head: string[];
     if (netRows && netRows.length > 0) {
-      head = ['Nome', 'Matrícula', 'Proventos', 'Descontos', 'Líquido'];
+      head = ['Nome', 'Chave PIX', 'Proventos', 'Descontos', 'Líquido'];
       rows = netRows.map(r => {
         totalLiq += r.liquido;
-        return [r.nome, r.matricula, formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
+        return [r.nome, r.chave_pix || '—', formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
       });
     } else {
       head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
@@ -409,13 +409,13 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
     if (netRows && netRows.length > 0) {
       dados = netRows.map(r => ({
         Nome: r.nome,
-        Matrícula: r.matricula,
+        'Chave PIX': r.chave_pix || '',
         Proventos: parseFloat(r.proventos.toFixed(2)),
         Descontos: parseFloat(r.descontos.toFixed(2)),
         Líquido: parseFloat(r.liquido.toFixed(2)),
       }));
       const totalLiq = netRows.reduce((s, r) => s + r.liquido, 0);
-      dados.push({ Nome: 'TOTAL', Matrícula: '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
+      dados.push({ Nome: 'TOTAL', 'Chave PIX': '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
     } else {
       dados = ativos.map(f => {
         const inss = calcINSS(f.salario);
