@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useFoodVoucherEntries, useTransportVoucherEntries } from '@/hooks/useFinancial';
+import { useFoodVoucherEntries, useTransportVoucherEntries, useNetSalaryColumns, useNetSalaryValues } from '@/hooks/useFinancial';
 import {
   exportFuncionariosPDF,
   exportFuncionariosExcel,
