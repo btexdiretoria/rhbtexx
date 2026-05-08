@@ -210,7 +210,7 @@ interface FoodEntry { employee_id: string; value: number; delivery_method?: stri
 
 export interface NetSalaryRow {
   nome: string;
-  matricula: string;
+  chave_pix: string;
   proventos: number;
   descontos: number;
   liquido: number;
