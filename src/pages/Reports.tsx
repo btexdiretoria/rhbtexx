@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useFoodVoucherEntries, useTransportVoucherEntries } from '@/hooks/useFinancial';
+import { useFoodVoucherEntries, useTransportVoucherEntries, useNetSalaryColumns, useNetSalaryValues } from '@/hooks/useFinancial';
 import {
   exportFuncionariosPDF,
   exportFuncionariosExcel,
@@ -23,6 +23,7 @@ import {
   exportChavesPixExcel,
   type FinancialReportType,
   type OvertimeReportRow,
+  type NetSalaryRow,
 } from '@/utils/exportReports';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,6 +69,8 @@ export default function Reports() {
   const { data: employees = [] } = useEmployees();
   const { data: foodEntries = [] } = useFoodVoucherEntries(singleYear, singleMonth);
   const { data: transportEntries = [] } = useTransportVoucherEntries(singleYear, singleMonth);
+  const { data: netColumns = [] } = useNetSalaryColumns(singleYear, singleMonth);
+  const { data: netValues = [] } = useNetSalaryValues(singleYear, singleMonth);
 
   const departments = useMemo(() => [...new Set(employees.map(f => f.departamento))], [employees]);
 
@@ -125,6 +128,30 @@ export default function Reports() {
   const foodTotal = useMemo(() => foodEntries.reduce((s, e) => s + (e.value || 0), 0), [foodEntries]);
   const transportTotal = useMemo(() => transportEntries.reduce((s, e) => s + (e.payment1_value || 0) + (e.payment2_value || 0), 0), [transportEntries]);
 
+  const netRows = useMemo<NetSalaryRow[]>(() => {
+    const earningIds = new Set(netColumns.filter(c => c.type === 'earning').map(c => c.column_id));
+    const deductionIds = new Set(netColumns.filter(c => c.type === 'deduction').map(c => c.column_id));
+    const byEmp: Record<string, { p: number; d: number }> = {};
+    netValues.forEach(v => {
+      if (!byEmp[v.employee_id]) byEmp[v.employee_id] = { p: 0, d: 0 };
+      const val = Number(v.value) || 0;
+      if (earningIds.has(v.column_id)) byEmp[v.employee_id].p += val;
+      else if (deductionIds.has(v.column_id)) byEmp[v.employee_id].d += val;
+    });
+    const filtered = employees.filter(f => {
+      if (departmentFilter !== 'all' && f.departamento !== departmentFilter) return false;
+      if (employeeFilter !== 'all' && f.id !== employeeFilter) return false;
+      const t = byEmp[f.id];
+      return t && (t.p > 0 || t.d > 0);
+    });
+    return filtered.map(f => {
+      const t = byEmp[f.id];
+      return { nome: f.nome, matricula: f.matricula, proventos: t.p, descontos: t.d, liquido: t.p - t.d };
+    });
+  }, [employees, netColumns, netValues, departmentFilter, employeeFilter]);
+
+  const netTotal = useMemo(() => netRows.reduce((s, r) => s + r.liquido, 0), [netRows]);
+
   const handleFinancialExport = (format: 'PDF' | 'Excel') => {
     if (selectedReports.length === 0) {
       toast({ title: 'Selecione ao menos um relatório', description: 'Escolha pelo menos um tipo de relatório financeiro.', variant: 'destructive' });
@@ -140,6 +167,7 @@ export default function Reports() {
         foodTotal,
         transportTotal,
         foodEntries,
+        netRows,
       };
       if (format === 'PDF') exportFinanceiroPDF(opts);
       else exportFinanceiroExcel(opts);
@@ -407,10 +435,16 @@ export default function Reports() {
                       </div>
                     )}
                     {selectedReports.includes('net') && (
-                      <div className="flex justify-between items-center py-2 border-b border-border">
-                        <span className="text-sm text-muted-foreground">Salário Líquido</span>
-                        <Badge variant="outline" className="text-xs">Ver no relatório</Badge>
-                      </div>
+                      <>
+                        <div className="flex justify-between items-center py-2 border-b border-border">
+                          <span className="text-sm text-muted-foreground">Salário Líquido — {MONTHS[singleMonth]}/{singleYear}</span>
+                          <span className="text-sm font-semibold text-foreground">{formatCurrency(netTotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-border">
+                          <span className="text-xs text-muted-foreground">Funcionários com lançamentos</span>
+                          <span className="text-xs font-medium text-foreground">{netRows.length}</span>
+                        </div>
+                      </>
                     )}
                     <div className="flex justify-between items-center py-2">
                       <span className="text-sm text-muted-foreground">Funcionários</span>

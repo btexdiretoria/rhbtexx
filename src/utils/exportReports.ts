@@ -208,6 +208,14 @@ export type FinancialReportType = 'gross' | 'net' | 'food' | 'transport';
 
 interface FoodEntry { employee_id: string; value: number; delivery_method?: string | null; }
 
+export interface NetSalaryRow {
+  nome: string;
+  matricula: string;
+  proventos: number;
+  descontos: number;
+  liquido: number;
+}
+
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
   funcionarios: Employee[];
@@ -217,6 +225,7 @@ interface FinancialExportOptions {
   foodTotal?: number;
   transportTotal?: number;
   foodEntries?: FoodEntry[];
+  netRows?: NetSalaryRow[];
 }
 
 function calcINSS(salario: number): number {
@@ -235,7 +244,7 @@ function calcIRRF(base: number): number {
 }
 
 export function exportFinanceiroPDF(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [], netRows } = opts;
 
   const ativos = funcionarios.filter(f => {
     if (f.status !== 'Ativo') return false;
@@ -285,23 +294,34 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     if (cursorY > 160) { doc.addPage(); cursorY = 18; }
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Salário Líquido (estimativa)', 14, cursorY); cursorY += 4;
+    doc.text(`Salário Líquido — ${periodLabel}`, 14, cursorY); cursorY += 4;
 
     let totalLiq = 0;
-    const rows = ativos.map(f => {
-      const inss = calcINSS(f.salario);
-      const irrf = calcIRRF(f.salario - inss);
-      const liquido = f.salario - inss - irrf;
-      totalLiq += liquido;
-      return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
-    });
+    let rows: any[];
+    let head: string[];
+    if (netRows && netRows.length > 0) {
+      head = ['Nome', 'Matrícula', 'Proventos', 'Descontos', 'Líquido'];
+      rows = netRows.map(r => {
+        totalLiq += r.liquido;
+        return [r.nome, r.matricula, formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
+      });
+    } else {
+      head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
+      rows = ativos.map(f => {
+        const inss = calcINSS(f.salario);
+        const irrf = calcIRRF(f.salario - inss);
+        const liquido = f.salario - inss - irrf;
+        totalLiq += liquido;
+        return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
+      });
+    }
 
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido']],
+      head: [head],
       body: [
         ...rows,
-        [{ content: 'TOTAL', colSpan: 5, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(totalLiq), styles: { fontStyle: 'bold', halign: 'right' } }],
+        [{ content: 'TOTAL LÍQUIDO', colSpan: head.length - 1, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(totalLiq), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
@@ -359,7 +379,7 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
 }
 
 export function exportFinanceiroExcel(opts: FinancialExportOptions) {
-  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [] } = opts;
+  const { selectedReports, funcionarios, periodLabel, departmentFilter, employeeFilter, foodTotal = 0, transportTotal = 0, foodEntries = [], netRows } = opts;
 
   const ativos = funcionarios.filter(f => {
     if (f.status !== 'Ativo') return false;
@@ -385,14 +405,27 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   }
 
   if (selectedReports.includes('net')) {
-    const dados = ativos.map(f => {
-      const inss = calcINSS(f.salario);
-      const irrf = calcIRRF(f.salario - inss);
-      const liquido = f.salario - inss - irrf;
-      return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
-    });
+    let dados: any[];
+    if (netRows && netRows.length > 0) {
+      dados = netRows.map(r => ({
+        Nome: r.nome,
+        Matrícula: r.matricula,
+        Proventos: parseFloat(r.proventos.toFixed(2)),
+        Descontos: parseFloat(r.descontos.toFixed(2)),
+        Líquido: parseFloat(r.liquido.toFixed(2)),
+      }));
+      const totalLiq = netRows.reduce((s, r) => s + r.liquido, 0);
+      dados.push({ Nome: 'TOTAL', Matrícula: '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
+    } else {
+      dados = ativos.map(f => {
+        const inss = calcINSS(f.salario);
+        const irrf = calcIRRF(f.salario - inss);
+        const liquido = f.salario - inss - irrf;
+        return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
+      });
+    }
     const ws = XLSX.utils.json_to_sheet(dados);
-    XLSX.utils.book_append_sheet(wb, ws, 'Folha Líquida');
+    XLSX.utils.book_append_sheet(wb, ws, `Folha Líquida ${periodLabel}`.slice(0, 31));
   }
 
   if (selectedReports.includes('food')) {
