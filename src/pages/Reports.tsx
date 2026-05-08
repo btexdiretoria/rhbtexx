@@ -435,10 +435,16 @@ export default function Reports() {
                       </div>
                     )}
                     {selectedReports.includes('net') && (
-                      <div className="flex justify-between items-center py-2 border-b border-border">
-                        <span className="text-sm text-muted-foreground">Salário Líquido</span>
-                        <Badge variant="outline" className="text-xs">Ver no relatório</Badge>
-                      </div>
+                      <>
+                        <div className="flex justify-between items-center py-2 border-b border-border">
+                          <span className="text-sm text-muted-foreground">Salário Líquido — {MONTHS[singleMonth]}/{singleYear}</span>
+                          <span className="text-sm font-semibold text-foreground">{formatCurrency(netTotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-border">
+                          <span className="text-xs text-muted-foreground">Funcionários com lançamentos</span>
+                          <span className="text-xs font-medium text-foreground">{netRows.length}</span>
+                        </div>
+                      </>
                     )}
                     <div className="flex justify-between items-center py-2">
                       <span className="text-sm text-muted-foreground">Funcionários</span>
