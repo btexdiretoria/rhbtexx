@@ -157,9 +157,6 @@ export default function Reports() {
       toast({ title: 'Selecione ao menos um relatório', description: 'Escolha pelo menos um tipo de relatório financeiro.', variant: 'destructive' });
       return;
     }
-      toast({ title: 'Selecione ao menos um relatório', description: 'Escolha pelo menos um tipo de relatório financeiro.', variant: 'destructive' });
-      return;
-    }
     try {
       const opts = {
         selectedReports,
@@ -170,6 +167,7 @@ export default function Reports() {
         foodTotal,
         transportTotal,
         foodEntries,
+        netRows,
       };
       if (format === 'PDF') exportFinanceiroPDF(opts);
       else exportFinanceiroExcel(opts);
