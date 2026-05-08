@@ -409,13 +409,13 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
     if (netRows && netRows.length > 0) {
       dados = netRows.map(r => ({
         Nome: r.nome,
-        Matrícula: r.matricula,
+        'Chave PIX': r.chave_pix || '',
         Proventos: parseFloat(r.proventos.toFixed(2)),
         Descontos: parseFloat(r.descontos.toFixed(2)),
         Líquido: parseFloat(r.liquido.toFixed(2)),
       }));
       const totalLiq = netRows.reduce((s, r) => s + r.liquido, 0);
-      dados.push({ Nome: 'TOTAL', Matrícula: '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
+      dados.push({ Nome: 'TOTAL', 'Chave PIX': '', Proventos: '', Descontos: '', Líquido: parseFloat(totalLiq.toFixed(2)) });
     } else {
       dados = ativos.map(f => {
         const inss = calcINSS(f.salario);
