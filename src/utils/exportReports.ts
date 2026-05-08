@@ -294,23 +294,34 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     if (cursorY > 160) { doc.addPage(); cursorY = 18; }
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Salário Líquido (estimativa)', 14, cursorY); cursorY += 4;
+    doc.text(`Salário Líquido — ${periodLabel}`, 14, cursorY); cursorY += 4;
 
     let totalLiq = 0;
-    const rows = ativos.map(f => {
-      const inss = calcINSS(f.salario);
-      const irrf = calcIRRF(f.salario - inss);
-      const liquido = f.salario - inss - irrf;
-      totalLiq += liquido;
-      return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
-    });
+    let rows: any[];
+    let head: string[];
+    if (netRows && netRows.length > 0) {
+      head = ['Nome', 'Matrícula', 'Proventos', 'Descontos', 'Líquido'];
+      rows = netRows.map(r => {
+        totalLiq += r.liquido;
+        return [r.nome, r.matricula, formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
+      });
+    } else {
+      head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
+      rows = ativos.map(f => {
+        const inss = calcINSS(f.salario);
+        const irrf = calcIRRF(f.salario - inss);
+        const liquido = f.salario - inss - irrf;
+        totalLiq += liquido;
+        return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
+      });
+    }
 
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido']],
+      head: [head],
       body: [
         ...rows,
-        [{ content: 'TOTAL', colSpan: 5, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(totalLiq), styles: { fontStyle: 'bold', halign: 'right' } }],
+        [{ content: 'TOTAL LÍQUIDO', colSpan: head.length - 1, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(totalLiq), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
