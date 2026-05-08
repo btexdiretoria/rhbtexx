@@ -425,7 +425,7 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
       });
     }
     const ws = XLSX.utils.json_to_sheet(dados);
-    XLSX.utils.book_append_sheet(wb, ws, `Folha Líquida ${periodLabel}`.slice(0, 31));
+    XLSX.utils.book_append_sheet(wb, ws, `Folha Líquida ${periodLabel}`.replace(/[:\\/?*\[\]]/g, '-').slice(0, 31));
   }
 
   if (selectedReports.includes('food')) {
