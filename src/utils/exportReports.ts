@@ -300,10 +300,10 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     let rows: any[];
     let head: string[];
     if (netRows && netRows.length > 0) {
-      head = ['Nome', 'Matrícula', 'Proventos', 'Descontos', 'Líquido'];
+      head = ['Nome', 'Chave PIX', 'Proventos', 'Descontos', 'Líquido'];
       rows = netRows.map(r => {
         totalLiq += r.liquido;
-        return [r.nome, r.matricula, formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
+        return [r.nome, r.chave_pix || '—', formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
       });
     } else {
       head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
