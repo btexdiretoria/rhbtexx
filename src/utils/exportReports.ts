@@ -208,6 +208,14 @@ export type FinancialReportType = 'gross' | 'net' | 'food' | 'transport';
 
 interface FoodEntry { employee_id: string; value: number; delivery_method?: string | null; }
 
+export interface NetSalaryRow {
+  nome: string;
+  matricula: string;
+  proventos: number;
+  descontos: number;
+  liquido: number;
+}
+
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
   funcionarios: Employee[];
@@ -217,6 +225,7 @@ interface FinancialExportOptions {
   foodTotal?: number;
   transportTotal?: number;
   foodEntries?: FoodEntry[];
+  netRows?: NetSalaryRow[];
 }
 
 function calcINSS(salario: number): number {
