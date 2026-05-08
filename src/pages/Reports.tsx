@@ -146,7 +146,7 @@ export default function Reports() {
     });
     return filtered.map(f => {
       const t = byEmp[f.id];
-      return { nome: f.nome, matricula: f.matricula, proventos: t.p, descontos: t.d, liquido: t.p - t.d };
+      return { nome: f.nome, chave_pix: f.chave_pix || '', proventos: t.p, descontos: t.d, liquido: t.p - t.d };
     });
   }, [employees, netColumns, netValues, departmentFilter, employeeFilter]);
 
