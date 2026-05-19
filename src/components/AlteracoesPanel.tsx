@@ -44,7 +44,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const AlteracoesPanel = ({ items, onChange }: Props) => {
+const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -52,7 +52,14 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   const currentYear = new Date().getFullYear();
   const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
-  const [valorPrevistoStr, setValorPrevistoStr] = useState("");
+  const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
+  const [listOpen, setListOpen] = useState(true);
+
+  // Sync local input when prop changes (e.g., after restore from DB)
+  useEffect(() => {
+    setValorPrevistoStr(valorPrevisto ? String(valorPrevisto) : "");
+  }, [valorPrevisto]);
+
 
   // Years: current year ± 5 plus any years present in items
   const yearOptions = useMemo(() => {
