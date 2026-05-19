@@ -80,7 +80,9 @@ const Index = () => {
           setDateEdits((row.date_edits as unknown as DateEdits) || {});
           setChangeHistory((row.change_history as unknown as ChangeHistoryEntry[]) || []);
           setAlteracoes((row.alteracoes as unknown as AlteracaoItem[]) || []);
+          setValorPrevisto(Number((row as any).valor_previsto) || 0);
           if (row.updated_at) setLastSaved(new Date(row.updated_at).toLocaleString("pt-BR"));
+
         }
       } catch (e) {
         console.warn("Falha ao restaurar Fluxo:", e);
