@@ -1,0 +1,1 @@
+ALTER TABLE public.cashflow_state ADD COLUMN IF NOT EXISTS valor_previsto numeric NOT NULL DEFAULT 0;
