@@ -158,7 +158,7 @@ const Index = () => {
       setSavedEdits({});
       setSimulationMode(false);
       setChangeHistory([]);
-      setAlteracoes([]);
+      // Preserve Acontecimentos and Valor Previsto Inicial on new uploads
       if (cf.dates.length > 0) {
         setStartDate(cf.dates[0]);
         setEndDate(cf.dates[cf.dates.length - 1]);
