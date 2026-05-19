@@ -178,7 +178,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
               </Select>
             </div>
 
-            <div className="space-y-1.5 md:w-64">
+            <div className="space-y-1.5 md:w-56">
               <Label htmlFor="valor-previsto" className="text-xs text-muted-foreground">
                 Valor Previsto Inicial
               </Label>
@@ -193,13 +193,51 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                   inputMode="decimal"
                   value={valorPrevistoStr}
                   onChange={(e) => setValorPrevistoStr(e.target.value)}
+                  onBlur={() => {
+                    const n = parseFloat(valorPrevistoStr.replace(",", "."));
+                    onValorPrevistoChange?.(isNaN(n) ? 0 : n);
+                  }}
                   placeholder="0,00"
                   className="pl-9"
                   onWheel={(e) => (e.target as HTMLInputElement).blur()}
                 />
               </div>
             </div>
+
+            <div className="space-y-1.5 md:w-56">
+              <Label className="text-xs text-muted-foreground">Resultado anual</Label>
+              <div
+                className={cn(
+                  "h-10 flex items-center px-3 rounded-md border border-border bg-muted/40 text-base font-bold tabular-nums",
+                  (valorPrevisto + totalAcontecimentos) > 0
+                    ? "text-positive-foreground"
+                    : (valorPrevisto + totalAcontecimentos) < 0
+                      ? "text-negative-foreground"
+                      : "text-foreground",
+                )}
+              >
+                {formatCurrency(valorPrevisto + totalAcontecimentos)}
+              </div>
+            </div>
           </div>
+
+          <div className="flex items-center gap-2 print:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setListOpen((v) => !v)}
+              className="gap-1 -ml-2"
+              aria-expanded={listOpen}
+            >
+              {listOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {listOpen ? "Ocultar lista" : "Mostrar lista"}
+              <span className="text-xs text-muted-foreground ml-1">({sorted.length})</span>
+            </Button>
+          </div>
+
+          {listOpen && (
+            sorted.length === 0 ? (
+
 
           {sorted.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
