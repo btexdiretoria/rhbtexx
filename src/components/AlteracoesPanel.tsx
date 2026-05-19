@@ -235,11 +235,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
             </Button>
           </div>
 
-          {listOpen && (
-            sorted.length === 0 ? (
-
-
-          {sorted.length === 0 ? (
+          {listOpen && (sorted.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               Nenhum acontecimento cadastrado. Clique em "Inserir Acontecimento" para começar.
             </p>
@@ -287,7 +283,8 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                 </tbody>
               </table>
             </div>
-          )}
+          ))}
+
 
           <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
             <span className="text-sm font-medium text-foreground">
