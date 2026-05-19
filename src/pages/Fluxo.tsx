@@ -109,6 +109,7 @@ const Index = () => {
           date_edits: dateEdits as unknown as never,
           change_history: changeHistory as unknown as never,
           alteracoes: alteracoes as unknown as never,
+          valor_previsto: valorPrevisto,
         };
         const { error } = await supabase
           .from("cashflow_state")
@@ -122,7 +123,8 @@ const Index = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, hydrated]);
+  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, hydrated]);
+
 
   const handleFile = async (file: File) => {
     setLoading(true);
