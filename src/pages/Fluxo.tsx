@@ -49,8 +49,10 @@ const Index = () => {
   const [changeHistory, setChangeHistory] = useState<ChangeHistoryEntry[]>([]);
   const [lastSaved, setLastSaved] = useState<string>("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
+  const [valorPrevisto, setValorPrevisto] = useState<number>(0);
   const [hydrated, setHydrated] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+
 
   const saveTimer = useRef<number | null>(null);
 
