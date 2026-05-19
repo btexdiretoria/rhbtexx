@@ -445,7 +445,10 @@ const Index = () => {
             <AlteracoesPanel
               items={alteracoes}
               onChange={setAlteracoes}
+              valorPrevisto={valorPrevisto}
+              onValorPrevistoChange={setValorPrevisto}
               baseSaldoFinal={(() => {
+
                 const activeData = simulationMode && simulatedData ? simulatedData : data;
                 const activeDates = simulationMode ? simulatedFilteredDates : filteredDates;
                 if (!activeData || activeDates.length === 0) return 0;
