@@ -187,6 +187,7 @@ export type Database = {
           start_date: string | null
           state_key: string
           updated_at: string
+          valor_previsto: number
         }
         Insert: {
           alteracoes?: Json
@@ -202,6 +203,7 @@ export type Database = {
           start_date?: string | null
           state_key?: string
           updated_at?: string
+          valor_previsto?: number
         }
         Update: {
           alteracoes?: Json
@@ -217,6 +219,7 @@ export type Database = {
           start_date?: string | null
           state_key?: string
           updated_at?: string
+          valor_previsto?: number
         }
         Relationships: []
       }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -34,14 +34,17 @@ interface Props {
   items: AlteracaoItem[];
   onChange: (items: AlteracaoItem[]) => void;
   baseSaldoFinal: number;
+  valorPrevisto?: number;
+  onValorPrevistoChange?: (value: number) => void;
 }
+
 
 const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const AlteracoesPanel = ({ items, onChange }: Props) => {
+const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -49,7 +52,14 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
   const currentYear = new Date().getFullYear();
   const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
-  const [valorPrevistoStr, setValorPrevistoStr] = useState("");
+  const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
+  const [listOpen, setListOpen] = useState(true);
+
+  // Sync local input when prop changes (e.g., after restore from DB)
+  useEffect(() => {
+    setValorPrevistoStr(valorPrevisto ? String(valorPrevisto) : "");
+  }, [valorPrevisto]);
+
 
   // Years: current year ± 5 plus any years present in items
   const yearOptions = useMemo(() => {
@@ -168,7 +178,7 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
               </Select>
             </div>
 
-            <div className="space-y-1.5 md:w-64">
+            <div className="space-y-1.5 md:w-56">
               <Label htmlFor="valor-previsto" className="text-xs text-muted-foreground">
                 Valor Previsto Inicial
               </Label>
@@ -183,15 +193,49 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
                   inputMode="decimal"
                   value={valorPrevistoStr}
                   onChange={(e) => setValorPrevistoStr(e.target.value)}
+                  onBlur={() => {
+                    const n = parseFloat(valorPrevistoStr.replace(",", "."));
+                    onValorPrevistoChange?.(isNaN(n) ? 0 : n);
+                  }}
                   placeholder="0,00"
                   className="pl-9"
                   onWheel={(e) => (e.target as HTMLInputElement).blur()}
                 />
               </div>
             </div>
+
+            <div className="space-y-1.5 md:w-56">
+              <Label className="text-xs text-muted-foreground">Resultado anual</Label>
+              <div
+                className={cn(
+                  "h-10 flex items-center px-3 rounded-md border border-border bg-muted/40 text-base font-bold tabular-nums",
+                  (valorPrevisto + totalAcontecimentos) > 0
+                    ? "text-positive-foreground"
+                    : (valorPrevisto + totalAcontecimentos) < 0
+                      ? "text-negative-foreground"
+                      : "text-foreground",
+                )}
+              >
+                {formatCurrency(valorPrevisto + totalAcontecimentos)}
+              </div>
+            </div>
           </div>
 
-          {sorted.length === 0 ? (
+          <div className="flex items-center gap-2 print:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setListOpen((v) => !v)}
+              className="gap-1 -ml-2"
+              aria-expanded={listOpen}
+            >
+              {listOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {listOpen ? "Ocultar lista" : "Mostrar lista"}
+              <span className="text-xs text-muted-foreground ml-1">({sorted.length})</span>
+            </Button>
+          </div>
+
+          {listOpen && (sorted.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               Nenhum acontecimento cadastrado. Clique em "Inserir Acontecimento" para começar.
             </p>
@@ -239,7 +283,8 @@ const AlteracoesPanel = ({ items, onChange }: Props) => {
                 </tbody>
               </table>
             </div>
-          )}
+          ))}
+
 
           <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
             <span className="text-sm font-medium text-foreground">
