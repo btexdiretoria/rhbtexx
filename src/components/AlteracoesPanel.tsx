@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -34,7 +34,10 @@ interface Props {
   items: AlteracaoItem[];
   onChange: (items: AlteracaoItem[]) => void;
   baseSaldoFinal: number;
+  valorPrevisto?: number;
+  onValorPrevistoChange?: (value: number) => void;
 }
+
 
 const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
