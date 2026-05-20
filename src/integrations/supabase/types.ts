@@ -175,6 +175,7 @@ export type Database = {
       cashflow_state: {
         Row: {
           alteracoes: Json
+          alteracoes_anual: Json
           change_history: Json
           created_at: string
           date_edits: Json
@@ -188,9 +189,11 @@ export type Database = {
           state_key: string
           updated_at: string
           valor_previsto: number
+          valor_previsto_anual: number
         }
         Insert: {
           alteracoes?: Json
+          alteracoes_anual?: Json
           change_history?: Json
           created_at?: string
           date_edits?: Json
@@ -204,9 +207,11 @@ export type Database = {
           state_key?: string
           updated_at?: string
           valor_previsto?: number
+          valor_previsto_anual?: number
         }
         Update: {
           alteracoes?: Json
+          alteracoes_anual?: Json
           change_history?: Json
           created_at?: string
           date_edits?: Json
@@ -220,6 +225,7 @@ export type Database = {
           state_key?: string
           updated_at?: string
           valor_previsto?: number
+          valor_previsto_anual?: number
         }
         Relationships: []
       }

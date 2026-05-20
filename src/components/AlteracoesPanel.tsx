@@ -36,6 +36,8 @@ interface Props {
   baseSaldoFinal: number;
   valorPrevisto?: number;
   onValorPrevistoChange?: (value: number) => void;
+  title?: string;
+  totalLabel?: string;
 }
 
 
@@ -44,7 +46,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange }: Props) => {
+const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês" }: Props) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -128,7 +130,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     <>
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">✍️ Acontecimentos</CardTitle>
+          <CardTitle className="text-base">{title}</CardTitle>
           <Button size="sm" onClick={() => setOpen(true)} className="gap-2 print:hidden">
             <Plus className="h-4 w-4" />
             Inserir Acontecimento
@@ -288,7 +290,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
 
           <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
             <span className="text-sm font-medium text-foreground">
-              Valor total de acontecimentos do mês
+              {totalLabel}
             </span>
             <span
               className={cn(

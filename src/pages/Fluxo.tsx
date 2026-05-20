@@ -50,6 +50,8 @@ const Index = () => {
   const [lastSaved, setLastSaved] = useState<string>("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
+  const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
+  const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
   const [hydrated, setHydrated] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
@@ -81,6 +83,8 @@ const Index = () => {
           setChangeHistory((row.change_history as unknown as ChangeHistoryEntry[]) || []);
           setAlteracoes((row.alteracoes as unknown as AlteracaoItem[]) || []);
           setValorPrevisto(Number((row as any).valor_previsto) || 0);
+          setAlteracoesAnual(((row as any).alteracoes_anual as unknown as AlteracaoItem[]) || []);
+          setValorPrevistoAnual(Number((row as any).valor_previsto_anual) || 0);
           if (row.updated_at) setLastSaved(new Date(row.updated_at).toLocaleString("pt-BR"));
 
         }
@@ -110,6 +114,8 @@ const Index = () => {
           change_history: changeHistory as unknown as never,
           alteracoes: alteracoes as unknown as never,
           valor_previsto: valorPrevisto,
+          alteracoes_anual: alteracoesAnual as unknown as never,
+          valor_previsto_anual: valorPrevistoAnual,
         };
         const { error } = await supabase
           .from("cashflow_state")
@@ -123,7 +129,7 @@ const Index = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, hydrated]);
+  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, hydrated]);
 
 
   const handleFile = async (file: File) => {
@@ -441,8 +447,10 @@ const Index = () => {
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
 
-            {/* Alterações */}
+            {/* Eventualidades */}
             <AlteracoesPanel
+              title="✍️ Eventualidades"
+              totalLabel="Valor total de eventualidades do mês"
               items={alteracoes}
               onChange={setAlteracoes}
               valorPrevisto={valorPrevisto}
@@ -461,6 +469,17 @@ const Index = () => {
                 }
                 return prev;
               })()}
+            />
+
+            {/* Alteração de resultado Anual */}
+            <AlteracoesPanel
+              title="📊 Alteração de resultado Anual"
+              totalLabel="Valor total de alterações do mês"
+              items={alteracoesAnual}
+              onChange={setAlteracoesAnual}
+              valorPrevisto={valorPrevistoAnual}
+              onValorPrevistoChange={setValorPrevistoAnual}
+              baseSaldoFinal={0}
             />
 
             {/* Monthly balance */}
