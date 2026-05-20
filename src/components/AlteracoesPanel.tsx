@@ -130,7 +130,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     <>
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">✍️ Acontecimentos</CardTitle>
+          <CardTitle className="text-base">{title}</CardTitle>
           <Button size="sm" onClick={() => setOpen(true)} className="gap-2 print:hidden">
             <Plus className="h-4 w-4" />
             Inserir Acontecimento
