@@ -114,6 +114,8 @@ const Index = () => {
           change_history: changeHistory as unknown as never,
           alteracoes: alteracoes as unknown as never,
           valor_previsto: valorPrevisto,
+          alteracoes_anual: alteracoesAnual as unknown as never,
+          valor_previsto_anual: valorPrevistoAnual,
         };
         const { error } = await supabase
           .from("cashflow_state")
