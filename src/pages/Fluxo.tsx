@@ -474,7 +474,8 @@ const Index = () => {
             {/* Alteração de resultado Anual */}
             <AlteracoesPanel
               title="📊 Alteração de resultado Anual"
-              totalLabel="Valor total de alterações do mês"
+              totalLabel="Valor total de alterações do Ano"
+              hideMonthYearFilters
               items={alteracoesAnual}
               onChange={setAlteracoesAnual}
               valorPrevisto={valorPrevistoAnual}
