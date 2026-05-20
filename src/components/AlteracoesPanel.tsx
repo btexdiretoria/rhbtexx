@@ -36,6 +36,8 @@ interface Props {
   baseSaldoFinal: number;
   valorPrevisto?: number;
   onValorPrevistoChange?: (value: number) => void;
+  title?: string;
+  totalLabel?: string;
 }
 
 
