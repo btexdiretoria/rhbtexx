@@ -290,7 +290,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
 
           <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
             <span className="text-sm font-medium text-foreground">
-              Valor total de acontecimentos do mês
+              {totalLabel}
             </span>
             <span
               className={cn(
