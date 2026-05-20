@@ -140,46 +140,50 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
         <CardContent className="space-y-4">
           {/* Top controls: Month filter + Valor Previsto Inicial */}
           <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-border pb-4">
-            <div className="space-y-1.5 md:w-44">
-              <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
-                Mês
-              </Label>
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger id="month-filter">
-                  <SelectValue placeholder="Selecione o mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os meses</SelectItem>
-                  {MONTH_NAMES.map((name, idx) => {
-                    const mm = String(idx + 1).padStart(2, "0");
-                    return (
-                      <SelectItem key={mm} value={mm}>
-                        {name}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+            {!hideMonthYearFilters && (
+              <>
+                <div className="space-y-1.5 md:w-44">
+                  <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
+                    Mês
+                  </Label>
+                  <Select value={monthFilter} onValueChange={setMonthFilter}>
+                    <SelectTrigger id="month-filter">
+                      <SelectValue placeholder="Selecione o mês" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os meses</SelectItem>
+                      {MONTH_NAMES.map((name, idx) => {
+                        const mm = String(idx + 1).padStart(2, "0");
+                        return (
+                          <SelectItem key={mm} value={mm}>
+                            {name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1.5 md:w-32">
-              <Label htmlFor="year-filter" className="text-xs text-muted-foreground">
-                Ano
-              </Label>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger id="year-filter">
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {yearOptions.map((y) => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-1.5 md:w-32">
+                  <Label htmlFor="year-filter" className="text-xs text-muted-foreground">
+                    Ano
+                  </Label>
+                  <Select value={yearFilter} onValueChange={setYearFilter}>
+                    <SelectTrigger id="year-filter">
+                      <SelectValue placeholder="Ano" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {yearOptions.map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
 
             <div className="space-y-1.5 md:w-56">
               <Label htmlFor="valor-previsto" className="text-xs text-muted-foreground">
