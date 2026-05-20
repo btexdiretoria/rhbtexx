@@ -129,7 +129,7 @@ const Index = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, hydrated]);
+  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, hydrated]);
 
 
   const handleFile = async (file: File) => {
