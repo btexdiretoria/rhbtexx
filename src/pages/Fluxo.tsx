@@ -50,6 +50,8 @@ const Index = () => {
   const [lastSaved, setLastSaved] = useState<string>("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
+  const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
+  const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
   const [hydrated, setHydrated] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
