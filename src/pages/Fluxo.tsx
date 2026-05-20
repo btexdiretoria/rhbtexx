@@ -447,8 +447,10 @@ const Index = () => {
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
 
-            {/* Alterações */}
+            {/* Eventualidades */}
             <AlteracoesPanel
+              title="✍️ Eventualidades"
+              totalLabel="Valor total de eventualidades do mês"
               items={alteracoes}
               onChange={setAlteracoes}
               valorPrevisto={valorPrevisto}
@@ -467,6 +469,17 @@ const Index = () => {
                 }
                 return prev;
               })()}
+            />
+
+            {/* Alteração de resultado Anual */}
+            <AlteracoesPanel
+              title="📊 Alteração de resultado Anual"
+              totalLabel="Valor total de alterações do mês"
+              items={alteracoesAnual}
+              onChange={setAlteracoesAnual}
+              valorPrevisto={valorPrevistoAnual}
+              onValorPrevistoChange={setValorPrevistoAnual}
+              baseSaldoFinal={0}
             />
 
             {/* Monthly balance */}
