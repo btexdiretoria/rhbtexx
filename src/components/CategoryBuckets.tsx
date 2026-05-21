@@ -69,6 +69,28 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
   const [assignments, setAssignments] = useState<Record<string, BucketKey>>({});
   const [loaded, setLoaded] = useState(false);
   const [detail, setDetail] = useState<RawEntry | null>(null);
+  const [situacaoFilter, setSituacaoFilter] = useState<Record<BucketKey, string[]>>({
+    receitas: [],
+    despesas_op: [],
+    demais_despesas: [],
+  });
+
+  const allSituacoes = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of entries) {
+      const s = (e.situacao || "").trim();
+      if (s) set.add(s);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [entries]);
+
+  const toggleSituacao = (bucket: BucketKey, sit: string) => {
+    setSituacaoFilter((prev) => {
+      const cur = prev[bucket];
+      const next = cur.includes(sit) ? cur.filter((s) => s !== sit) : [...cur, sit];
+      return { ...prev, [bucket]: next };
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -140,10 +162,14 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
         {BUCKETS.map(({ key, title }) => {
           const selected = bucketCategories(key);
           const available = allCategories.filter((c) => !assignments[c] || assignments[c] === key);
+          const sitSelected = situacaoFilter[key];
 
-          const items: DetailEntry[] = selected.flatMap((cat) =>
+          let items: DetailEntry[] = selected.flatMap((cat) =>
             (entriesByCategory[cat] || []).map((e) => ({ ...e, __cat: cat }))
           );
+          if (sitSelected.length > 0) {
+            items = items.filter((it) => sitSelected.includes((it.situacao || "").trim()));
+          }
           items.sort((a, b) => a.dataMovimento.localeCompare(b.dataMovimento));
           const subtotal = items.reduce((s, it) => s + it.valor, 0);
 
@@ -178,6 +204,38 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
                             >
                               <Checkbox checked={checked} onCheckedChange={() => toggleCategory(cat, key)} />
                               <span className="truncate flex-1">{cat}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-between print:hidden">
+                      <span className="truncate">
+                        Situação{sitSelected.length > 0 ? ` (${sitSelected.length})` : ""}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-0" align="start">
+                    <ScrollArea className="h-64">
+                      <div className="p-2 space-y-1">
+                        {allSituacoes.length === 0 && (
+                          <p className="text-xs text-muted-foreground p-2">Nenhuma situação disponível</p>
+                        )}
+                        {allSituacoes.map((sit) => {
+                          const checked = sitSelected.includes(sit);
+                          return (
+                            <label
+                              key={sit}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm"
+                            >
+                              <Checkbox checked={checked} onCheckedChange={() => toggleSituacao(key, sit)} />
+                              <span className="truncate flex-1">{sit}</span>
                             </label>
                           );
                         })}
