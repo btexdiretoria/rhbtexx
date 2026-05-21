@@ -162,10 +162,14 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
         {BUCKETS.map(({ key, title }) => {
           const selected = bucketCategories(key);
           const available = allCategories.filter((c) => !assignments[c] || assignments[c] === key);
+          const sitSelected = situacaoFilter[key];
 
-          const items: DetailEntry[] = selected.flatMap((cat) =>
+          let items: DetailEntry[] = selected.flatMap((cat) =>
             (entriesByCategory[cat] || []).map((e) => ({ ...e, __cat: cat }))
           );
+          if (sitSelected.length > 0) {
+            items = items.filter((it) => sitSelected.includes((it.situacao || "").trim()));
+          }
           items.sort((a, b) => a.dataMovimento.localeCompare(b.dataMovimento));
           const subtotal = items.reduce((s, it) => s + it.valor, 0);
 
