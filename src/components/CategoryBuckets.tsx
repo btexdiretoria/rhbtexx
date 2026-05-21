@@ -69,6 +69,28 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
   const [assignments, setAssignments] = useState<Record<string, BucketKey>>({});
   const [loaded, setLoaded] = useState(false);
   const [detail, setDetail] = useState<RawEntry | null>(null);
+  const [situacaoFilter, setSituacaoFilter] = useState<Record<BucketKey, string[]>>({
+    receitas: [],
+    despesas_op: [],
+    demais_despesas: [],
+  });
+
+  const allSituacoes = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of entries) {
+      const s = (e.situacao || "").trim();
+      if (s) set.add(s);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [entries]);
+
+  const toggleSituacao = (bucket: BucketKey, sit: string) => {
+    setSituacaoFilter((prev) => {
+      const cur = prev[bucket];
+      const next = cur.includes(sit) ? cur.filter((s) => s !== sit) : [...cur, sit];
+      return { ...prev, [bucket]: next };
+    });
+  };
 
   useEffect(() => {
     (async () => {
