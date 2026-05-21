@@ -212,6 +212,38 @@ export default function CategoryBuckets({ entries, startDate, endDate }: Props) 
                   </PopoverContent>
                 </Popover>
 
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-between print:hidden">
+                      <span className="truncate">
+                        Situação{sitSelected.length > 0 ? ` (${sitSelected.length})` : ""}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-0" align="start">
+                    <ScrollArea className="h-64">
+                      <div className="p-2 space-y-1">
+                        {allSituacoes.length === 0 && (
+                          <p className="text-xs text-muted-foreground p-2">Nenhuma situação disponível</p>
+                        )}
+                        {allSituacoes.map((sit) => {
+                          const checked = sitSelected.includes(sit);
+                          return (
+                            <label
+                              key={sit}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm"
+                            >
+                              <Checkbox checked={checked} onCheckedChange={() => toggleSituacao(key, sit)} />
+                              <span className="truncate flex-1">{sit}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+
                 <div className="flex-1 border border-border rounded-md overflow-hidden flex flex-col">
                   <div className="grid grid-cols-[80px_1fr_auto] gap-2 bg-muted/60 text-xs font-semibold text-muted-foreground px-3 py-1.5 border-b border-border">
                     <span>Data Mov.</span>
