@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil } from 'lucide-react';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil, Gift, Palmtree, Percent } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -456,6 +456,50 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Projeção de 13º, Férias e Terço de Férias */}
+      {(() => {
+        const now = new Date();
+        const yearAtual = now.getFullYear();
+        const mesAtual = now.getMonth() + 1;
+        let totalDecimo = 0, totalFerias = 0, totalTerco = 0;
+        employees.filter(e => e.status === 'Ativo').forEach(e => {
+          const [yStr, mStr] = (e.data_admissao || '').split('-');
+          const yAdm = parseInt(yStr); const mAdm = parseInt(mStr);
+          let meses = 12;
+          if (yAdm === yearAtual) meses = Math.max(0, mesAtual - mAdm + 1);
+          else if (yAdm > yearAtual) meses = 0;
+          const base = Number(e.salario || 0) * meses / 12;
+          totalDecimo += base;
+          totalFerias += base;
+          totalTerco += base / 3;
+        });
+        const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const items = [
+          { label: '13º Salário', value: totalDecimo, icon: Gift, color: 'bg-emerald-50 text-emerald-600' },
+          { label: 'Férias', value: totalFerias, icon: Palmtree, color: 'bg-blue-50 text-blue-600' },
+          { label: 'Terço de Férias', value: totalTerco, icon: Percent, color: 'bg-amber-50 text-amber-600' },
+        ];
+        return (
+          <div className="kpi-card">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-5 h-5 text-primary" />
+              <h3 className="font-heading font-semibold text-foreground">Projeção de 13º, Férias e Terço de Férias</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {items.map(it => (
+                <div key={it.label} className="p-4 rounded-lg bg-muted/30 flex flex-col items-center text-center gap-2">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${it.color}`}>
+                    <it.icon className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{it.label}</p>
+                  <p className="text-xl font-heading font-bold text-foreground">{fmt(it.value)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
