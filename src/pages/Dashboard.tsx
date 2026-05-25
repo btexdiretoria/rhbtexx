@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil } from 'lucide-react';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil, Gift, Palmtree, Percent } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
