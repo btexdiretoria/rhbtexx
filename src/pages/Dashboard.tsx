@@ -467,42 +467,98 @@ export default function Dashboard() {
         const now = new Date();
         const yearAtual = now.getFullYear();
         const mesAtual = now.getMonth() + 1;
-        let totalDecimo = 0, totalFerias = 0, totalTerco = 0;
-        employees.filter(e => e.status === 'Ativo').forEach(e => {
+        const elegiveis = employees
+          .filter(e => e.status === 'Ativo')
+          .sort((a, b) => a.nome.localeCompare(b.nome));
+        const calcularMeses = (e: Employee) => {
           const [yStr, mStr] = (e.data_admissao || '').split('-');
           const yAdm = parseInt(yStr); const mAdm = parseInt(mStr);
-          let meses = 12;
-          if (yAdm === yearAtual) meses = Math.max(0, mesAtual - mAdm + 1);
-          else if (yAdm > yearAtual) meses = 0;
+          if (yAdm < yearAtual) return 12;
+          if (yAdm === yearAtual) return Math.max(0, mesAtual - mAdm + 1);
+          return 0;
+        };
+        const detalhes: Record<TipoProjecao, ProjecaoItem[]> = {
+          '13º Salário': [],
+          'Férias': [],
+          'Terço de Férias': [],
+        };
+        let totalDecimo = 0, totalFerias = 0, totalTerco = 0;
+        elegiveis.forEach(e => {
+          const meses = calcularMeses(e);
           const base = Number(e.salario || 0) * meses / 12;
           totalDecimo += base;
           totalFerias += base;
           totalTerco += base / 3;
+          detalhes['13º Salário'].push({ funcionario: e.nome, meses, valor: base });
+          detalhes['Férias'].push({ funcionario: e.nome, meses, valor: base });
+          detalhes['Terço de Férias'].push({ funcionario: e.nome, meses, valor: base / 3 });
         });
         const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        const items = [
+        const items: { label: TipoProjecao; value: number; icon: typeof Gift; color: string }[] = [
           { label: '13º Salário', value: totalDecimo, icon: Gift, color: 'bg-emerald-50 text-emerald-600' },
           { label: 'Férias', value: totalFerias, icon: Palmtree, color: 'bg-blue-50 text-blue-600' },
           { label: 'Terço de Férias', value: totalTerco, icon: Percent, color: 'bg-amber-50 text-amber-600' },
         ];
         return (
-          <div className="kpi-card">
-            <div className="flex items-center gap-2 mb-4">
-              <DollarSign className="w-5 h-5 text-primary" />
-              <h3 className="font-heading font-semibold text-foreground">Projeção de 13º, Férias e Terço de Férias</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {items.map(it => (
-                <div key={it.label} className="p-4 rounded-lg bg-muted/30 flex flex-col items-center text-center gap-2">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${it.color}`}>
-                    <it.icon className="w-5 h-5" />
+          <>
+            <div className="kpi-card">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="w-5 h-5 text-primary" />
+                <h3 className="font-heading font-semibold text-foreground">Projeção de 13º, Férias e Terço de Férias</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {items.map(it => (
+                  <div
+                    key={it.label}
+                    className="p-4 rounded-lg bg-muted/30 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-muted/60 transition-colors"
+                    onClick={() => setProjecaoModal({ tipo: it.label, items: detalhes[it.label], total: it.value })}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${it.color}`}>
+                      <it.icon className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{it.label}</p>
+                    <p className="text-xl font-heading font-bold text-foreground">{fmt(it.value)}</p>
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{it.label}</p>
-                  <p className="text-xl font-heading font-bold text-foreground">{fmt(it.value)}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+
+            <Dialog open={!!projecaoModal} onOpenChange={() => setProjecaoModal(null)}>
+              <DialogContent className="max-w-xl max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader className="shrink-0">
+                  <DialogTitle className="font-heading">{projecaoModal?.tipo}</DialogTitle>
+                </DialogHeader>
+                <div className="overflow-y-auto flex-1">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-background z-10">
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 font-medium text-muted-foreground">Funcionário</th>
+                        <th className="text-center py-2 px-3 font-medium text-muted-foreground">Meses</th>
+                        <th className="text-right py-2 px-3 font-medium text-muted-foreground">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projecaoModal?.items.map((item, idx) => (
+                        <tr key={idx} className="border-b border-border/50 hover:bg-muted/30">
+                          <td className="py-2 px-3 text-foreground">{item.funcionario}</td>
+                          <td className="py-2 px-3 text-center text-muted-foreground">{item.meses}</td>
+                          <td className="py-2 px-3 text-right font-medium text-foreground">
+                            {item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="shrink-0 border-t border-border pt-3 px-1 flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Total Geral</span>
+                  <span className="text-lg font-heading font-bold text-foreground">
+                    {projecaoModal?.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </>
         );
       })()}
     </div>
