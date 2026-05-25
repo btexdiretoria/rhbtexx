@@ -11,6 +11,10 @@ import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFi
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
+type TipoProjecao = '13º Salário' | 'Férias' | 'Terço de Férias';
+interface ProjecaoItem { funcionario: string; meses: number; valor: number; }
+
+
 type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Aviso Prévio' | 'Teste';
 const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', 'Aviso Prévio': 'Aviso Prévio', Teste: 'Teste' };
 
