@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Upload, Loader2, CheckCircle2, AlertTriangle, FileText, X } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
-// @ts-expect-error - vite worker import
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useToast } from '@/hooks/use-toast';
 import type { Employee } from '@/hooks/useEmployees';
