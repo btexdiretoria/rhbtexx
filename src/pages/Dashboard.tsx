@@ -474,7 +474,7 @@ export default function Dashboard() {
           const [yStr, mStr] = (e.data_admissao || '').split('-');
           const yAdm = parseInt(yStr); const mAdm = parseInt(mStr);
           if (yAdm < yearAtual) return 12;
-          if (yAdm === yearAtual) return Math.max(0, mesAtual - mAdm + 1);
+          if (yAdm === yearAtual) return Math.max(0, 12 - mAdm + 1);
           return 0;
         };
         const detalhes: Record<TipoProjecao, ProjecaoItem[]> = {
