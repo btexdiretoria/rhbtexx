@@ -447,6 +447,20 @@ export default function NetSalary() {
         getCellValue={getCellValue}
         setCellValue={setCellValue}
       />
+
+      <AutoLaunchOverlay
+        open={autoLaunchOpen}
+        onClose={() => setAutoLaunchOpen(false)}
+        employees={employees}
+        columns={columns}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        createColumn={async (col) => {
+          const res = await createColumn.mutateAsync(col);
+          return { column_id: res.column_id };
+        }}
+        upsertValue={async (v) => { await upsertValue.mutateAsync(v); }}
+      />
     </div>
   );
 }
