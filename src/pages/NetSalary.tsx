@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DollarSign, Plus, Trash2, Pencil, Check, Search, X, Rocket } from 'lucide-react';
+import { DollarSign, Plus, Trash2, Pencil, Check, Search, X, Rocket, Upload } from 'lucide-react';
 import DynamicLaunchOverlay from '@/components/DynamicLaunchOverlay';
+import AutoLaunchOverlay from '@/components/AutoLaunchOverlay';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useNetSalaryColumns, useNetSalaryValues, useCreateNetSalaryColumn, useDeleteNetSalaryColumn, useUpdateNetSalaryColumn, useUpsertNetSalaryValue } from '@/hooks/useFinancial';
 
