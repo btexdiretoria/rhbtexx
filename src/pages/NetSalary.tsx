@@ -88,6 +88,7 @@ export default function NetSalary() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [editingColId, setEditingColId] = useState<string | null>(null);
   const [dynamicLaunchOpen, setDynamicLaunchOpen] = useState(false);
+  const [autoLaunchOpen, setAutoLaunchOpen] = useState(false);
   const [editingColName, setEditingColName] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [topHeaderHeight, setTopHeaderHeight] = useState(40);
