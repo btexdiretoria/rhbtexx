@@ -74,7 +74,7 @@ async function renderPagesAsImages(file: File, onProgress?: (n: number, total: n
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     const ctx = canvas.getContext('2d')!;
-    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    await page.render({ canvasContext: ctx, viewport } as any).promise;
     out.push(canvas.toDataURL('image/jpeg', 0.85));
     onProgress?.(p, pdf.numPages);
   }
