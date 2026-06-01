@@ -1,1 +1,4 @@
 project_id = "jhvwyrfdbfbhyezstxse"
+
+[functions.extract-holerite]
+verify_jwt = false
