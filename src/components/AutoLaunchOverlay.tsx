@@ -101,29 +101,66 @@ async function parseHolerites(file: File): Promise<ParsedEmployee[]> {
     }
 
     let employeeName = '';
+    let xNomeCol = 0;
+    let xNomeEnd = 0;
+
+    // Procura cabeçalho: "Código | Nome do Funcionário | CBO | Departamento | Filial"
+    let empHeaderIdx = -1;
     for (let i = 0; i < (headerIdx >= 0 ? headerIdx : lines.length); i++) {
-      const lineStr = lines[i].items.map(it => it.str).join(' ');
-      const m = lineStr.match(/Nome(?:\s+do)?(?:\s+Funcion[áa]rio)?[\s:]+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s']+?)(?:\s{2,}|\s+CTPS|\s+CPF|\s+Fun[çc]|\s+Cargo|\s+Admiss|\s+CBO|\s+\d|$)/i);
-      if (m && m[1].trim().length > 3) {
-        employeeName = m[1].trim();
+      const joined = lines[i].items.map(it => it.str).join(' ').toLowerCase();
+      if (/c[óo]digo/.test(joined) && /nome/.test(joined) && (/cbo/.test(joined) || /departamento/.test(joined) || /filial/.test(joined))) {
+        empHeaderIdx = i;
+        for (const it of lines[i].items) {
+          const s = it.str.toLowerCase();
+          if (s.includes('nome')) xNomeCol = it.x;
+          else if (s.includes('cbo') || s.includes('departamento') || s.includes('filial')) {
+            if (xNomeCol && it.x > xNomeCol && (xNomeEnd === 0 || it.x < xNomeEnd)) xNomeEnd = it.x;
+          }
+        }
         break;
       }
     }
+
+    const isHeaderWord = (w: string) => /^(c[óo]digo|nome|do|funcion[áa]rio|cbo|departamento|filial|cargo|admiss[ãa]o|ctps|cpf|fun[çc][ãa]o)$/i.test(w.trim());
+
+    if (empHeaderIdx >= 0) {
+      // Linha imediatamente abaixo do cabeçalho contém: <código> <NOME COMPLETO> <cbo> <depto> <filial>
+      const dataLine = lines[empHeaderIdx + 1];
+      if (dataLine) {
+        const nameTokens: string[] = [];
+        for (const it of dataLine.items) {
+          const txt = it.str.trim();
+          if (!txt) continue;
+          if (xNomeEnd && it.x >= xNomeEnd - 5) break;
+          if (xNomeCol && it.x + 2 < xNomeCol) continue; // pula coluna Código
+          if (/^\d+$/.test(txt)) continue; // pula códigos numéricos
+          if (isHeaderWord(txt)) continue;
+          if (/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'\-]*$/.test(txt)) nameTokens.push(txt);
+        }
+        if (nameTokens.length >= 2) employeeName = nameTokens.join(' ').trim();
+      }
+    }
+
+    // Fallback: padrão "Nome: <X>" ou padrão antigo
     if (!employeeName) {
-      for (let i = 0; i < lines.length; i++) {
-        const s = lines[i].items.map(it => it.str).join(' ');
-        if (/nome/i.test(s)) {
-          const idx = s.toLowerCase().indexOf('nome');
-          const tail = s.slice(idx + 4).replace(/[:\-]/g, ' ').trim();
-          const m2 = tail.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s']{4,})/);
-          if (m2) { employeeName = m2[1].trim().split(/\s{2,}/)[0]; break; }
+      for (let i = 0; i < (headerIdx >= 0 ? headerIdx : lines.length); i++) {
+        const lineStr = lines[i].items.map(it => it.str).join(' ');
+        const m = lineStr.match(/Nome(?:\s+do)?(?:\s+Funcion[áa]rio)?[\s:]+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s']+?)(?:\s{2,}|\s+CTPS|\s+CPF|\s+Fun[çc]|\s+Cargo|\s+Admiss|\s+CBO|\s+\d|$)/i);
+        if (m && m[1].trim().length > 3 && !isHeaderWord(m[1].trim().split(/\s+/)[0])) {
+          employeeName = m[1].trim();
+          break;
         }
       }
     }
 
     if (!employeeName || headerIdx < 0) continue;
 
-    employeeName = employeeName.replace(/\s+(CTPS|CPF|Cargo|Admiss|CBO|Fun[çc][aã]o).*$/i, '').trim();
+    employeeName = employeeName
+      .replace(/\s+(CTPS|CPF|Cargo|Admiss|CBO|Departamento|Filial|Fun[çc][aã]o).*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (isHeaderWord(employeeName) || employeeName.split(/\s+/).length < 2) continue;
 
     const earnings: { desc: string; value: number }[] = [];
     const deductions: { desc: string; value: number }[] = [];
