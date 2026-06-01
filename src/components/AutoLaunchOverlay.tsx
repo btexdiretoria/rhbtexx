@@ -5,6 +5,7 @@ import { Upload, Loader2, CheckCircle2, AlertTriangle, FileText, X } from 'lucid
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { Employee } from '@/hooks/useEmployees';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -27,18 +28,30 @@ interface Props {
   upsertValue: (v: { employee_id: string; column_id: string; value: number; year: number; month: number }) => Promise<void>;
 }
 
-interface ParsedEmployee {
-  name: string;
-  earnings: { desc: string; value: number }[];
-  deductions: { desc: string; value: number }[];
-  liquidoHolerite: number | null;
+interface HoleriteItem {
+  codigo?: string;
+  descricao: string;
+  referencia?: string;
+  vencimento: number;
+  desconto: number;
+}
+
+interface ParsedHolerite {
+  funcionario: string;
+  competencia?: string;
+  salario_base?: number;
+  itens: HoleriteItem[];
+  total_vencimentos: number;
+  total_descontos: number;
+  valor_liquido: number;
 }
 
 interface ResultItem {
   name: string;
-  status: 'success' | 'mismatch' | 'not_found';
+  status: 'success' | 'mismatch' | 'not_found' | 'error';
   expected?: number;
   calculated?: number;
+  message?: string;
 }
 
 const normalizeName = (s: string): string =>
@@ -50,212 +63,43 @@ const normalizeName = (s: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const parseBRNumber = (s: string): number | null => {
-  if (!s) return null;
-  const cleaned = s.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(?:[,.]|$))/g, '').replace(',', '.');
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? null : n;
-};
-
-const isMoney = (s: string): boolean => /^-?\s*\d{1,3}(\.\d{3})*,\d{2}$|^-?\s*\d+,\d{2}$|^-?\s*\d+\.\d{2}$/.test(s.trim());
-
-async function parseHolerites(file: File): Promise<ParsedEmployee[]> {
+async function renderPagesAsImages(file: File, onProgress?: (n: number, total: number) => void): Promise<string[]> {
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  const results: ParsedEmployee[] = [];
-  const seen = new Set<string>();
-
+  const out: string[] = [];
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
-    const items = tc.items
-      .map((it: any) => ({ str: String(it.str || ''), x: it.transform[4] as number, y: it.transform[5] as number }))
-      .filter(it => it.str.trim() !== '');
-
-    if (items.length === 0) continue;
-
-    const linesMap = new Map<number, { x: number; str: string }[]>();
-    for (const it of items) {
-      const key = Math.round(it.y / 2) * 2;
-      if (!linesMap.has(key)) linesMap.set(key, []);
-      linesMap.get(key)!.push({ x: it.x, str: it.str });
-    }
-    const lines = Array.from(linesMap.entries())
-      .sort((a, b) => b[0] - a[0])
-      .map(([y, arr]) => ({ y, items: arr.sort((a, b) => a.x - b.x) }));
-
-    let headerIdx = -1;
-    let xDesc = 0, xVenc = 0, xDesconto = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const joined = lines[i].items.map(it => it.str).join(' ').toLowerCase();
-      if (joined.includes('descri') && joined.includes('venciment') && joined.includes('desconto')) {
-        headerIdx = i;
-        for (const it of lines[i].items) {
-          const s = it.str.toLowerCase();
-          if (s.includes('descri')) xDesc = it.x;
-          else if (s.includes('venciment')) xVenc = it.x;
-          else if (s.includes('desconto')) xDesconto = it.x;
-        }
-        break;
-      }
-    }
-
-    let employeeName = '';
-    let xNomeCol = 0;
-    let xNomeEnd = 0;
-
-    // Procura cabeçalho: "Código | Nome do Funcionário | CBO | Departamento | Filial"
-    let empHeaderIdx = -1;
-    for (let i = 0; i < (headerIdx >= 0 ? headerIdx : lines.length); i++) {
-      const joined = lines[i].items.map(it => it.str).join(' ').toLowerCase();
-      if (/c[óo]digo/.test(joined) && /nome/.test(joined) && (/cbo/.test(joined) || /departamento/.test(joined) || /filial/.test(joined))) {
-        empHeaderIdx = i;
-        for (const it of lines[i].items) {
-          const s = it.str.toLowerCase();
-          if (s.includes('nome')) xNomeCol = it.x;
-          else if (s.includes('cbo') || s.includes('departamento') || s.includes('filial')) {
-            if (xNomeCol && it.x > xNomeCol && (xNomeEnd === 0 || it.x < xNomeEnd)) xNomeEnd = it.x;
-          }
-        }
-        break;
-      }
-    }
-
-    const isHeaderWord = (w: string) => /^(c[óo]digo|nome|do|funcion[áa]rio|cbo|departamento|filial|cargo|admiss[ãa]o|ctps|cpf|fun[çc][ãa]o)$/i.test(w.trim());
-
-    if (empHeaderIdx >= 0) {
-      // Linha imediatamente abaixo do cabeçalho contém: <código> <NOME COMPLETO> <cbo> <depto> <filial>
-      const dataLine = lines[empHeaderIdx + 1];
-      if (dataLine) {
-        const nameTokens: string[] = [];
-        for (const it of dataLine.items) {
-          const txt = it.str.trim();
-          if (!txt) continue;
-          if (xNomeEnd && it.x >= xNomeEnd - 5) break;
-          if (xNomeCol && it.x + 2 < xNomeCol) continue; // pula coluna Código
-          if (/^\d+$/.test(txt)) continue; // pula códigos numéricos
-          if (isHeaderWord(txt)) continue;
-          if (/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'\-]*$/.test(txt)) nameTokens.push(txt);
-        }
-        if (nameTokens.length >= 2) employeeName = nameTokens.join(' ').trim();
-      }
-    }
-
-    // Fallback: padrão "Nome: <X>" ou padrão antigo
-    if (!employeeName) {
-      for (let i = 0; i < (headerIdx >= 0 ? headerIdx : lines.length); i++) {
-        const lineStr = lines[i].items.map(it => it.str).join(' ');
-        const m = lineStr.match(/Nome(?:\s+do)?(?:\s+Funcion[áa]rio)?[\s:]+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s']+?)(?:\s{2,}|\s+CTPS|\s+CPF|\s+Fun[çc]|\s+Cargo|\s+Admiss|\s+CBO|\s+\d|$)/i);
-        if (m && m[1].trim().length > 3 && !isHeaderWord(m[1].trim().split(/\s+/)[0])) {
-          employeeName = m[1].trim();
-          break;
-        }
-      }
-    }
-
-    if (!employeeName || headerIdx < 0) continue;
-
-    employeeName = employeeName
-      .replace(/\s+(CTPS|CPF|Cargo|Admiss|CBO|Departamento|Filial|Fun[çc][aã]o).*$/i, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    if (isHeaderWord(employeeName) || employeeName.split(/\s+/).length < 2) continue;
-
-    const earnings: { desc: string; value: number }[] = [];
-    const deductions: { desc: string; value: number }[] = [];
-    let liquidoHolerite: number | null = null;
-
-    const xVencMin = xVenc - 30;
-    const xDescontoMin = xDesconto - 30;
-
-    for (let i = headerIdx + 1; i < lines.length; i++) {
-      const line = lines[i];
-      const lineStr = line.items.map(it => it.str).join(' ');
-      const lower = lineStr.toLowerCase();
-
-      if (lower.includes('l[íi]quido') || /l[íi]quido/.test(lower)) {
-        for (let j = line.items.length - 1; j >= 0; j--) {
-          if (isMoney(line.items[j].str)) {
-            liquidoHolerite = parseBRNumber(line.items[j].str);
-            break;
-          }
-        }
-        if (liquidoHolerite == null) {
-          for (let k = i + 1; k < Math.min(i + 3, lines.length); k++) {
-            for (const it of lines[k].items) {
-              if (isMoney(it.str)) { liquidoHolerite = parseBRNumber(it.str); break; }
-            }
-            if (liquidoHolerite != null) break;
-          }
-        }
-        break;
-      }
-      if (lower.includes('total de venciment') || lower.includes('total venciment') || lower.includes('total de desconto') || lower.includes('total desconto') || lower.includes('salario base inss') || lower.includes('base inss') || lower.includes('base fgts')) {
-        continue;
-      }
-
-      let vencVal: number | null = null;
-      let descontoVal: number | null = null;
-      const descTokens: string[] = [];
-
-      for (const it of line.items) {
-        if (isMoney(it.str)) {
-          if (xDesconto && it.x >= xDescontoMin) {
-            descontoVal = parseBRNumber(it.str);
-          } else if (xVenc && it.x >= xVencMin) {
-            vencVal = parseBRNumber(it.str);
-          }
-        } else {
-          if (!xVenc || it.x < xVencMin) {
-            descTokens.push(it.str);
-          }
-        }
-      }
-
-      if (vencVal == null && descontoVal == null) continue;
-
-      const desc = descTokens
-        .join(' ')
-        .replace(/^\s*\d{2,5}\s+/, '')
-        .replace(/\s+\d+([.,]\d+)?\s*$/, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (!desc) continue;
-
-      if (vencVal != null && vencVal > 0) earnings.push({ desc, value: vencVal });
-      if (descontoVal != null && descontoVal > 0) deductions.push({ desc, value: descontoVal });
-    }
-
-    if (earnings.length === 0 && deductions.length === 0) continue;
-
-    const sig =
-      normalizeName(employeeName) +
-      '|' +
-      earnings.map(e => `${e.desc}:${e.value}`).sort().join(',') +
-      '|' +
-      deductions.map(e => `${e.desc}:${e.value}`).sort().join(',');
-
-    if (seen.has(sig)) continue;
-    seen.add(sig);
-
-    results.push({ name: employeeName, earnings, deductions, liquidoHolerite });
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d')!;
+    await page.render({ canvasContext: ctx, viewport } as any).promise;
+    out.push(canvas.toDataURL('image/jpeg', 0.85));
+    onProgress?.(p, pdf.numPages);
   }
+  return out;
+}
 
-  return results;
+async function extractHolerite(image: string): Promise<ParsedHolerite> {
+  const { data, error } = await supabase.functions.invoke('extract-holerite', { body: { image } });
+  if (error) throw new Error(error.message);
+  if (!data?.holerite) throw new Error('Resposta inválida da IA');
+  return data.holerite as ParsedHolerite;
 }
 
 export default function AutoLaunchOverlay({ open, onClose, employees, columns, selectedYear, selectedMonth, createColumn, upsertValue }: Props) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number; phase: string }>({ current: 0, total: 0, phase: '' });
   const [results, setResults] = useState<ResultItem[] | null>(null);
   const [fileName, setFileName] = useState<string>('');
 
   const reset = () => {
     setResults(null);
     setFileName('');
+    setProgress({ current: 0, total: 0, phase: '' });
     if (fileRef.current) fileRef.current.value = '';
   };
 
@@ -275,20 +119,41 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
     setFileName(file.name);
 
     try {
-      const parsed = await parseHolerites(file);
-      if (parsed.length === 0) {
-        toast({ title: 'Nenhum holerite identificado', description: 'Verifique se o PDF está no formato esperado.', variant: 'destructive' });
+      setProgress({ current: 0, total: 0, phase: 'Renderizando páginas do PDF...' });
+      const images = await renderPagesAsImages(file, (n, total) =>
+        setProgress({ current: n, total, phase: 'Renderizando páginas do PDF...' })
+      );
+
+      // Extrai cada página via IA e desduplica por nome
+      const parsedList: ParsedHolerite[] = [];
+      const seenNames = new Set<string>();
+      for (let i = 0; i < images.length; i++) {
+        setProgress({ current: i + 1, total: images.length, phase: 'Extraindo holerites via IA...' });
+        try {
+          const h = await extractHolerite(images[i]);
+          const key = normalizeName(h.funcionario || '');
+          if (!key) continue;
+          if (seenNames.has(key)) continue;
+          seenNames.add(key);
+          parsedList.push(h);
+        } catch (err) {
+          console.error('Erro na página', i + 1, err);
+        }
+      }
+
+      if (parsedList.length === 0) {
+        toast({ title: 'Nenhum holerite identificado', description: 'A IA não conseguiu extrair dados.', variant: 'destructive' });
         setProcessing(false);
+        setProgress({ current: 0, total: 0, phase: '' });
         return;
       }
 
+      setProgress({ current: 0, total: parsedList.length, phase: 'Lançando valores...' });
+
       const colKey = (name: string, type: 'earning' | 'deduction') => `${type}:${normalizeName(name)}`;
       const colMap = new Map<string, string>();
-      let maxSort = 0;
-      for (const c of columns) {
-        colMap.set(colKey(c.name, c.type as 'earning' | 'deduction'), c.column_id);
-      }
-      maxSort = columns.length;
+      let maxSort = columns.length;
+      for (const c of columns) colMap.set(colKey(c.name, c.type as 'earning' | 'deduction'), c.column_id);
 
       const ensureColumn = async (name: string, type: 'earning' | 'deduction'): Promise<string> => {
         const k = colKey(name, type);
@@ -302,43 +167,53 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
 
       const out: ResultItem[] = [];
 
-      for (const entry of parsed) {
-        const target = normalizeName(entry.name);
+      for (let i = 0; i < parsedList.length; i++) {
+        const entry = parsedList[i];
+        setProgress({ current: i + 1, total: parsedList.length, phase: 'Lançando valores...' });
+
+        const target = normalizeName(entry.funcionario);
         const emp =
           employees.find(e => normalizeName(e.nome) === target) ||
           employees.find(e => normalizeName(e.nome).startsWith(target) || target.startsWith(normalizeName(e.nome)));
 
         if (!emp) {
-          out.push({ name: entry.name, status: 'not_found' });
+          out.push({ name: entry.funcionario, status: 'not_found' });
           continue;
         }
 
-        let totalVenc = 0;
-        let totalDesc = 0;
+        try {
+          let totalVenc = 0;
+          let totalDesc = 0;
 
-        for (const e of entry.earnings) {
-          const colId = await ensureColumn(e.desc, 'earning');
-          await upsertValue({ employee_id: emp.id, column_id: colId, value: e.value, year: selectedYear, month: selectedMonth });
-          totalVenc += e.value;
-        }
-        for (const d of entry.deductions) {
-          const colId = await ensureColumn(d.desc, 'deduction');
-          await upsertValue({ employee_id: emp.id, column_id: colId, value: d.value, year: selectedYear, month: selectedMonth });
-          totalDesc += d.value;
-        }
+          for (const item of entry.itens || []) {
+            const desc = (item.descricao || '').trim();
+            if (!desc) continue;
+            if (item.vencimento && item.vencimento > 0) {
+              const colId = await ensureColumn(desc, 'earning');
+              await upsertValue({ employee_id: emp.id, column_id: colId, value: item.vencimento, year: selectedYear, month: selectedMonth });
+              totalVenc += item.vencimento;
+            }
+            if (item.desconto && item.desconto > 0) {
+              const colId = await ensureColumn(desc, 'deduction');
+              await upsertValue({ employee_id: emp.id, column_id: colId, value: item.desconto, year: selectedYear, month: selectedMonth });
+              totalDesc += item.desconto;
+            }
+          }
 
-        const calc = +(totalVenc - totalDesc).toFixed(2);
-        const expected = entry.liquidoHolerite != null ? +entry.liquidoHolerite.toFixed(2) : null;
+          const calc = +(totalVenc - totalDesc).toFixed(2);
+          const expected = entry.valor_liquido != null ? +Number(entry.valor_liquido).toFixed(2) : null;
 
-        if (expected != null && Math.abs(calc - expected) > 0.01) {
-          out.push({ name: entry.name, status: 'mismatch', expected, calculated: calc });
-        } else {
-          out.push({ name: entry.name, status: 'success', expected: expected ?? calc, calculated: calc });
+          if (expected != null && Math.abs(calc - expected) > 0.01) {
+            out.push({ name: entry.funcionario, status: 'mismatch', expected, calculated: calc });
+          } else {
+            out.push({ name: entry.funcionario, status: 'success', expected: expected ?? calc, calculated: calc });
+          }
+        } catch (err) {
+          out.push({ name: entry.funcionario, status: 'error', message: err instanceof Error ? err.message : 'Erro' });
         }
       }
 
       setResults(out);
-
       const ok = out.filter(r => r.status === 'success').length;
       toast({ title: 'Processamento concluído', description: `${ok} holerite(s) lançado(s) com sucesso.` });
     } catch (err) {
@@ -346,6 +221,7 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
       toast({ title: 'Erro ao processar PDF', description: err instanceof Error ? err.message : 'Erro desconhecido', variant: 'destructive' });
     } finally {
       setProcessing(false);
+      setProgress({ current: 0, total: 0, phase: '' });
     }
   };
 
@@ -372,14 +248,17 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
               {processing ? (
                 <>
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="text-sm font-medium text-foreground">Processando {fileName}...</p>
-                  <p className="text-xs text-muted-foreground">Lendo holerites, identificando funcionários e lançando valores.</p>
+                  <p className="text-sm font-medium text-foreground">{progress.phase || `Processando ${fileName}...`}</p>
+                  {progress.total > 0 && (
+                    <p className="text-xs text-muted-foreground">{progress.current} de {progress.total}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Extração via IA — pode levar alguns instantes.</p>
                 </>
               ) : (
                 <>
                   <Upload className="h-10 w-10 text-primary" />
                   <p className="text-sm font-medium text-foreground">Clique ou arraste o PDF do holerite</p>
-                  <p className="text-xs text-muted-foreground">Duplicatas serão ignoradas automaticamente.</p>
+                  <p className="text-xs text-muted-foreground">A extração é feita por IA (Gemini). Duplicatas são ignoradas.</p>
                 </>
               )}
               <input
@@ -402,7 +281,7 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
               <p className="text-sm text-muted-foreground">{fileName}</p>
               <Button size="sm" variant="outline" onClick={reset}><X className="mr-1 h-4 w-4" /> Novo upload</Button>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 dark:border-emerald-900 dark:bg-emerald-950/30">
                 <p className="text-xs text-muted-foreground">Sucesso</p>
                 <p className="text-lg font-bold text-emerald-600">{results.filter(r => r.status === 'success').length}</p>
@@ -415,13 +294,17 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
                 <p className="text-xs text-muted-foreground">Não encontrados</p>
                 <p className="text-lg font-bold text-destructive">{results.filter(r => r.status === 'not_found').length}</p>
               </div>
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2">
+                <p className="text-xs text-muted-foreground">Erros</p>
+                <p className="text-lg font-bold text-destructive">{results.filter(r => r.status === 'error').length}</p>
+              </div>
             </div>
             <div className="max-h-[400px] space-y-1.5 overflow-y-auto">
               {results.map((r, idx) => (
                 <div key={idx} className="flex items-start gap-2 rounded-md border border-border bg-card p-2 text-sm">
                   {r.status === 'success' && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />}
                   {r.status === 'mismatch' && <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />}
-                  {r.status === 'not_found' && <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
+                  {(r.status === 'not_found' || r.status === 'error') && <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{r.name}</p>
                     {r.status === 'mismatch' && (
@@ -431,6 +314,9 @@ export default function AutoLaunchOverlay({ open, onClose, employees, columns, s
                     )}
                     {r.status === 'not_found' && (
                       <p className="text-xs text-destructive">Funcionário não localizado no cadastro.</p>
+                    )}
+                    {r.status === 'error' && (
+                      <p className="text-xs text-destructive">{r.message || 'Erro ao lançar.'}</p>
                     )}
                     {r.status === 'success' && r.calculated != null && (
                       <p className="text-xs text-muted-foreground">Líquido: {r.calculated.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
