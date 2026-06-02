@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,29 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, LogIn, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
+const TURNSTILE_SITEKEY = '0x4AAAAAADX2ArsmydOvVDyA24VUrzXo2Ns';
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+      reset: (id?: string) => void;
+      remove: (id?: string) => void;
+    };
+    onTurnstileLoad?: () => void;
+  }
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // Use a direct query that gracefully falls back if RLS blocks unauthenticated access
+  const [captchaToken, setCaptchaToken] = useState('');
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
+
   const { data: companySettings } = useQuery({
     queryKey: ['company_settings_public'],
     queryFn: async () => {
@@ -27,16 +43,68 @@ export default function Login() {
 
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
+  useEffect(() => {
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileRef.current || widgetIdRef.current) return;
+      widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+        sitekey: TURNSTILE_SITEKEY,
+        callback: (token: string) => setCaptchaToken(token),
+        'expired-callback': () => setCaptchaToken(''),
+        'error-callback': () => setCaptchaToken(''),
+      });
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+    } else if (!document.querySelector('script[src*="turnstile"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
+      script.async = true;
+      script.defer = true;
+      window.onTurnstileLoad = renderWidget;
+      document.head.appendChild(script);
+    } else {
+      const interval = setInterval(() => {
+        if (window.turnstile) {
+          renderWidget();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      if (widgetIdRef.current && window.turnstile) {
+        try { window.turnstile.remove(widgetIdRef.current); } catch { /* noop */ }
+        widgetIdRef.current = null;
+      }
+    };
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!captchaToken) {
+      setError('Por favor, complete a verificação de segurança.');
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken },
+    });
 
     if (error) {
       setError('Email ou senha inválidos. Verifique suas credenciais e tente novamente.');
       setLoading(false);
+      setCaptchaToken('');
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(widgetIdRef.current);
+      }
     } else {
       navigate('/');
     }
@@ -68,7 +136,8 @@ export default function Login() {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <div ref={turnstileRef} className="flex justify-center" />
+            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               <LogIn className="w-4 h-4 mr-2" />
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
