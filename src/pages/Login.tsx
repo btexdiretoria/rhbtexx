@@ -29,6 +29,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
@@ -51,12 +52,22 @@ export default function Login() {
       try {
         widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
           sitekey: TURNSTILE_SITEKEY,
-          callback: (token: string) => setCaptchaToken(token),
-          'expired-callback': () => setCaptchaToken(''),
-          'error-callback': () => setCaptchaToken(''),
+          callback: (token: string) => {
+            setCaptchaToken(token);
+            setCaptchaError('');
+          },
+          'expired-callback': () => {
+            setCaptchaToken('');
+            setCaptchaError('A verificação expirou. Faça a validação novamente.');
+          },
+          'error-callback': () => {
+            setCaptchaToken('');
+            setCaptchaError('Não foi possível carregar a verificação de segurança. Verifique a sitekey do Cloudflare Turnstile.');
+          },
         });
       } catch (e) {
         console.error('Turnstile render error:', e);
+        setCaptchaError('Não foi possível iniciar a verificação de segurança.');
       }
     };
 
@@ -132,7 +143,10 @@ export default function Login() {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <div ref={turnstileRef} className="flex justify-center" />
+            <div className="flex min-h-[65px] items-center justify-center">
+              <div ref={turnstileRef} />
+            </div>
+            {captchaError && <p className="text-sm text-destructive">{captchaError}</p>}
             <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               <LogIn className="w-4 h-4 mr-2" />
               {loading ? 'Entrando...' : 'Entrar'}
