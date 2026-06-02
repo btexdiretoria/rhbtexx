@@ -44,36 +44,32 @@ export default function Login() {
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
   useEffect(() => {
+    let cancelled = false;
+
     const renderWidget = () => {
-      if (!window.turnstile || !turnstileRef.current || widgetIdRef.current) return;
-      widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
-        sitekey: TURNSTILE_SITEKEY,
-        callback: (token: string) => setCaptchaToken(token),
-        'expired-callback': () => setCaptchaToken(''),
-        'error-callback': () => setCaptchaToken(''),
-      });
+      if (cancelled || !window.turnstile || !turnstileRef.current || widgetIdRef.current) return;
+      try {
+        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+          sitekey: TURNSTILE_SITEKEY,
+          callback: (token: string) => setCaptchaToken(token),
+          'expired-callback': () => setCaptchaToken(''),
+          'error-callback': () => setCaptchaToken(''),
+        });
+      } catch (e) {
+        console.error('Turnstile render error:', e);
+      }
     };
 
-    if (window.turnstile) {
-      renderWidget();
-    } else if (!document.querySelector('script[src*="turnstile"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
-      script.async = true;
-      script.defer = true;
-      window.onTurnstileLoad = renderWidget;
-      document.head.appendChild(script);
-    } else {
-      const interval = setInterval(() => {
-        if (window.turnstile) {
-          renderWidget();
-          clearInterval(interval);
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
+    const interval = setInterval(() => {
+      if (window.turnstile) {
+        renderWidget();
+        if (widgetIdRef.current) clearInterval(interval);
+      }
+    }, 150);
 
     return () => {
+      cancelled = true;
+      clearInterval(interval);
       if (widgetIdRef.current && window.turnstile) {
         try { window.turnstile.remove(widgetIdRef.current); } catch { /* noop */ }
         widgetIdRef.current = null;
