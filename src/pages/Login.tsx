@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, LogIn, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-const TURNSTILE_SITEKEY = '0x4AAAAAADX2AkOCZUpJ22-BJgFMLnQk8lI';
+const TURNSTILE_SITEKEY = '0x4AAAAAADX2AhLwvnTONx4r';
 
 declare global {
   interface Window {
