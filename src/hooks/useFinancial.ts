@@ -171,10 +171,19 @@ export function useDeleteNetSalaryColumn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Delete values for this column too
-      const col = await supabase.from('net_salary_columns').select('column_id').eq('id', id).single();
+      // Delete values only for this column in the SAME month/year (not across all months)
+      const col = await supabase
+        .from('net_salary_columns')
+        .select('column_id, year, month')
+        .eq('id', id)
+        .single();
       if (col.data) {
-        await supabase.from('net_salary_values').delete().eq('column_id', col.data.column_id);
+        await supabase
+          .from('net_salary_values')
+          .delete()
+          .eq('column_id', col.data.column_id)
+          .eq('year', col.data.year)
+          .eq('month', col.data.month);
       }
       const { error } = await supabase.from('net_salary_columns').delete().eq('id', id);
       if (error) throw error;
