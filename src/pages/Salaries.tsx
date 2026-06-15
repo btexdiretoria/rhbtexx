@@ -49,40 +49,51 @@ export default function Salaries() {
   const departments = useMemo(() => [...new Set(employees.map(f => f.departamento))].sort(), [employees]);
   const toggleStatus = (status: StatusOption) => setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
 
-  // Considera apenas funcionários ativos no mês/ano selecionado:
-  // admitidos até o último dia do mês E ainda não desligados antes do primeiro dia do mês.
+  // Considera apenas funcionários ativos no mês/ano selecionado e calcula o "status efetivo no mês".
+  // Regra: admitidos até o fim do mês E (sem demissão OU demissão >= início do mês).
+  // Se a demissão cai dentro do mês selecionado => status efetivo = 'Desligado' naquele mês.
+  // Se ainda não havia sido desligado naquele mês => usa o status atual, mas troca 'Desligado' por 'Ativo'
+  // (pois o status 'Desligado' atual não reflete o passado).
   const periodEmployees = useMemo(() => {
     const periodStart = new Date(selectedYear, selectedMonth, 1);
     const periodEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999);
-    return employees.filter(f => {
+    return employees.reduce<Array<typeof employees[number] & { effectiveStatus: StatusOption }>>((acc, f) => {
       const adm = f.data_admissao ? new Date(f.data_admissao) : null;
-      if (!adm || adm > periodEnd) return false;
+      if (!adm || adm > periodEnd) return acc;
       const des = (f as any).data_desligamento ? new Date((f as any).data_desligamento) : null;
-      if (des && des < periodStart) return false;
-      return true;
-    });
+      if (des && des < periodStart) return acc;
+      let effectiveStatus: StatusOption;
+      if (des && des >= periodStart && des <= periodEnd) {
+        effectiveStatus = 'Desligado';
+      } else {
+        effectiveStatus = (f.status === 'Desligado' ? 'Ativo' : f.status) as StatusOption;
+      }
+      acc.push({ ...f, effectiveStatus });
+      return acc;
+    }, []);
   }, [employees, selectedMonth, selectedYear]);
 
   const filtered = useMemo(() => {
     let list = [...periodEmployees];
     if (search) list = list.filter(f => f.nome.toLowerCase().includes(search.toLowerCase()));
     if (deptFilter !== 'all') list = list.filter(f => f.departamento === deptFilter);
-    if (selectedStatuses.length > 0) list = list.filter(f => selectedStatuses.includes(f.status as StatusOption));
+    if (selectedStatuses.length > 0) list = list.filter(f => selectedStatuses.includes(f.effectiveStatus));
     if (minSalary) list = list.filter(f => f.salario >= Number(minSalary));
     if (maxSalary) list = list.filter(f => f.salario <= Number(maxSalary));
     list.sort((a, b) => {
       let cmp = 0;
       if (sortKey === 'salario') cmp = a.salario - b.salario;
+      else if (sortKey === 'status') cmp = a.effectiveStatus.localeCompare(b.effectiveStatus);
       else cmp = String((a as any)[sortKey]).localeCompare(String((b as any)[sortKey]));
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
   }, [periodEmployees, search, deptFilter, selectedStatuses, minSalary, maxSalary, sortKey, sortDir]);
 
-  const totalPayroll = useMemo(() => periodEmployees.filter(f => selectedStatuses.includes(f.status as StatusOption)).reduce((s, f) => s + f.salario, 0), [periodEmployees, selectedStatuses]);
+  const totalPayroll = useMemo(() => periodEmployees.filter(f => selectedStatuses.includes(f.effectiveStatus)).reduce((s, f) => s + f.salario, 0), [periodEmployees, selectedStatuses]);
   const byDept = useMemo(() => {
     const map: Record<string, number> = {};
-    periodEmployees.filter(f => selectedStatuses.includes(f.status as StatusOption)).forEach(f => { map[f.departamento] = (map[f.departamento] || 0) + f.salario; });
+    periodEmployees.filter(f => selectedStatuses.includes(f.effectiveStatus)).forEach(f => { map[f.departamento] = (map[f.departamento] || 0) + f.salario; });
     return Object.entries(map).sort((a, b) => b[1] - a[1]);
   }, [periodEmployees, selectedStatuses]);
 
