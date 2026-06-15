@@ -49,8 +49,22 @@ export default function Salaries() {
   const departments = useMemo(() => [...new Set(employees.map(f => f.departamento))].sort(), [employees]);
   const toggleStatus = (status: StatusOption) => setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
 
+  // Considera apenas funcionários ativos no mês/ano selecionado:
+  // admitidos até o último dia do mês E ainda não desligados antes do primeiro dia do mês.
+  const periodEmployees = useMemo(() => {
+    const periodStart = new Date(selectedYear, selectedMonth, 1);
+    const periodEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999);
+    return employees.filter(f => {
+      const adm = f.data_admissao ? new Date(f.data_admissao) : null;
+      if (!adm || adm > periodEnd) return false;
+      const des = (f as any).data_desligamento ? new Date((f as any).data_desligamento) : null;
+      if (des && des < periodStart) return false;
+      return true;
+    });
+  }, [employees, selectedMonth, selectedYear]);
+
   const filtered = useMemo(() => {
-    let list = [...employees];
+    let list = [...periodEmployees];
     if (search) list = list.filter(f => f.nome.toLowerCase().includes(search.toLowerCase()));
     if (deptFilter !== 'all') list = list.filter(f => f.departamento === deptFilter);
     if (selectedStatuses.length > 0) list = list.filter(f => selectedStatuses.includes(f.status as StatusOption));
@@ -63,14 +77,14 @@ export default function Salaries() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [employees, search, deptFilter, selectedStatuses, minSalary, maxSalary, sortKey, sortDir]);
+  }, [periodEmployees, search, deptFilter, selectedStatuses, minSalary, maxSalary, sortKey, sortDir]);
 
-  const totalPayroll = useMemo(() => employees.filter(f => selectedStatuses.includes(f.status as StatusOption)).reduce((s, f) => s + f.salario, 0), [employees, selectedStatuses]);
+  const totalPayroll = useMemo(() => periodEmployees.filter(f => selectedStatuses.includes(f.status as StatusOption)).reduce((s, f) => s + f.salario, 0), [periodEmployees, selectedStatuses]);
   const byDept = useMemo(() => {
     const map: Record<string, number> = {};
-    employees.filter(f => selectedStatuses.includes(f.status as StatusOption)).forEach(f => { map[f.departamento] = (map[f.departamento] || 0) + f.salario; });
+    periodEmployees.filter(f => selectedStatuses.includes(f.status as StatusOption)).forEach(f => { map[f.departamento] = (map[f.departamento] || 0) + f.salario; });
     return Object.entries(map).sort((a, b) => b[1] - a[1]);
-  }, [employees, selectedStatuses]);
+  }, [periodEmployees, selectedStatuses]);
 
   const fgts = totalPayroll * 0.08;
   const decimoTerceiro = totalPayroll / 12;
