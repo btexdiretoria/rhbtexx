@@ -145,7 +145,7 @@ export default function Salaries() {
         <TableBody>
           {filtered.length === 0 ? <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum funcionário encontrado.</TableCell></TableRow>
           : filtered.map(f => (
-            <TableRow key={f.id}><TableCell className="font-medium">{f.nome}</TableCell><TableCell>{f.departamento}</TableCell><TableCell>{f.cargo}</TableCell><TableCell className="font-semibold">{formatCurrency(f.salario)}</TableCell><TableCell><StatusBadge status={f.status} /></TableCell></TableRow>
+            <TableRow key={f.id}><TableCell className="font-medium">{f.nome}</TableCell><TableCell>{f.departamento}</TableCell><TableCell>{f.cargo}</TableCell><TableCell className="font-semibold">{formatCurrency(f.salario)}</TableCell><TableCell><StatusBadge status={f.effectiveStatus} /></TableCell></TableRow>
           ))}
         </TableBody></Table>
       </div></CardContent></Card>
