@@ -391,13 +391,12 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   if (selectedReports.includes('gross')) {
     const dados: any[] = ativos.map(f => ({
       Nome: f.nome,
-      Matrícula: f.matricula,
       Cargo: f.cargo,
       Departamento: f.departamento,
       'Tipo Contrato': f.tipo_contrato,
       'Salário Bruto': f.salario,
     }));
-    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
+    dados.push({ Nome: 'TOTAL', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Folha Bruta');
   }
