@@ -207,9 +207,7 @@ export default function EmployeeProfile() {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-card p-1 rounded-lg border border-border">
           <TabsTrigger value="pessoais" className="gap-1.5"><User className="w-3.5 h-3.5" />Dados Pessoais</TabsTrigger>
           <TabsTrigger value="profissionais" className="gap-1.5"><Briefcase className="w-3.5 h-3.5" />Profissionais</TabsTrigger>
-          <TabsTrigger value="documentos" className="gap-1.5"><FileText className="w-3.5 h-3.5" />Documentos</TabsTrigger>
           <TabsTrigger value="avaliacao" className="gap-1.5"><Star className="w-3.5 h-3.5" />Avaliação</TabsTrigger>
-          <TabsTrigger value="historico" className="gap-1.5"><History className="w-3.5 h-3.5" />Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pessoais" className="mt-4">
