@@ -418,7 +418,7 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
         const inss = calcINSS(f.salario);
         const irrf = calcIRRF(f.salario - inss);
         const liquido = f.salario - inss - irrf;
-        return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
+        return { Nome: f.nome, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
       });
     }
     const ws = XLSX.utils.json_to_sheet(dados);
