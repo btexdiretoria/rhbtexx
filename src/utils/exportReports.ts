@@ -304,13 +304,13 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
         return [r.nome, r.chave_pix || '—', formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
       });
     } else {
-      head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
+      head = ['Nome', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
       rows = ativos.map(f => {
         const inss = calcINSS(f.salario);
         const irrf = calcIRRF(f.salario - inss);
         const liquido = f.salario - inss - irrf;
         totalLiq += liquido;
-        return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
+        return [f.nome, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
       });
     }
 
