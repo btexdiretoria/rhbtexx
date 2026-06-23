@@ -35,9 +35,8 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
 
   autoTable(doc, {
     startY: 36,
-    head: [['Matrícula', 'Nome', 'Cargo', 'Departamento', 'Contrato', 'Admissão', 'Salário', 'Status']],
+    head: [['Nome', 'Cargo', 'Departamento', 'Contrato', 'Admissão', 'Salário', 'Status']],
     body: funcionarios.map(f => [
-      f.matricula,
       f.nome,
       f.cargo,
       f.departamento,
