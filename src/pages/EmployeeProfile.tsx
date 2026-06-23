@@ -321,24 +321,6 @@ export default function EmployeeProfile() {
           </div>
         </TabsContent>
 
-        <TabsContent value="historico" className="mt-4">
-          <div className="kpi-card">
-            <h3 className="font-heading font-semibold text-foreground mb-4">Histórico</h3>
-            {history.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum registro de histórico.</p> : (
-              <div className="space-y-3">
-                {history.map(h => (
-                  <div key={h.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <span className="text-lg">{timelineIcons[h.tipo] || '📋'}</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{h.descricao}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(h.data).toLocaleDateString('pt-BR')} {h.responsavel && `· ${h.responsavel}`}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* New Evaluation Dialog */}
