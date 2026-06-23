@@ -48,7 +48,7 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
     styles: { fontSize: 8 },
     headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 248, 252] },
-    columnStyles: { 6: { halign: 'right' } },
+    columnStyles: { 5: { halign: 'right' } },
   });
 
   doc.save('quadro-funcionarios.pdf');
