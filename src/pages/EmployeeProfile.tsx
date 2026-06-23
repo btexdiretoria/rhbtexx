@@ -198,7 +198,7 @@ export default function EmployeeProfile() {
           <div className="flex-1">
             <h2 className="text-xl font-heading font-bold text-foreground">{d.nome}</h2>
             <p className="text-muted-foreground">{d.cargo} · {d.departamento}</p>
-            <div className="flex items-center gap-3 mt-1"><StatusBadge status={d.status} /><span className="text-xs text-muted-foreground">Matrícula: {d.matricula}</span></div>
+            <div className="flex items-center gap-3 mt-1"><StatusBadge status={d.status} /></div>
           </div>
         </div>
       </div>
@@ -207,9 +207,7 @@ export default function EmployeeProfile() {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-card p-1 rounded-lg border border-border">
           <TabsTrigger value="pessoais" className="gap-1.5"><User className="w-3.5 h-3.5" />Dados Pessoais</TabsTrigger>
           <TabsTrigger value="profissionais" className="gap-1.5"><Briefcase className="w-3.5 h-3.5" />Profissionais</TabsTrigger>
-          <TabsTrigger value="documentos" className="gap-1.5"><FileText className="w-3.5 h-3.5" />Documentos</TabsTrigger>
           <TabsTrigger value="avaliacao" className="gap-1.5"><Star className="w-3.5 h-3.5" />Avaliação</TabsTrigger>
-          <TabsTrigger value="historico" className="gap-1.5"><History className="w-3.5 h-3.5" />Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pessoais" className="mt-4">
@@ -241,7 +239,6 @@ export default function EmployeeProfile() {
 
         <TabsContent value="profissionais" className="mt-4">
           <div className="kpi-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
-            <EditableRow label="Matrícula" value={d.matricula} editing={editing} onChange={v => updateField('matricula', v)} />
             <EditableRow label="Cargo" value={d.cargo} editing={editing} onChange={v => updateField('cargo', v)} error={errors.cargo} />
             <EditableRow label="Departamento" value={d.departamento} editing={editing} onChange={v => updateField('departamento', v)} options={departmentOptions} />
             
@@ -282,24 +279,6 @@ export default function EmployeeProfile() {
           )}
         </TabsContent>
 
-        <TabsContent value="documentos" className="mt-4">
-          <div className="kpi-card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-semibold text-foreground">Documentos</h3>
-              <Button size="sm" onClick={addDocument} className="gap-1.5"><Plus className="w-4 h-4" />Novo</Button>
-            </div>
-            {documents.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum documento anexado.</p> : (
-              <div className="space-y-2">
-                {documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <div><p className="text-sm font-medium text-foreground">{doc.nome}</p><p className="text-xs text-muted-foreground">{doc.tipo} · {doc.tamanho || '—'} · {new Date(doc.data_upload).toLocaleDateString('pt-BR')}</p></div>
-                    <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.id)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
 
         <TabsContent value="avaliacao" className="mt-4">
           <div className="kpi-card">
@@ -342,24 +321,6 @@ export default function EmployeeProfile() {
           </div>
         </TabsContent>
 
-        <TabsContent value="historico" className="mt-4">
-          <div className="kpi-card">
-            <h3 className="font-heading font-semibold text-foreground mb-4">Histórico</h3>
-            {history.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum registro de histórico.</p> : (
-              <div className="space-y-3">
-                {history.map(h => (
-                  <div key={h.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <span className="text-lg">{timelineIcons[h.tipo] || '📋'}</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{h.descricao}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(h.data).toLocaleDateString('pt-BR')} {h.responsavel && `· ${h.responsavel}`}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* New Evaluation Dialog */}

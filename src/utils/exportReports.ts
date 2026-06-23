@@ -35,9 +35,8 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
 
   autoTable(doc, {
     startY: 36,
-    head: [['Matrícula', 'Nome', 'Cargo', 'Departamento', 'Contrato', 'Admissão', 'Salário', 'Status']],
+    head: [['Nome', 'Cargo', 'Departamento', 'Contrato', 'Admissão', 'Salário', 'Status']],
     body: funcionarios.map(f => [
-      f.matricula,
       f.nome,
       f.cargo,
       f.departamento,
@@ -49,7 +48,7 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
     styles: { fontSize: 8 },
     headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 248, 252] },
-    columnStyles: { 6: { halign: 'right' } },
+    columnStyles: { 5: { halign: 'right' } },
   });
 
   doc.save('quadro-funcionarios.pdf');
@@ -57,7 +56,6 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
 
 export function exportFuncionariosExcel(funcionarios: Employee[]) {
   const dados = funcionarios.map(f => ({
-    Matrícula: f.matricula,
     Nome: f.nome,
     CPF: f.cpf,
     'Data Nascimento': formatDate(f.data_nascimento),
@@ -277,14 +275,14 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
 
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Matrícula', 'Cargo', 'Departamento', 'Contrato', 'Salário Bruto']],
+      head: [['Nome', 'Cargo', 'Departamento', 'Contrato', 'Salário Bruto']],
       body: [
-        ...ativos.map(f => [f.nome, f.matricula, f.cargo, f.departamento, f.tipo_contrato, formatCurrency(f.salario)]),
-        [{ content: 'TOTAL', colSpan: 5, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold', halign: 'right' } }],
+        ...ativos.map(f => [f.nome, f.cargo, f.departamento, f.tipo_contrato, formatCurrency(f.salario)]),
+        [{ content: 'TOTAL', colSpan: 4, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 5: { halign: 'right' } },
+      columnStyles: { 4: { halign: 'right' } },
     });
 
     cursorY = (doc as any).lastAutoTable.finalY + 10;
@@ -306,13 +304,13 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
         return [r.nome, r.chave_pix || '—', formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
       });
     } else {
-      head = ['Nome', 'Matrícula', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
+      head = ['Nome', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
       rows = ativos.map(f => {
         const inss = calcINSS(f.salario);
         const irrf = calcIRRF(f.salario - inss);
         const liquido = f.salario - inss - irrf;
         totalLiq += liquido;
-        return [f.nome, f.matricula, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
+        return [f.nome, formatCurrency(f.salario), formatCurrency(inss), formatCurrency(irrf), formatCurrency(liquido)];
       });
     }
 
@@ -393,13 +391,12 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
   if (selectedReports.includes('gross')) {
     const dados: any[] = ativos.map(f => ({
       Nome: f.nome,
-      Matrícula: f.matricula,
       Cargo: f.cargo,
       Departamento: f.departamento,
       'Tipo Contrato': f.tipo_contrato,
       'Salário Bruto': f.salario,
     }));
-    dados.push({ Nome: 'TOTAL', Matrícula: '', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
+    dados.push({ Nome: 'TOTAL', Cargo: '', Departamento: '', 'Tipo Contrato': '', 'Salário Bruto': ativos.reduce((s, f) => s + f.salario, 0) });
     const ws = XLSX.utils.json_to_sheet(dados);
     XLSX.utils.book_append_sheet(wb, ws, 'Folha Bruta');
   }
@@ -421,7 +418,7 @@ export function exportFinanceiroExcel(opts: FinancialExportOptions) {
         const inss = calcINSS(f.salario);
         const irrf = calcIRRF(f.salario - inss);
         const liquido = f.salario - inss - irrf;
-        return { Nome: f.nome, Matrícula: f.matricula, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
+        return { Nome: f.nome, Bruto: f.salario, INSS: parseFloat(inss.toFixed(2)), IRRF: parseFloat(irrf.toFixed(2)), Líquido: parseFloat(liquido.toFixed(2)) };
       });
     }
     const ws = XLSX.utils.json_to_sheet(dados);
