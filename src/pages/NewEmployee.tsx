@@ -97,6 +97,7 @@ export default function NewEmployee() {
               <div><Label>RG</Label><Input value={form.rg} onChange={e => update('rg', e.target.value)} /></div>
               <div><Label>Data de Nascimento *</Label><Input type="date" value={form.dataNascimento} onChange={e => update('dataNascimento', e.target.value)} /></div>
               <div><Label>Gênero</Label><Select value={form.genero} onValueChange={v => update('genero', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent><SelectItem value="Masculino">Masculino</SelectItem><SelectItem value="Feminino">Feminino</SelectItem><SelectItem value="Outro">Outro</SelectItem></SelectContent></Select></div>
+              <div><Label>Telefone</Label><Input value={form.telefone} onChange={e => update('telefone', e.target.value)} placeholder="(00) 00000-0000" /></div>
               <div><Label>Chave PIX</Label><Input value={form.chavePix} onChange={e => update('chavePix', e.target.value)} /></div>
               <div><Label>Tipo de Chave PIX</Label><Select value={form.tipoChavePix} onValueChange={v => update('tipoChavePix', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CPF','CNPJ','E-mail','Telefone','Chave Aleatória'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
             </div>
