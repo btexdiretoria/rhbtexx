@@ -198,7 +198,7 @@ export default function EmployeeProfile() {
           <div className="flex-1">
             <h2 className="text-xl font-heading font-bold text-foreground">{d.nome}</h2>
             <p className="text-muted-foreground">{d.cargo} · {d.departamento}</p>
-            <div className="flex items-center gap-3 mt-1"><StatusBadge status={d.status} /><span className="text-xs text-muted-foreground">Matrícula: {d.matricula}</span></div>
+            <div className="flex items-center gap-3 mt-1"><StatusBadge status={d.status} /></div>
           </div>
         </div>
       </div>
