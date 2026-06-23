@@ -275,14 +275,14 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
 
     autoTable(doc, {
       startY: cursorY,
-      head: [['Nome', 'Matrícula', 'Cargo', 'Departamento', 'Contrato', 'Salário Bruto']],
+      head: [['Nome', 'Cargo', 'Departamento', 'Contrato', 'Salário Bruto']],
       body: [
-        ...ativos.map(f => [f.nome, f.matricula, f.cargo, f.departamento, f.tipo_contrato, formatCurrency(f.salario)]),
-        [{ content: 'TOTAL', colSpan: 5, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold', halign: 'right' } }],
+        ...ativos.map(f => [f.nome, f.cargo, f.departamento, f.tipo_contrato, formatCurrency(f.salario)]),
+        [{ content: 'TOTAL', colSpan: 4, styles: { fontStyle: 'bold', halign: 'right' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold', halign: 'right' } }],
       ],
       styles: { fontSize: 8 },
       headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 5: { halign: 'right' } },
+      columnStyles: { 4: { halign: 'right' } },
     });
 
     cursorY = (doc as any).lastAutoTable.finalY + 10;
