@@ -279,24 +279,6 @@ export default function EmployeeProfile() {
           )}
         </TabsContent>
 
-        <TabsContent value="documentos" className="mt-4">
-          <div className="kpi-card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-semibold text-foreground">Documentos</h3>
-              <Button size="sm" onClick={addDocument} className="gap-1.5"><Plus className="w-4 h-4" />Novo</Button>
-            </div>
-            {documents.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum documento anexado.</p> : (
-              <div className="space-y-2">
-                {documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <div><p className="text-sm font-medium text-foreground">{doc.nome}</p><p className="text-xs text-muted-foreground">{doc.tipo} · {doc.tamanho || '—'} · {new Date(doc.data_upload).toLocaleDateString('pt-BR')}</p></div>
-                    <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.id)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
 
         <TabsContent value="avaliacao" className="mt-4">
           <div className="kpi-card">
