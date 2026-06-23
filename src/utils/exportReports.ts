@@ -56,7 +56,6 @@ export function exportFuncionariosPDF(funcionarios: Employee[]) {
 
 export function exportFuncionariosExcel(funcionarios: Employee[]) {
   const dados = funcionarios.map(f => ({
-    Matrícula: f.matricula,
     Nome: f.nome,
     CPF: f.cpf,
     'Data Nascimento': formatDate(f.data_nascimento),
