@@ -131,15 +131,21 @@ export default function NetSalary() {
   }, [colsLoading, columns.length, selectedYear, selectedMonth]);
 
   const employees = useMemo(() => {
+    const selIndex = selectedYear * 12 + selectedMonth;
     let list = allEmployees.filter(f => {
-      if (f.status === 'Desligado' && f.data_desligamento) {
+      // Precisa ter data de admissão e o mês selecionado deve ser >= mês da admissão
+      if (!f.data_admissao) return false;
+      const adm = new Date(f.data_admissao);
+      const admIndex = adm.getFullYear() * 12 + adm.getMonth();
+      if (selIndex < admIndex) return false;
+
+      // Se desligado, aparece até o mês seguinte ao desligamento (pagamento residual)
+      if (f.data_desligamento) {
         const d = new Date(f.data_desligamento);
         const termIndex = d.getFullYear() * 12 + d.getMonth();
-        const selIndex = selectedYear * 12 + selectedMonth;
-        // mostrar no mês do desligamento e também no mês seguinte
-        return termIndex === selIndex || termIndex === selIndex - 1;
+        if (selIndex > termIndex + 1) return false;
       }
-      return f.status !== 'Desligado';
+      return true;
     });
 
     if (search) list = list.filter(f => f.nome.toLowerCase().includes(search.toLowerCase()));
