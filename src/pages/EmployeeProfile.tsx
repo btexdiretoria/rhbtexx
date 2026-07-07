@@ -104,7 +104,16 @@ export default function EmployeeProfile() {
 
   const doSave = async () => {
     try {
-      await updateEmployee.mutateAsync({ id: employee.id, ...editData });
+      const payload: any = { id: employee.id, ...editData };
+      if (editData.status && editData.status !== 'Desligado' && employee.status === 'Desligado') {
+        payload.data_desligamento = null;
+        payload.data_pagamento_rescisao = null;
+        payload.valor_rescisao = null;
+        payload.motivo_desligamento = null;
+        payload.pagamento_confirmado = false;
+        payload.contrato_assinado = false;
+      }
+      await updateEmployee.mutateAsync(payload);
       logAction('Edição', employee.nome, 'Editou dados do funcionário', { targetId: employee.id });
       setEditing(false); setEditData({});
       toast({ title: '✅ Perfil atualizado com sucesso!' });
