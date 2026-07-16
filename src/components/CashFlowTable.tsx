@@ -345,7 +345,11 @@ const CashFlowTable = ({
               {dates.map((d) => (
                 <th
                   key={d}
-                  className="px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px]"
+                  onClick={() => setDaySummaryDate(d)}
+                  className={cn(
+                    "px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px] cursor-pointer hover:bg-primary/20 transition-colors",
+                    d === todayIso && "bg-primary/30 text-foreground ring-1 ring-primary"
+                  )}
                 >
                   {formatDateBR(d)}
                 </th>
@@ -363,6 +367,28 @@ const CashFlowTable = ({
         editable={editable}
         onDateChange={editable ? handlePanelDateChange : undefined}
         getOriginalDate={editable ? getOriginalDate : undefined}
+      />
+
+      <DaySummaryPanel
+        open={daySummaryDate !== null}
+        onClose={() => setDaySummaryDate(null)}
+        date={daySummaryDate || ""}
+        saldoInicial={daySummaryDate ? computedRows.saldoInicial[daySummaryDate] || 0 : 0}
+        saldoFinal={daySummaryDate ? computedRows.saldoFinal[daySummaryDate] || 0 : 0}
+        revenues={
+          daySummaryDate
+            ? data.revenueCategories
+                .map((cat) => ({ categoria: cat, valor: data.matrix[`rev::${cat}`]?.[daySummaryDate] || 0 }))
+                .filter((r) => r.valor !== 0)
+            : []
+        }
+        expenses={
+          daySummaryDate
+            ? data.expenseCategories
+                .map((cat) => ({ categoria: cat, valor: data.matrix[`exp::${cat}`]?.[daySummaryDate] || 0 }))
+                .filter((r) => r.valor !== 0)
+            : []
+        }
       />
     </>
   );
