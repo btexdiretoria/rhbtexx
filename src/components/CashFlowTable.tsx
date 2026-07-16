@@ -4,6 +4,12 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import TransactionPanel from "@/components/TransactionPanel";
 import { cn } from "@/lib/utils";
+import DaySummaryPanel from "@/components/DaySummaryPanel";
+
+const todayIso = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
 
 interface CashFlowTableProps {
   data: CashFlowData;
