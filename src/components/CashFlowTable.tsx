@@ -177,6 +177,12 @@ const CashFlowTable = ({
       )}
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="min-w-max w-full text-sm">
+          <colgroup>
+            <col />
+            {dates.map((d) => (
+              <col key={d} className={d === todayIso ? "bg-primary/5" : undefined} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="bg-header-bg text-header-foreground">
               <th className="sticky left-0 z-10 bg-header-bg px-4 py-2 text-left font-semibold min-w-[200px]">
