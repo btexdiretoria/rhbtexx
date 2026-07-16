@@ -71,7 +71,8 @@ export default function Dashboard() {
   }, [employees]);
 
   const stats = useMemo(() => {
-    const total = employees.filter(f => f.status !== 'Desligado').length;
+    const trabalhandoStatuses = ['Ativo', 'Prestador de Serviço', 'Teste', 'Aviso Prévio'];
+    const total = employees.filter(f => trabalhandoStatuses.includes(f.status)).length;
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
@@ -86,8 +87,9 @@ export default function Dashboard() {
   const kpiEmployees = useMemo(() => {
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const trabalhandoStatuses = ['Ativo', 'Prestador de Serviço', 'Teste', 'Aviso Prévio'];
     return {
-      'Total de Funcionários': employees.filter(f => f.status !== 'Desligado'),
+      'Total de Funcionários (Trabalhando)': employees.filter(f => trabalhandoStatuses.includes(f.status)),
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
@@ -158,7 +160,7 @@ export default function Dashboard() {
     else setAcknowledgedAvisoIds(prev => prev.filter(i => i !== id));
   };
 
-  const totalKpi = { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' };
+  const totalKpi = { label: 'Total de Funcionários (Trabalhando)', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' };
   const kpis = [
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
