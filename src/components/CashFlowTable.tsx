@@ -194,7 +194,7 @@ const CashFlowTable = ({
                   onClick={() => setDaySummaryDate(d)}
                   className={cn(
                     "px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px] cursor-pointer hover:bg-primary/20 transition-colors",
-                    d === todayIso && "bg-primary/30 text-foreground ring-1 ring-primary"
+                    d === todayIso && "bg-primary/30 text-accent ring-1 ring-primary"
                   )}
                   title="Ver resumo do dia"
                 >
