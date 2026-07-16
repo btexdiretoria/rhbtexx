@@ -87,8 +87,9 @@ export default function Dashboard() {
   const kpiEmployees = useMemo(() => {
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const trabalhandoStatuses = ['Ativo', 'Prestador de Serviço', 'Teste', 'Aviso Prévio'];
     return {
-      'Total de Funcionários': employees.filter(f => f.status !== 'Desligado'),
+      'Total de Funcionários (Trabalhando)': employees.filter(f => trabalhandoStatuses.includes(f.status)),
       'Ativos': employees.filter(f => f.status === 'Ativo'),
       'Prestadores de Serviço': employees.filter(f => f.status === 'Prestador de Serviço'),
       'Afastados': employees.filter(f => f.status === 'Afastado'),
