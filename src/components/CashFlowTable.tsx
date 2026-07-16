@@ -75,6 +75,7 @@ const CashFlowTable = ({
   const [panelTransactions, setPanelTransactions] = useState<RawEntry[]>([]);
   const [panelLabel, setPanelLabel] = useState("");
   const [panelFilterFn, setPanelFilterFn] = useState<((e: RawEntry) => boolean) | null>(null);
+  const [daySummaryDate, setDaySummaryDate] = useState<string | null>(null);
 
   const computedRows = useMemo(() => {
     const dates = filteredDates;
