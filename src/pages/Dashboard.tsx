@@ -160,7 +160,7 @@ export default function Dashboard() {
     else setAcknowledgedAvisoIds(prev => prev.filter(i => i !== id));
   };
 
-  const totalKpi = { label: 'Total de Funcionários', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' };
+  const totalKpi = { label: 'Total de Funcionários (Trabalhando)', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' };
   const kpis = [
     { label: 'Ativos', value: stats.ativos, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600' },
     { label: 'Prestadores de Serviço', value: stats.prestadores, icon: Wrench, color: 'bg-blue-50 text-blue-600' },
