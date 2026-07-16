@@ -4,6 +4,12 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import TransactionPanel from "@/components/TransactionPanel";
 import { cn } from "@/lib/utils";
+import DaySummaryPanel from "@/components/DaySummaryPanel";
+
+const todayIso = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
 
 interface CashFlowTableProps {
   data: CashFlowData;
@@ -69,6 +75,7 @@ const CashFlowTable = ({
   const [panelTransactions, setPanelTransactions] = useState<RawEntry[]>([]);
   const [panelLabel, setPanelLabel] = useState("");
   const [panelFilterFn, setPanelFilterFn] = useState<((e: RawEntry) => boolean) | null>(null);
+  const [daySummaryDate, setDaySummaryDate] = useState<string | null>(null);
 
   const computedRows = useMemo(() => {
     const dates = filteredDates;
@@ -170,6 +177,12 @@ const CashFlowTable = ({
       )}
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="min-w-max w-full text-sm">
+          <colgroup>
+            <col />
+            {dates.map((d) => (
+              <col key={d} className={d === todayIso ? "bg-primary/5" : undefined} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="bg-header-bg text-header-foreground">
               <th className="sticky left-0 z-10 bg-header-bg px-4 py-2 text-left font-semibold min-w-[200px]">
@@ -178,9 +191,15 @@ const CashFlowTable = ({
               {dates.map((d) => (
                 <th
                   key={d}
-                  className="px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px]"
+                  onClick={() => setDaySummaryDate(d)}
+                  className={cn(
+                    "px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px] cursor-pointer hover:bg-primary/20 transition-colors",
+                    d === todayIso && "bg-primary/30 text-foreground ring-1 ring-primary"
+                  )}
+                  title="Ver resumo do dia"
                 >
                   {formatDateBR(d)}
+                  {d === todayIso && <span className="ml-1 text-[10px] uppercase">(hoje)</span>}
                 </th>
               ))}
             </tr>
@@ -332,7 +351,11 @@ const CashFlowTable = ({
               {dates.map((d) => (
                 <th
                   key={d}
-                  className="px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px]"
+                  onClick={() => setDaySummaryDate(d)}
+                  className={cn(
+                    "px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px] cursor-pointer hover:bg-primary/20 transition-colors",
+                    d === todayIso && "bg-primary/30 text-foreground ring-1 ring-primary"
+                  )}
                 >
                   {formatDateBR(d)}
                 </th>
@@ -350,6 +373,28 @@ const CashFlowTable = ({
         editable={editable}
         onDateChange={editable ? handlePanelDateChange : undefined}
         getOriginalDate={editable ? getOriginalDate : undefined}
+      />
+
+      <DaySummaryPanel
+        open={daySummaryDate !== null}
+        onClose={() => setDaySummaryDate(null)}
+        date={daySummaryDate || ""}
+        saldoInicial={daySummaryDate ? computedRows.saldoInicial[daySummaryDate] || 0 : 0}
+        saldoFinal={daySummaryDate ? computedRows.saldoFinal[daySummaryDate] || 0 : 0}
+        revenues={
+          daySummaryDate
+            ? data.revenueCategories
+                .map((cat) => ({ categoria: cat, valor: data.matrix[`rev::${cat}`]?.[daySummaryDate] || 0 }))
+                .filter((r) => r.valor !== 0)
+            : []
+        }
+        expenses={
+          daySummaryDate
+            ? data.expenseCategories
+                .map((cat) => ({ categoria: cat, valor: data.matrix[`exp::${cat}`]?.[daySummaryDate] || 0 }))
+                .filter((r) => r.valor !== 0)
+            : []
+        }
       />
     </>
   );
