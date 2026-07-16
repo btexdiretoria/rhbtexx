@@ -71,7 +71,8 @@ export default function Dashboard() {
   }, [employees]);
 
   const stats = useMemo(() => {
-    const total = employees.filter(f => f.status !== 'Desligado').length;
+    const trabalhandoStatuses = ['Ativo', 'Prestador de Serviço', 'Teste', 'Aviso Prévio'];
+    const total = employees.filter(f => trabalhandoStatuses.includes(f.status)).length;
     const ativos = employees.filter(f => f.status === 'Ativo').length;
     const afastados = employees.filter(f => f.status === 'Afastado').length;
     const prestadores = employees.filter(f => f.status === 'Prestador de Serviço').length;
