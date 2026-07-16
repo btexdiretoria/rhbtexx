@@ -185,9 +185,15 @@ const CashFlowTable = ({
               {dates.map((d) => (
                 <th
                   key={d}
-                  className="px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px]"
+                  onClick={() => setDaySummaryDate(d)}
+                  className={cn(
+                    "px-3 py-2 text-right font-semibold whitespace-nowrap min-w-[130px] cursor-pointer hover:bg-primary/20 transition-colors",
+                    d === todayIso && "bg-primary/30 text-foreground ring-1 ring-primary"
+                  )}
+                  title="Ver resumo do dia"
                 >
                   {formatDateBR(d)}
+                  {d === todayIso && <span className="ml-1 text-[10px] uppercase">(hoje)</span>}
                 </th>
               ))}
             </tr>
