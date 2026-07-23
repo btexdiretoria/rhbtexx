@@ -458,6 +458,9 @@ const Index = () => {
               onChange={setAlteracoes}
               valorPrevisto={valorPrevisto}
               onValorPrevistoChange={setValorPrevisto}
+              enableGroups
+              groups={alteracoesGroups}
+              onGroupsChange={setAlteracoesGroups}
               baseSaldoFinal={(() => {
 
                 const activeData = simulationMode && simulatedData ? simulatedData : data;
