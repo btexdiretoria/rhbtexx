@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, FolderPlus, GripVertical, Pencil } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,6 +28,12 @@ export interface AlteracaoItem {
   date: string; // YYYY-MM-DD
   description: string;
   value: number;
+  groupId?: string | null;
+}
+
+export interface AlteracaoGroup {
+  id: string;
+  name: string;
 }
 
 interface Props {
@@ -39,6 +45,9 @@ interface Props {
   title?: string;
   totalLabel?: string;
   hideMonthYearFilters?: boolean;
+  enableGroups?: boolean;
+  groups?: AlteracaoGroup[];
+  onGroupsChange?: (groups: AlteracaoGroup[]) => void;
 }
 
 
@@ -47,7 +56,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false }: Props) => {
+const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false, enableGroups = false, groups = [], onGroupsChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -57,6 +66,49 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
   const [listOpen, setListOpen] = useState(true);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverGroup, setDragOverGroup] = useState<string | null>(null);
+  const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
+  const [renamingName, setRenamingName] = useState("");
+
+  const addGroup = () => {
+    if (!onGroupsChange) return;
+    const name = window.prompt("Nome da separação:");
+    if (!name || !name.trim()) return;
+    const newGroup: AlteracaoGroup = {
+      id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: name.trim(),
+    };
+    onGroupsChange([...groups, newGroup]);
+  };
+
+  const deleteGroup = (id: string) => {
+    if (!onGroupsChange) return;
+    onGroupsChange(groups.filter((g) => g.id !== id));
+    // Move items back to ungrouped
+    onChange(items.map((it) => (it.groupId === id ? { ...it, groupId: null } : it)));
+  };
+
+  const renameGroup = (id: string, name: string) => {
+    if (!onGroupsChange) return;
+    onGroupsChange(groups.map((g) => (g.id === id ? { ...g, name } : g)));
+  };
+
+  const handleDragStart = (id: string) => (e: React.DragEvent) => {
+    setDraggingId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  };
+
+  const handleDropOnGroup = (groupId: string | null) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const id = draggingId || e.dataTransfer.getData("text/plain");
+    if (!id) return;
+    onChange(items.map((it) => (it.id === id ? { ...it, groupId } : it)));
+    setDraggingId(null);
+    setDragOverGroup(null);
+  };
+
 
   // Sync local input when prop changes (e.g., after restore from DB)
   useEffect(() => {
@@ -240,57 +292,210 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
               {listOpen ? "Ocultar lista" : "Mostrar lista"}
               <span className="text-xs text-muted-foreground ml-1">({sorted.length})</span>
             </Button>
+            {enableGroups && onGroupsChange && (
+              <Button variant="outline" size="sm" onClick={addGroup} className="gap-1 ml-auto">
+                <FolderPlus className="h-4 w-4" />
+                Nova separação
+              </Button>
+            )}
           </div>
 
-          {listOpen && (sorted.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">
-              Nenhum acontecimento cadastrado. Clique em "Inserir Acontecimento" para começar.
-            </p>
-          ) : (
-            <div className="overflow-x-auto border border-border rounded-lg">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="bg-header-bg text-header-foreground">
-                    <th className="px-3 py-2 text-left font-semibold">Data</th>
-                    <th className="px-3 py-2 text-left font-semibold">Descrição</th>
-                    <th className="px-3 py-2 text-right font-semibold">Valor</th>
-                    <th className="px-3 py-2 text-right font-semibold print:hidden">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map((it) => (
-                    <tr key={it.id} className="border-t border-border hover:bg-row-alt transition-colors">
-                      <td className="px-3 py-1.5 text-foreground whitespace-nowrap">{formatDateBR(it.date)}</td>
-                      <td className="px-3 py-1.5 text-foreground">{it.description}</td>
-                      <td
-                        className={cn(
-                          "px-3 py-1.5 text-right font-medium whitespace-nowrap",
-                          it.value > 0
-                            ? "text-positive-foreground"
-                            : it.value < 0
-                              ? "text-negative-foreground"
-                              : "text-muted-foreground",
-                        )}
+          {listOpen && (
+            enableGroups ? (
+              (() => {
+                const buckets: { id: string | null; name: string }[] = [
+                  ...groups.map((g) => ({ id: g.id, name: g.name })),
+                  { id: null, name: "Sem separação" },
+                ];
+                const renderRow = (it: AlteracaoItem) => (
+                  <tr
+                    key={it.id}
+                    draggable
+                    onDragStart={handleDragStart(it.id)}
+                    onDragEnd={() => setDraggingId(null)}
+                    className={cn(
+                      "border-t border-border hover:bg-row-alt transition-colors cursor-move",
+                      draggingId === it.id && "opacity-50",
+                    )}
+                  >
+                    <td className="px-2 py-1.5 w-6 text-muted-foreground">
+                      <GripVertical className="h-3.5 w-3.5" />
+                    </td>
+                    <td className="px-3 py-1.5 text-foreground whitespace-nowrap">{formatDateBR(it.date)}</td>
+                    <td className="px-3 py-1.5 text-foreground">{it.description}</td>
+                    <td
+                      className={cn(
+                        "px-3 py-1.5 text-right font-medium whitespace-nowrap",
+                        it.value > 0
+                          ? "text-positive-foreground"
+                          : it.value < 0
+                            ? "text-negative-foreground"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      {formatCurrency(it.value)}
+                    </td>
+                    <td className="px-3 py-1.5 text-right print:hidden">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleDelete(it.id)}
+                        aria-label="Excluir"
                       >
-                        {formatCurrency(it.value)}
-                      </td>
-                      <td className="px-3 py-1.5 text-right print:hidden">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => handleDelete(it.id)}
-                          aria-label="Excluir"
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+                return (
+                  <div className="space-y-3">
+                    {buckets.map((b) => {
+                      const rows = sorted.filter((it) => (it.groupId || null) === b.id);
+                      const subtotal = rows.reduce((a, r) => a + (r.value || 0), 0);
+                      const isEditing = renamingGroupId === b.id;
+                      return (
+                        <div
+                          key={b.id ?? "__none__"}
+                          onDragOver={(e) => { e.preventDefault(); setDragOverGroup(b.id ?? "__none__"); }}
+                          onDragLeave={() => setDragOverGroup(null)}
+                          onDrop={handleDropOnGroup(b.id)}
+                          className={cn(
+                            "border border-border rounded-lg overflow-hidden transition-colors",
+                            dragOverGroup === (b.id ?? "__none__") && "ring-2 ring-primary bg-primary/5",
+                          )}
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </td>
+                          <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border-b border-border">
+                            {b.id && isEditing ? (
+                              <Input
+                                autoFocus
+                                value={renamingName}
+                                onChange={(e) => setRenamingName(e.target.value)}
+                                onBlur={() => {
+                                  if (renamingName.trim()) renameGroup(b.id!, renamingName.trim());
+                                  setRenamingGroupId(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") { (e.target as HTMLInputElement).blur(); }
+                                  if (e.key === "Escape") setRenamingGroupId(null);
+                                }}
+                                className="h-7 max-w-xs"
+                              />
+                            ) : (
+                              <span className="font-semibold text-sm text-foreground">{b.name}</span>
+                            )}
+                            <span className="text-xs text-muted-foreground">({rows.length})</span>
+                            <span
+                              className={cn(
+                                "ml-auto text-sm font-medium tabular-nums",
+                                subtotal > 0 ? "text-positive-foreground" : subtotal < 0 ? "text-negative-foreground" : "text-muted-foreground",
+                              )}
+                            >
+                              {formatCurrency(subtotal)}
+                            </span>
+                            {b.id && onGroupsChange && (
+                              <div className="flex items-center gap-1 print:hidden">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => { setRenamingGroupId(b.id!); setRenamingName(b.name); }}
+                                  aria-label="Renomear separação"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => {
+                                    if (window.confirm(`Excluir a separação "${b.name}"? Os itens voltarão para "Sem separação".`)) {
+                                      deleteGroup(b.id!);
+                                    }
+                                  }}
+                                  aria-label="Excluir separação"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          {rows.length === 0 ? (
+                            <p className="text-xs text-muted-foreground py-4 text-center">
+                              Arraste acontecimentos para esta separação.
+                            </p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full text-sm">
+                                <thead>
+                                  <tr className="bg-header-bg text-header-foreground">
+                                    <th className="w-6" />
+                                    <th className="px-3 py-2 text-left font-semibold">Data</th>
+                                    <th className="px-3 py-2 text-left font-semibold">Descrição</th>
+                                    <th className="px-3 py-2 text-right font-semibold">Valor</th>
+                                    <th className="px-3 py-2 text-right font-semibold print:hidden">Ações</th>
+                                  </tr>
+                                </thead>
+                                <tbody>{rows.map(renderRow)}</tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()
+            ) : (sorted.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                Nenhum acontecimento cadastrado. Clique em "Inserir Acontecimento" para começar.
+              </p>
+            ) : (
+              <div className="overflow-x-auto border border-border rounded-lg">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="bg-header-bg text-header-foreground">
+                      <th className="px-3 py-2 text-left font-semibold">Data</th>
+                      <th className="px-3 py-2 text-left font-semibold">Descrição</th>
+                      <th className="px-3 py-2 text-right font-semibold">Valor</th>
+                      <th className="px-3 py-2 text-right font-semibold print:hidden">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
+                  </thead>
+                  <tbody>
+                    {sorted.map((it) => (
+                      <tr key={it.id} className="border-t border-border hover:bg-row-alt transition-colors">
+                        <td className="px-3 py-1.5 text-foreground whitespace-nowrap">{formatDateBR(it.date)}</td>
+                        <td className="px-3 py-1.5 text-foreground">{it.description}</td>
+                        <td
+                          className={cn(
+                            "px-3 py-1.5 text-right font-medium whitespace-nowrap",
+                            it.value > 0
+                              ? "text-positive-foreground"
+                              : it.value < 0
+                                ? "text-negative-foreground"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {formatCurrency(it.value)}
+                        </td>
+                        <td className="px-3 py-1.5 text-right print:hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleDelete(it.id)}
+                            aria-label="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
 
 
           <div className="flex items-center justify-between border-t border-border pt-3 mt-2">

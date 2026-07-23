@@ -52,6 +52,7 @@ const Index = () => {
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
   const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
   const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
+  const [alteracoesGroups, setAlteracoesGroups] = useState<{ id: string; name: string }[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
@@ -85,6 +86,7 @@ const Index = () => {
           setValorPrevisto(Number((row as any).valor_previsto) || 0);
           setAlteracoesAnual(((row as any).alteracoes_anual as unknown as AlteracaoItem[]) || []);
           setValorPrevistoAnual(Number((row as any).valor_previsto_anual) || 0);
+          setAlteracoesGroups(((row as any).alteracoes_groups as any) || []);
           if (row.updated_at) setLastSaved(new Date(row.updated_at).toLocaleString("pt-BR"));
 
         }
@@ -116,6 +118,7 @@ const Index = () => {
           valor_previsto: valorPrevisto,
           alteracoes_anual: alteracoesAnual as unknown as never,
           valor_previsto_anual: valorPrevistoAnual,
+          alteracoes_groups: alteracoesGroups as unknown as never,
         };
         const { error } = await supabase
           .from("cashflow_state")
@@ -129,7 +132,7 @@ const Index = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, hydrated]);
+  }, [entries, fileName, filePath, startDate, endDate, savedEdits, dateEdits, changeHistory, alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, alteracoesGroups, hydrated]);
 
 
   const handleFile = async (file: File) => {
@@ -455,6 +458,9 @@ const Index = () => {
               onChange={setAlteracoes}
               valorPrevisto={valorPrevisto}
               onValorPrevistoChange={setValorPrevisto}
+              enableGroups
+              groups={alteracoesGroups}
+              onGroupsChange={setAlteracoesGroups}
               baseSaldoFinal={(() => {
 
                 const activeData = simulationMode && simulatedData ? simulatedData : data;
