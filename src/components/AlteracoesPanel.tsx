@@ -66,6 +66,49 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
   const [listOpen, setListOpen] = useState(true);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverGroup, setDragOverGroup] = useState<string | null>(null);
+  const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
+  const [renamingName, setRenamingName] = useState("");
+
+  const addGroup = () => {
+    if (!onGroupsChange) return;
+    const name = window.prompt("Nome da separação:");
+    if (!name || !name.trim()) return;
+    const newGroup: AlteracaoGroup = {
+      id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: name.trim(),
+    };
+    onGroupsChange([...groups, newGroup]);
+  };
+
+  const deleteGroup = (id: string) => {
+    if (!onGroupsChange) return;
+    onGroupsChange(groups.filter((g) => g.id !== id));
+    // Move items back to ungrouped
+    onChange(items.map((it) => (it.groupId === id ? { ...it, groupId: null } : it)));
+  };
+
+  const renameGroup = (id: string, name: string) => {
+    if (!onGroupsChange) return;
+    onGroupsChange(groups.map((g) => (g.id === id ? { ...g, name } : g)));
+  };
+
+  const handleDragStart = (id: string) => (e: React.DragEvent) => {
+    setDraggingId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  };
+
+  const handleDropOnGroup = (groupId: string | null) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const id = draggingId || e.dataTransfer.getData("text/plain");
+    if (!id) return;
+    onChange(items.map((it) => (it.id === id ? { ...it, groupId } : it)));
+    setDraggingId(null);
+    setDragOverGroup(null);
+  };
+
 
   // Sync local input when prop changes (e.g., after restore from DB)
   useEffect(() => {
