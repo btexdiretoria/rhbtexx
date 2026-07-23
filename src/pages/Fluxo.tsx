@@ -86,6 +86,7 @@ const Index = () => {
           setValorPrevisto(Number((row as any).valor_previsto) || 0);
           setAlteracoesAnual(((row as any).alteracoes_anual as unknown as AlteracaoItem[]) || []);
           setValorPrevistoAnual(Number((row as any).valor_previsto_anual) || 0);
+          setAlteracoesGroups(((row as any).alteracoes_groups as any) || []);
           if (row.updated_at) setLastSaved(new Date(row.updated_at).toLocaleString("pt-BR"));
 
         }
