@@ -52,6 +52,7 @@ const Index = () => {
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
   const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
   const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
+  const [alteracoesGroups, setAlteracoesGroups] = useState<{ id: string; name: string }[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
