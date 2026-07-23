@@ -176,6 +176,7 @@ export type Database = {
         Row: {
           alteracoes: Json
           alteracoes_anual: Json
+          alteracoes_groups: Json
           change_history: Json
           created_at: string
           date_edits: Json
@@ -194,6 +195,7 @@ export type Database = {
         Insert: {
           alteracoes?: Json
           alteracoes_anual?: Json
+          alteracoes_groups?: Json
           change_history?: Json
           created_at?: string
           date_edits?: Json
@@ -212,6 +214,7 @@ export type Database = {
         Update: {
           alteracoes?: Json
           alteracoes_anual?: Json
+          alteracoes_groups?: Json
           change_history?: Json
           created_at?: string
           date_edits?: Json
