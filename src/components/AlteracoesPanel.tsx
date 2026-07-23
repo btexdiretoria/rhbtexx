@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, FolderPlus, GripVertical, Pencil } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,6 +28,12 @@ export interface AlteracaoItem {
   date: string; // YYYY-MM-DD
   description: string;
   value: number;
+  groupId?: string | null;
+}
+
+export interface AlteracaoGroup {
+  id: string;
+  name: string;
 }
 
 interface Props {
@@ -39,6 +45,9 @@ interface Props {
   title?: string;
   totalLabel?: string;
   hideMonthYearFilters?: boolean;
+  enableGroups?: boolean;
+  groups?: AlteracaoGroup[];
+  onGroupsChange?: (groups: AlteracaoGroup[]) => void;
 }
 
 
