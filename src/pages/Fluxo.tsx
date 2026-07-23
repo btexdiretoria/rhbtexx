@@ -118,6 +118,7 @@ const Index = () => {
           valor_previsto: valorPrevisto,
           alteracoes_anual: alteracoesAnual as unknown as never,
           valor_previsto_anual: valorPrevistoAnual,
+          alteracoes_groups: alteracoesGroups as unknown as never,
         };
         const { error } = await supabase
           .from("cashflow_state")
