@@ -402,9 +402,10 @@ export default function Dashboard() {
             <DialogDescription>Selecione o líder do setor {managerModal?.dept}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Select value={selectedManagerId} onValueChange={setSelectedManagerId}>
+            <Select value={selectedManagerId || 'none'} onValueChange={(v) => setSelectedManagerId(v === 'none' ? '' : v)}>
               <SelectTrigger><SelectValue placeholder="Selecione um funcionário" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">— Sem líder —</SelectItem>
                 {managerModal?.members.map(m => (
                   <SelectItem key={m.id} value={m.id}>{m.nome} — {m.cargo}</SelectItem>
                 ))}
@@ -412,7 +413,7 @@ export default function Dashboard() {
             </Select>
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setManagerModal(null)}>Cancelar</Button>
-              <Button size="sm" onClick={saveManager} disabled={!selectedManagerId || upsertManager.isPending}>Salvar</Button>
+              <Button size="sm" onClick={saveManager} disabled={upsertManager.isPending || deleteManager.isPending}>Salvar</Button>
             </div>
           </div>
         </DialogContent>
