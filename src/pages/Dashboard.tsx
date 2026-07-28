@@ -196,7 +196,15 @@ export default function Dashboard() {
   };
 
   const saveManager = () => {
-    if (!managerModal || !selectedManagerId) return;
+    if (!managerModal) return;
+    if (!selectedManagerId) {
+      // Salvar em branco => remover líder do setor
+      deleteManager.mutate(managerModal.dept, {
+        onSuccess: () => { toast.success('Líder do setor removido!'); setManagerModal(null); },
+        onError: () => toast.error('Erro ao remover líder'),
+      });
+      return;
+    }
     upsertManager.mutate({ department_name: managerModal.dept, employee_id: selectedManagerId }, {
       onSuccess: () => { toast.success('Gestor do setor atualizado!'); setManagerModal(null); },
       onError: () => toast.error('Erro ao atualizar gestor'),
