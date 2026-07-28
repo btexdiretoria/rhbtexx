@@ -536,6 +536,19 @@ export function useUpsertDepartmentManager() {
   });
 }
 
+export function useDeleteDepartmentManager() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (department_name: string) => {
+      const { error } = await supabase
+        .from('department_managers' as any)
+        .delete()
+        .eq('department_name', department_name);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['department_managers'] }),
+  });
+
 // ─── Food Voucher Settings (benefit day) ───
 export function useFoodVoucherSettings(year: number, month: number) {
   return useQuery({
