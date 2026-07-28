@@ -41,6 +41,7 @@ export default function Dashboard() {
   const { data: employees = [], isLoading } = useEmployees();
   const { data: deptManagers = [] } = useDepartmentManagers();
   const upsertManager = useUpsertDepartmentManager();
+  const deleteManager = useDeleteDepartmentManager();
   const { currentUser } = useApp();
   const isAdmin = currentUser.nivelAcesso === 'Administrador';
 
