@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useEmployees, type Employee } from '@/hooks/useEmployees';
-import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFinancial';
+import { useDepartmentManagers, useUpsertDepartmentManager, useDeleteDepartmentManager } from '@/hooks/useFinancial';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
