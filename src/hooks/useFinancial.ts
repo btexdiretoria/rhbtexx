@@ -548,6 +548,9 @@ export function useDeleteDepartmentManager() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['department_managers'] }),
   });
+}
+
+
 
 // ─── Food Voucher Settings (benefit day) ───
 export function useFoodVoucherSettings(year: number, month: number) {
