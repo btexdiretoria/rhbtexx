@@ -61,6 +61,9 @@ export default function Salaries() {
       const adm = f.data_admissao ? new Date(f.data_admissao) : null;
       if (!adm || adm > periodEnd) return acc;
       const des = (f as any).data_desligamento ? new Date((f as any).data_desligamento) : null;
+      // Funcionário com status 'Desligado' mas sem data de desligamento preenchida:
+      // não temos como saber o período em que esteve ativo, então excluímos completamente.
+      if (f.status === 'Desligado' && !des) return acc;
       if (des && des < periodStart) return acc;
       let effectiveStatus: StatusOption;
       if (des && des >= periodStart && des <= periodEnd) {
