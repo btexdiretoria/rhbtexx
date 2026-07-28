@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useEmployees, type Employee } from '@/hooks/useEmployees';
-import { useDepartmentManagers, useUpsertDepartmentManager } from '@/hooks/useFinancial';
+import { useDepartmentManagers, useUpsertDepartmentManager, useDeleteDepartmentManager } from '@/hooks/useFinancial';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 
@@ -41,6 +41,7 @@ export default function Dashboard() {
   const { data: employees = [], isLoading } = useEmployees();
   const { data: deptManagers = [] } = useDepartmentManagers();
   const upsertManager = useUpsertDepartmentManager();
+  const deleteManager = useDeleteDepartmentManager();
   const { currentUser } = useApp();
   const isAdmin = currentUser.nivelAcesso === 'Administrador';
 
@@ -195,7 +196,15 @@ export default function Dashboard() {
   };
 
   const saveManager = () => {
-    if (!managerModal || !selectedManagerId) return;
+    if (!managerModal) return;
+    if (!selectedManagerId) {
+      // Salvar em branco => remover líder do setor
+      deleteManager.mutate(managerModal.dept, {
+        onSuccess: () => { toast.success('Líder do setor removido!'); setManagerModal(null); },
+        onError: () => toast.error('Erro ao remover líder'),
+      });
+      return;
+    }
     upsertManager.mutate({ department_name: managerModal.dept, employee_id: selectedManagerId }, {
       onSuccess: () => { toast.success('Gestor do setor atualizado!'); setManagerModal(null); },
       onError: () => toast.error('Erro ao atualizar gestor'),
@@ -393,9 +402,10 @@ export default function Dashboard() {
             <DialogDescription>Selecione o líder do setor {managerModal?.dept}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Select value={selectedManagerId} onValueChange={setSelectedManagerId}>
+            <Select value={selectedManagerId || 'none'} onValueChange={(v) => setSelectedManagerId(v === 'none' ? '' : v)}>
               <SelectTrigger><SelectValue placeholder="Selecione um funcionário" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">— Sem líder —</SelectItem>
                 {managerModal?.members.map(m => (
                   <SelectItem key={m.id} value={m.id}>{m.nome} — {m.cargo}</SelectItem>
                 ))}
@@ -403,7 +413,7 @@ export default function Dashboard() {
             </Select>
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setManagerModal(null)}>Cancelar</Button>
-              <Button size="sm" onClick={saveManager} disabled={!selectedManagerId || upsertManager.isPending}>Salvar</Button>
+              <Button size="sm" onClick={saveManager} disabled={upsertManager.isPending || deleteManager.isPending}>Salvar</Button>
             </div>
           </div>
         </DialogContent>
