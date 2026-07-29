@@ -259,6 +259,66 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_summary: {
+        Row: {
+          alteracoes: Json | null
+          anotacoes: string | null
+          assinaturas: Json | null
+          avisos: Json | null
+          card_order: Json | null
+          created_at: string
+          despesas: Json | null
+          despesas_dia: string | null
+          dias_uteis_restante: string | null
+          faturamento_necessario: string | null
+          id: string
+          receitas_dia: string | null
+          resultado_hoje: string | null
+          resultado_inicio: string | null
+          resultado_ontem: string | null
+          summary_date: string
+          updated_at: string
+        }
+        Insert: {
+          alteracoes?: Json | null
+          anotacoes?: string | null
+          assinaturas?: Json | null
+          avisos?: Json | null
+          card_order?: Json | null
+          created_at?: string
+          despesas?: Json | null
+          despesas_dia?: string | null
+          dias_uteis_restante?: string | null
+          faturamento_necessario?: string | null
+          id?: string
+          receitas_dia?: string | null
+          resultado_hoje?: string | null
+          resultado_inicio?: string | null
+          resultado_ontem?: string | null
+          summary_date: string
+          updated_at?: string
+        }
+        Update: {
+          alteracoes?: Json | null
+          anotacoes?: string | null
+          assinaturas?: Json | null
+          avisos?: Json | null
+          card_order?: Json | null
+          created_at?: string
+          despesas?: Json | null
+          despesas_dia?: string | null
+          dias_uteis_restante?: string | null
+          faturamento_necessario?: string | null
+          id?: string
+          receitas_dia?: string | null
+          resultado_hoje?: string | null
+          resultado_inicio?: string | null
+          resultado_ontem?: string | null
+          summary_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       department_managers: {
         Row: {
           created_at: string
