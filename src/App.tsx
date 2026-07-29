@@ -67,6 +67,7 @@ const App = () => (
               <Route path="/dashboard-financas" element={<ProtectedPage><FinanceDashboard /></ProtectedPage>} />
               <Route path="/calendario-financas" element={<ProtectedPage><FinanceCalendar /></ProtectedPage>} />
               <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
+              <Route path="/resumo-diario" element={<ProtectedPage><ResumoDiario /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppProvider>
