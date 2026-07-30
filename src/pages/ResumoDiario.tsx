@@ -1,54 +1,75 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, Plus, Trash2, Printer, GripVertical, Save } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Calendar, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
+  ArrowLeftRight, AlertTriangle, StickyNote, PenLine, Building2, User, Layers,
+  CalendarDays, Banknote,
+} from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useCompanySettings } from '@/hooks/useFinancial';
 import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
+import { exportResumoDiarioPDF } from '@/utils/resumoDiarioPdf';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-function InlineText({ value, onChange, className = '', placeholder }: { value: string; onChange: (v: string) => void; className?: string; placeholder?: string }) {
+function InlineText({
+  value, onChange, className = '', placeholder, align = 'left',
+}: { value: string; onChange: (v: string) => void; className?: string; placeholder?: string; align?: 'left' | 'right' }) {
+  const filled = !!value && value.trim() !== '';
   return (
     <input
       type="text"
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className={`bg-transparent outline-none focus:ring-2 focus:ring-primary/40 rounded px-1 ${className}`}
+      style={{ textAlign: align }}
+      className={`rounded-md border px-2 py-1 text-sm outline-none transition-colors
+        focus:border-primary focus:ring-2 focus:ring-primary/20
+        ${filled
+          ? 'border-border bg-card font-medium text-foreground'
+          : 'border-dashed border-border/70 bg-muted/40 text-muted-foreground'} ${className}`}
     />
   );
 }
 
-function CardShell({ id, title, children, dragHandleProps }: { id: string; title: string; children: React.ReactNode; dragHandleProps?: any }) {
-  return (
-    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
-        <button {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-muted-foreground no-print" aria-label="Mover card">
-          <GripVertical className="w-4 h-4" />
-        </button>
-        <h3 className="font-heading font-semibold text-foreground text-sm uppercase tracking-wide">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
+const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
+  despesas: { title: 'Controle de Despesas', icon: Wallet },
+  resultado: { title: 'Resultado Esperado', icon: TrendingUp },
+  receitas_despesas: { title: 'Receitas e Despesas do Dia', icon: ArrowLeftRight },
+  avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
+  anotacoes: { title: 'Observações', icon: StickyNote },
+};
 
-function SortableCard({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function SortableCard({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 };
+  const meta = CARD_META[id];
+  const Icon = meta?.icon || Layers;
   return (
-    <div ref={setNodeRef} style={style}>
-      <CardShell id={id} title={title} dragHandleProps={{ ...attributes, ...listeners }}>
-        {children}
-      </CardShell>
+    <div ref={setNodeRef} style={style} className="h-full">
+      <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_24px_-12px_rgba(16,24,40,0.15)]">
+        <header className="flex items-center gap-3 border-b border-border px-5 py-3.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="h-4 w-4" />
+          </span>
+          <h3 className="font-heading text-[0.78rem] font-bold uppercase tracking-[0.08em] text-foreground">
+            {meta?.title}
+          </h3>
+          <span className="flex-1" />
+          <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground/60 transition-colors hover:text-foreground active:cursor-grabbing" aria-label="Mover card">
+            <GripVertical className="h-4 w-4" />
+          </button>
+        </header>
+        <div className="flex-1 resize-y overflow-auto p-5" style={{ minHeight: 120 }}>
+          {children}
+        </div>
+      </section>
     </div>
   );
 }
@@ -57,10 +78,12 @@ export default function ResumoDiario() {
   const { toast } = useToast();
   const today = format(new Date(), 'yyyy-MM-dd');
   const [date, setDate] = useState(today);
-  const { data: loaded, isLoading } = useDailySummary(date);
+  const { data: loaded } = useDailySummary(date);
+  const { data: company } = useCompanySettings();
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
-  const printRef = useRef<HTMLDivElement>(null);
+  const [responsavel, setResponsavel] = useState('');
+  const [departamento, setDepartamento] = useState('');
 
   useEffect(() => {
     if (loaded) setState(loaded);
@@ -70,6 +93,8 @@ export default function ResumoDiario() {
     try { return format(parse(date, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR }); }
     catch { return date; }
   }, [date]);
+
+  const empresa = (company as any)?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
   const update = (patch: Partial<DailySummary>) => setState((s) => ({ ...s, ...patch }));
 
@@ -83,29 +108,10 @@ export default function ResumoDiario() {
   };
 
   const handleExportPDF = async () => {
-    if (!printRef.current) return;
-    document.body.classList.add('is-exporting-pdf');
     try {
-      const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const imgW = pageW - 20;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      let heightLeft = imgH;
-      let position = 10;
-      pdf.addImage(imgData, 'PNG', 10, position, imgW, imgH);
-      heightLeft -= pageH - 20;
-      while (heightLeft > 0) {
-        position = heightLeft - imgH + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgW, imgH);
-        heightLeft -= pageH - 20;
-      }
-      pdf.save(`resumo-diario-${date}.pdf`);
-    } finally {
-      document.body.classList.remove('is-exporting-pdf');
+      await exportResumoDiarioPDF(state, { empresa, responsavel, departamento, relatorio: 'Resumo Diário' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -115,204 +121,252 @@ export default function ResumoDiario() {
   const onDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
     if (!over || active.id === over.id) return;
-    const oldIndex = order.indexOf(String(active.id));
-    const newIndex = order.indexOf(String(over.id));
-    update({ card_order: arrayMove(order, oldIndex, newIndex) });
+    update({ card_order: arrayMove(order, order.indexOf(String(active.id)), order.indexOf(String(over.id))) });
   };
 
-  const cardContent: Record<string, { title: string; node: React.ReactNode }> = {
-    despesas: {
-      title: 'Controle de Despesas',
-      node: (
-        <div className="space-y-2">
-          {state.despesas.map((item, i) => (
-            <div key={item.id} className="flex items-center gap-2 flex-wrap">
-              <InlineText value={item.descricao} onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], descricao: v }; update({ despesas: arr }); }} placeholder="descrição" className="min-w-[140px] flex-1 border-b border-border" />
-              <span className="text-sm text-muted-foreground">Gasto:</span>
-              <InlineText value={item.gasto} onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], gasto: v }; update({ despesas: arr }); }} className="w-24 border-b border-border" />
-              <span className="text-sm text-muted-foreground">Orçado:</span>
-              <InlineText value={item.orcado} onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], orcado: v }; update({ despesas: arr }); }} className="w-24 border-b border-border" />
-              <button className="text-destructive no-print" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-          <Button variant="outline" size="sm" className="no-print" onClick={() => update({ despesas: [...state.despesas, { id: uid(), descricao: '', gasto: '', orcado: '' }] })}>
-            <Plus className="w-4 h-4 mr-1" /> Adicionar item
-          </Button>
-        </div>
-      ),
-    },
-    resultado: {
-      title: 'Resultado Esperado',
-      node: (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-foreground">Resultado Esperado Início do Mês:</span>
-            <InlineText value={state.resultado_inicio} onChange={(v) => update({ resultado_inicio: v })} className="flex-1 min-w-[100px] border-b border-border" />
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-foreground">Resultado esperado ontem:</span>
-            <InlineText value={state.resultado_ontem} onChange={(v) => update({ resultado_ontem: v })} className="flex-1 min-w-[100px] border-b border-border" />
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-foreground">Resultado esperado hoje:</span>
-            <InlineText value={state.resultado_hoje} onChange={(v) => update({ resultado_hoje: v })} className="flex-1 min-w-[100px] border-b border-border" />
-          </div>
-          <div className="pt-2 mt-2 border-t border-border">
-            <p className="text-sm font-semibold text-foreground mb-1">Alterações:</p>
-            <div className="space-y-1">
-              {state.alteracoes.map((item, i) => (
-                <div key={item.id} className="flex items-center gap-2">
-                  <span className="text-muted-foreground">•</span>
-                  <InlineText value={item.texto} onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], texto: v }; update({ alteracoes: arr }); }} className="flex-1 border-b border-border" />
-                  <button className="text-destructive no-print" onClick={() => update({ alteracoes: state.alteracoes.filter((_, j) => j !== i) })}>
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+  const kpis = [
+    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary' },
+    { label: 'Faturamento Necessário', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary' },
+    { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success' },
+    { label: 'Despesas do Dia', icon: Wallet, value: state.despesas_dia, onChange: (v: string) => update({ despesas_dia: v }), accent: 'text-destructive' },
+  ];
+
+  const cardContent: Record<string, React.ReactNode> = {
+    despesas: (
+      <div className="space-y-3">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-secondary text-secondary-foreground">
+                <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Descrição</th>
+                <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Gasto</th>
+                <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Orçado</th>
+                <th className="w-8" />
+              </tr>
+            </thead>
+            <tbody>
+              {state.despesas.map((item, i) => (
+                <tr key={item.id} className="border-t border-border even:bg-muted/40">
+                  <td className="p-1.5">
+                    <InlineText value={item.descricao} placeholder="Descrição" className="w-full"
+                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], descricao: v }; update({ despesas: arr }); }} />
+                  </td>
+                  <td className="p-1.5">
+                    <InlineText value={item.gasto} align="right" placeholder="R$ 0,00" className="w-full"
+                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], gasto: v }; update({ despesas: arr }); }} />
+                  </td>
+                  <td className="p-1.5">
+                    <InlineText value={item.orcado} align="right" placeholder="R$ 0,00" className="w-full"
+                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], orcado: v }; update({ despesas: arr }); }} />
+                  </td>
+                  <td className="p-1.5 text-center">
+                    <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                </tr>
               ))}
-              <Button variant="outline" size="sm" className="no-print" onClick={() => update({ alteracoes: [...state.alteracoes, { id: uid(), texto: '' }] })}>
-                <Plus className="w-4 h-4 mr-1" /> Adicionar
-              </Button>
-            </div>
-          </div>
+              {!state.despesas.length && (
+                <tr><td colSpan={4} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      ),
-    },
-    receitas_despesas: {
-      title: 'Receitas e Despesas do Dia',
-      node: (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-lg border border-border p-3 bg-positive-row-bg/30">
-            <p className="text-xs text-muted-foreground mb-1">Receitas do Dia</p>
-            <InlineText value={state.receitas_dia} onChange={(v) => update({ receitas_dia: v })} className="text-lg font-semibold w-full" placeholder="R$ 0,00" />
-          </div>
-          <div className="rounded-lg border border-border p-3 bg-negative-row-bg/30">
-            <p className="text-xs text-muted-foreground mb-1">Despesas do Dia</p>
-            <InlineText value={state.despesas_dia} onChange={(v) => update({ despesas_dia: v })} className="text-lg font-semibold w-full" placeholder="R$ 0,00" />
-          </div>
-        </div>
-      ),
-    },
-    avisos: {
-      title: 'Avisos e Pendências',
-      node: (
-        <div className="space-y-1">
-          {state.avisos.map((item, i) => (
-            <div key={item.id} className="flex items-center gap-2">
-              <span className="text-muted-foreground">•</span>
-              <InlineText value={item.texto} onChange={(v) => { const arr = [...state.avisos]; arr[i] = { ...arr[i], texto: v }; update({ avisos: arr }); }} className="flex-1 border-b border-border" />
-              <button className="text-destructive no-print" onClick={() => update({ avisos: state.avisos.filter((_, j) => j !== i) })}>
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-          <Button variant="outline" size="sm" className="no-print" onClick={() => update({ avisos: [...state.avisos, { id: uid(), texto: '' }] })}>
-            <Plus className="w-4 h-4 mr-1" /> Adicionar
-          </Button>
-        </div>
-      ),
-    },
-    anotacoes: {
-      title: 'Anotações',
-      node: (
-        <Textarea
-          value={state.anotacoes}
-          onChange={(e) => update({ anotacoes: e.target.value })}
-          rows={6}
-          className="resize-y bg-transparent"
-          style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, hsl(var(--border)) 27px, hsl(var(--border)) 28px)', lineHeight: '28px' }}
-          placeholder="Escreva suas anotações..."
-        />
-      ),
-    },
-  };
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between gap-3 no-print">
-        <h1 className="font-heading text-2xl font-bold text-foreground">Resumo Diário</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleSave} disabled={saveMut.isPending}>
-            <Save className="w-4 h-4 mr-1" /> Salvar
-          </Button>
-          <Button size="sm" onClick={handleExportPDF}>
-            <Printer className="w-4 h-4 mr-1" /> Imprimir / Exportar PDF
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => update({ despesas: [...state.despesas, { id: uid(), descricao: '', gasto: '', orcado: '' }] })}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar item
+        </Button>
       </div>
-
-      <div ref={printRef} className="space-y-4 bg-background p-1">
-        {/* Header */}
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 rounded-full border-2 border-primary/40 bg-primary/5 px-4 py-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="bg-transparent outline-none font-semibold text-foreground no-print"
-              />
-              <span className="hidden font-semibold text-foreground print-only">{dateLabel}</span>
+    ),
+    resultado: (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          {[
+            { l: 'Resultado esperado no início do mês', v: state.resultado_inicio, k: 'resultado_inicio' as const },
+            { l: 'Resultado esperado ontem', v: state.resultado_ontem, k: 'resultado_ontem' as const },
+            { l: 'Resultado esperado hoje', v: state.resultado_hoje, k: 'resultado_hoje' as const },
+          ].map((r) => (
+            <div key={r.k} className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-3 py-2">
+              <span className="text-sm text-muted-foreground">{r.l}</span>
+              <InlineText value={r.v} align="right" placeholder="R$ 0,00" className="w-32" onChange={(v) => update({ [r.k]: v } as any)} />
             </div>
-            <div className="hidden sm:block font-semibold text-foreground print-date-visible">{dateLabel}</div>
-            <div className="flex-1" />
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-foreground">Dias Úteis Restante:</span>
-              <InlineText value={state.dias_uteis_restante} onChange={(v) => update({ dias_uteis_restante: v })} className="w-16 border-b border-border" />
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-foreground">Faturamento Necessário:</span>
-              <InlineText value={state.faturamento_necessario} onChange={(v) => update({ faturamento_necessario: v })} className="w-32 border-b border-border" />
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Cards */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={order} strategy={verticalListSortingStrategy}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {order.map((k) => cardContent[k] && (
-                <SortableCard key={k} id={k} title={cardContent[k].title}>
-                  {cardContent[k].node}
-                </SortableCard>
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-        {/* Signatures */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {state.assinaturas.map((s, i) => (
-              <div key={s.id} className="text-center">
-                <div className="border-b-2 border-foreground h-8" />
-                <div className="mt-2 flex items-center justify-center gap-1">
-                  <InlineText value={s.nome} onChange={(v) => { const arr = [...state.assinaturas]; arr[i] = { ...arr[i], nome: v }; update({ assinaturas: arr }); }} className="text-sm text-center font-medium" placeholder="Nome" />
-                  <button className="text-destructive no-print" onClick={() => update({ assinaturas: state.assinaturas.filter((_, j) => j !== i) })}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+        <div className="border-t border-border pt-3">
+          <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Alterações</p>
+          <div className="space-y-2">
+            {state.alteracoes.map((item, i) => (
+              <div key={item.id} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <InlineText value={item.texto} placeholder="Descreva a alteração" className="flex-1"
+                  onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], texto: v }; update({ alteracoes: arr }); }} />
+                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ alteracoes: state.alteracoes.filter((_, j) => j !== i) })}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             ))}
-          </div>
-          <div className="mt-4 flex justify-center no-print">
-            <Button variant="outline" size="sm" onClick={() => update({ assinaturas: [...state.assinaturas, { id: uid(), nome: '' }] })}>
-              <Plus className="w-4 h-4 mr-1" /> Adicionar assinante
+            <Button variant="outline" size="sm" onClick={() => update({ alteracoes: [...state.alteracoes, { id: uid(), texto: '' }] })}>
+              <Plus className="mr-1 h-4 w-4" /> Adicionar
             </Button>
           </div>
         </div>
       </div>
+    ),
+    receitas_despesas: (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border bg-positive-row-bg/40 p-4">
+          <p className="mb-1 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Receitas do Dia</p>
+          <InlineText value={state.receitas_dia} onChange={(v) => update({ receitas_dia: v })} className="w-full !text-lg !font-bold text-success" placeholder="R$ 0,00" />
+        </div>
+        <div className="rounded-xl border border-border bg-negative-row-bg/40 p-4">
+          <p className="mb-1 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Despesas do Dia</p>
+          <InlineText value={state.despesas_dia} onChange={(v) => update({ despesas_dia: v })} className="w-full !text-lg !font-bold text-destructive" placeholder="R$ 0,00" />
+        </div>
+      </div>
+    ),
+    avisos: (
+      <div className="space-y-2">
+        {state.avisos.map((item, i) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" />
+            <InlineText value={item.texto} placeholder="Aviso ou pendência" className="flex-1"
+              onChange={(v) => { const arr = [...state.avisos]; arr[i] = { ...arr[i], texto: v }; update({ avisos: arr }); }} />
+            <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ avisos: state.avisos.filter((_, j) => j !== i) })}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+        {!state.avisos.length && <p className="text-xs text-muted-foreground">Nenhum aviso registrado</p>}
+        <Button variant="outline" size="sm" onClick={() => update({ avisos: [...state.avisos, { id: uid(), texto: '' }] })}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+    ),
+    anotacoes: (
+      <div className="rounded-lg border-l-4 border-warning bg-muted/60 p-3">
+        <Textarea
+          value={state.anotacoes}
+          onChange={(e) => update({ anotacoes: e.target.value })}
+          rows={7}
+          className="resize-y border-0 bg-transparent leading-7 focus-visible:ring-0"
+          placeholder="Escreva suas observações..."
+        />
+      </div>
+    ),
+  };
 
-      <style>{`
-        .print-date-visible { display: block; }
-        .is-exporting-pdf .no-print { display: none !important; }
-        .is-exporting-pdf .print-only { display: inline !important; }
-        @media print {
-          .no-print { display: none !important; }
-        }
-      `}</style>
+  return (
+    <div className="mx-auto max-w-6xl animate-fade-in space-y-6 pb-10">
+      {/* Barra de ações */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Resumo Diário</h1>
+          <p className="text-sm text-muted-foreground">Relatório executivo de acompanhamento operacional</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSave} disabled={saveMut.isPending}>
+            <Save className="mr-1 h-4 w-4" /> Salvar
+          </Button>
+          <Button size="sm" onClick={handleExportPDF}>
+            <Printer className="mr-1 h-4 w-4" /> Exportar PDF
+          </Button>
+        </div>
+      </div>
+
+      {/* Cabeçalho institucional */}
+      <header className="overflow-hidden rounded-2xl border border-border shadow-sm">
+        <div className="flex flex-wrap items-center gap-4 bg-secondary px-6 py-5 text-secondary-foreground">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 text-primary-foreground">
+            <Building2 className="h-6 w-6" />
+          </span>
+          <div className="min-w-[200px] flex-1">
+            <p className="font-heading text-lg font-bold leading-tight">Resumo Diário</p>
+            <p className="text-sm opacity-80">{empresa}</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full bg-primary/15 px-4 py-2">
+            <Calendar className="h-4 w-4" />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="bg-transparent text-sm font-semibold outline-none [color-scheme:dark]"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 border-t border-border bg-card px-6 py-4 sm:grid-cols-3">
+          <div>
+            <p className="mb-1 flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              <CalendarDays className="h-3.5 w-3.5" /> Data por extenso
+            </p>
+            <p className="text-sm font-semibold text-foreground">{dateLabel}</p>
+          </div>
+          <div>
+            <p className="mb-1 flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              <User className="h-3.5 w-3.5" /> Responsável
+            </p>
+            <InlineText value={responsavel} onChange={setResponsavel} placeholder="Nome do responsável" className="w-full" />
+          </div>
+          <div>
+            <p className="mb-1 flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Layers className="h-3.5 w-3.5" /> Departamento
+            </p>
+            <InlineText value={departamento} onChange={setDepartamento} placeholder="Departamento" className="w-full" />
+          </div>
+        </div>
+      </header>
+
+      {/* Indicadores */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((k) => (
+          <div key={k.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <k.icon className={`h-4 w-4 ${k.accent}`} />
+              <p className="text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">{k.label}</p>
+            </div>
+            <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+          </div>
+        ))}
+      </div>
+
+      {/* Cards */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <SortableContext items={order} strategy={verticalListSortingStrategy}>
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+            {order.map((k) => cardContent[k] && (
+              <SortableCard key={k} id={k}>{cardContent[k]}</SortableCard>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {/* Assinaturas */}
+      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <PenLine className="h-4 w-4" />
+          </span>
+          <h3 className="font-heading text-[0.78rem] font-bold uppercase tracking-[0.08em] text-foreground">Assinaturas</h3>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+          {state.assinaturas.map((s, i) => (
+            <div key={s.id} className="text-center">
+              <div className="h-8 border-b-2 border-foreground/70" />
+              <div className="mt-2 flex items-center justify-center gap-1">
+                <InlineText value={s.nome} placeholder="Nome" className="w-full text-center"
+                  onChange={(v) => { const arr = [...state.assinaturas]; arr[i] = { ...arr[i], nome: v }; update({ assinaturas: arr }); }} />
+                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ assinaturas: state.assinaturas.filter((_, j) => j !== i) })}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 flex justify-center">
+          <Button variant="outline" size="sm" onClick={() => update({ assinaturas: [...state.assinaturas, { id: uid(), nome: '' }] })}>
+            <Plus className="mr-1 h-4 w-4" /> Adicionar assinante
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }
