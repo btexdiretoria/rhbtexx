@@ -2,9 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DespesaItem { id: string; descricao: string; gasto: string; orcado: string; }
-export interface AlteracaoItem { id: string; texto: string; }
+export interface AlteracaoItem { id: string; texto: string; valor?: string; }
 export interface AvisoItem { id: string; texto: string; }
 export interface AssinaturaItem { id: string; nome: string; }
+export interface ChecklistItem { id: string; texto: string; done: boolean; }
 
 export interface DailySummary {
   id?: string;
@@ -20,11 +21,12 @@ export interface DailySummary {
   despesas_dia: string;
   avisos: AvisoItem[];
   anotacoes: string;
+  checklist: ChecklistItem[];
   assinaturas: AssinaturaItem[];
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['despesas', 'resultado', 'receitas_despesas', 'avisos', 'anotacoes'];
+export const DEFAULT_CARD_ORDER = ['despesas', 'resultado', 'avisos', 'anotacoes', 'checklist'];
 
 export function emptySummary(date: string): DailySummary {
   return {
@@ -40,10 +42,17 @@ export function emptySummary(date: string): DailySummary {
     despesas_dia: '',
     avisos: [],
     anotacoes: '',
+    checklist: [],
     assinaturas: [],
     card_order: [...DEFAULT_CARD_ORDER],
   };
 }
+
+const normalizeOrder = (order?: string[]) => {
+  const cleaned = (order || []).filter((k) => DEFAULT_CARD_ORDER.includes(k));
+  const missing = DEFAULT_CARD_ORDER.filter((k) => !cleaned.includes(k));
+  return cleaned.length ? [...cleaned, ...missing] : [...DEFAULT_CARD_ORDER];
+};
 
 export function useDailySummary(date: string) {
   return useQuery({
@@ -63,8 +72,9 @@ export function useDailySummary(date: string) {
         despesas: d.despesas || [],
         alteracoes: d.alteracoes || [],
         avisos: d.avisos || [],
+        checklist: d.checklist || [],
         assinaturas: d.assinaturas || [],
-        card_order: d.card_order && d.card_order.length ? d.card_order : DEFAULT_CARD_ORDER,
+        card_order: normalizeOrder(d.card_order),
       } as DailySummary;
     },
   });
