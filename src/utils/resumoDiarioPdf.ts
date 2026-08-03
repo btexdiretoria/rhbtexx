@@ -58,42 +58,42 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   const drawHeader = (first: boolean) => {
     if (first) {
       pdf.setFillColor(...NAVY);
-      pdf.rect(0, 0, PAGE_W, 34, 'F');
+      pdf.rect(0, 0, PAGE_W, 26, 'F');
       pdf.setFillColor(...BLUE);
-      pdf.rect(0, 34, PAGE_W, 1.4, 'F');
+      pdf.rect(0, 26, PAGE_W, 1.2, 'F');
 
       // "Logo" — monograma
       pdf.setFillColor(255, 255, 255);
-      pdf.roundedRect(M, 9, 16, 16, 3, 3, 'F');
+      pdf.roundedRect(M, 6, 12, 12, 2.2, 2.2, 'F');
       pdf.setTextColor(...NAVY);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(13);
-      pdf.text((meta.empresa || 'R').trim().charAt(0).toUpperCase(), M + 8, 20, { align: 'center' });
+      pdf.setFontSize(11);
+      pdf.text((meta.empresa || 'R').trim().charAt(0).toUpperCase(), M + 6, 14, { align: 'center' });
 
       pdf.setTextColor(...WHITE);
-      pdf.setFontSize(15);
+      pdf.setFontSize(13);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(titulo.toUpperCase(), M + 22, 16.5);
-      pdf.setFontSize(9);
+      pdf.text(titulo.toUpperCase(), M + 18, 12.5);
+      pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(205, 219, 245);
-      pdf.text(meta.empresa || '', M + 22, 22.5);
-      pdf.text(dateExtenso(s.summary_date), M + 22, 28);
+      pdf.text(meta.empresa || '', M + 18, 17.5);
+      pdf.text(dateExtenso(s.summary_date), M + 18, 22);
 
       const right: string[] = [];
       if (notEmpty(meta.responsavel)) right.push(`Responsável: ${meta.responsavel}`);
-      right.forEach((t, i) => pdf.text(t, PAGE_W - M, 22.5 + i * 5.5, { align: 'right' }));
-      y = 44;
+      right.forEach((t, i) => pdf.text(t, PAGE_W - M, 17.5 + i * 5, { align: 'right' }));
+      y = 36;
     } else {
       pdf.setFillColor(...NAVY);
-      pdf.rect(0, 0, PAGE_W, 14, 'F');
+      pdf.rect(0, 0, PAGE_W, 12, 'F');
       pdf.setTextColor(...WHITE);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(9);
-      pdf.text(titulo.toUpperCase(), M, 9);
+      pdf.setFontSize(8);
+      pdf.text(titulo.toUpperCase(), M, 7.5);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(dateExtenso(s.summary_date), PAGE_W - M, 9, { align: 'right' });
-      y = 24;
+      pdf.text(dateExtenso(s.summary_date), PAGE_W - M, 7.5, { align: 'right' });
+      y = 20;
     }
   };
 
