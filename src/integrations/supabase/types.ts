@@ -266,6 +266,7 @@ export type Database = {
           assinaturas: Json | null
           avisos: Json | null
           card_order: Json | null
+          checklist: Json
           created_at: string
           despesas: Json | null
           despesas_dia: string | null
@@ -285,6 +286,7 @@ export type Database = {
           assinaturas?: Json | null
           avisos?: Json | null
           card_order?: Json | null
+          checklist?: Json
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
@@ -304,6 +306,7 @@ export type Database = {
           assinaturas?: Json | null
           avisos?: Json | null
           card_order?: Json | null
+          checklist?: Json
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
