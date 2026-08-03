@@ -24,9 +24,20 @@ const CONTENT_W = PAGE_W - M * 2;
 export interface ResumoPdfMeta {
   empresa: string;
   responsavel?: string;
-  departamento?: string;
   relatorio?: string;
 }
+
+const parseMoney = (v?: string) => {
+  if (!v) return 0;
+  const clean = String(v).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.');
+  const n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
+};
+
+const money = (v?: string | number) => {
+  const n = typeof v === 'number' ? v : parseMoney(v);
+  return `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 const notEmpty = (v?: string) => !!v && String(v).trim() !== '';
 
@@ -71,7 +82,6 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
       const right: string[] = [];
       if (notEmpty(meta.responsavel)) right.push(`Responsável: ${meta.responsavel}`);
-      if (notEmpty(meta.departamento)) right.push(`Departamento: ${meta.departamento}`);
       right.forEach((t, i) => pdf.text(t, PAGE_W - M, 22.5 + i * 5.5, { align: 'right' }));
       y = 44;
     } else {
@@ -101,9 +111,9 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   /* ── Indicadores (KPI cards) ── */
   const kpis = [
     { label: 'Dias Úteis Restantes', value: s.dias_uteis_restante },
-    { label: 'Faturamento Necessário', value: s.faturamento_necessario },
-    { label: 'Receitas do Dia', value: s.receitas_dia, color: GREEN },
-    { label: 'Despesas do Dia', value: s.despesas_dia, color: RED },
+    { label: 'Faturamento Atual', value: notEmpty(s.faturamento_necessario) ? money(s.faturamento_necessario) : '' },
+    { label: 'Receitas do Dia', value: notEmpty(s.receitas_dia) ? money(s.receitas_dia) : '', color: GREEN },
+    { label: 'Despesas do Dia', value: notEmpty(s.despesas_dia) ? money(s.despesas_dia) : '', color: RED },
   ].filter((k) => notEmpty(k.value));
 
   if (kpis.length) {
@@ -240,22 +250,53 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   if (despesas.length) {
     section('Controle de Despesas');
     table(
-      ['Descrição', 'Gasto', 'Orçado'],
-      despesas.map((d) => [d.descricao, d.gasto, d.orcado]),
-      [CONTENT_W - 70, 35, 35],
-      ['left', 'right', 'right'],
+      ['Descrição', 'Previsão', 'Gasto', '% Consumida'],
+      despesas.map((d) => {
+        const prev = parseMoney(d.orcado);
+        const gasto = parseMoney(d.gasto);
+        const pct = prev > 0 ? `${((gasto / prev) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—';
+        return [d.descricao, money(prev), money(gasto), pct];
+      }),
+      [CONTENT_W - 100, 34, 34, 32],
+      ['left', 'right', 'right', 'right'],
     );
   }
 
-  const resultados = [
-    { label: 'Resultado esperado no início do mês', value: s.resultado_inicio },
-    { label: 'Resultado esperado ontem', value: s.resultado_ontem },
-    { label: 'Resultado esperado hoje', value: s.resultado_hoje },
-  ].filter((r) => notEmpty(r.value));
-  const alteracoes = s.alteracoes.map((a) => a.texto).filter(notEmpty);
-  if (resultados.length || alteracoes.length) {
+  const resultCols = [
+    { label: 'Início do mês', value: s.resultado_inicio },
+    { label: 'Ontem', value: s.resultado_ontem },
+    { label: 'Hoje', value: s.resultado_hoje },
+  ];
+  const hasResult = resultCols.some((r) => notEmpty(r.value));
+  const alteracoes = s.alteracoes.filter((a) => notEmpty(a.texto) || notEmpty(a.valor));
+  if (hasResult || alteracoes.length) {
     section('Resultado Esperado');
-    if (resultados.length) pairs(resultados);
+    if (hasResult) {
+      ensure(20);
+      pdf.setFillColor(...GRAY_LIGHT);
+      pdf.roundedRect(M, y, CONTENT_W, 18, 2, 2, 'F');
+      pdf.setTextColor(...GRAY_DARK);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9.5);
+      pdf.text('Resultado esperado', M + 4, y + 11);
+      const colW = 34;
+      const gaps = [0, 8, 8];
+      let cx = PAGE_W - M - (colW * 3 + 8);
+      resultCols.forEach((r, i) => {
+        if (i === 1) cx += gaps[1];
+        const n = parseMoney(r.value);
+        pdf.setTextColor(...GRAY_SOFT);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.8);
+        pdf.text(r.label.toUpperCase(), cx + colW, y + 6.5, { align: 'right' });
+        pdf.setTextColor(...(n < 0 ? RED : n > 0 ? GREEN : GRAY_DARK));
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.text(notEmpty(r.value) ? money(n) : '—', cx + colW, y + 13.5, { align: 'right' });
+        cx += colW;
+      });
+      y += 24;
+    }
     if (alteracoes.length) {
       pdf.setTextColor(...GRAY_SOFT);
       pdf.setFont('helvetica', 'bold');
@@ -263,7 +304,24 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       ensure(8);
       pdf.text('ALTERAÇÕES', M, y);
       y += 5;
-      bullets(alteracoes);
+      const total = alteracoes.reduce((acc, a) => acc + parseMoney(a.valor), 0);
+      table(
+        ['Descritivo', 'Valor'],
+        alteracoes.map((a) => [a.texto, money(a.valor)]),
+        [CONTENT_W - 45, 45],
+        ['left', 'right'],
+      );
+      ensure(10);
+      pdf.setFillColor(...GRAY_LIGHT);
+      pdf.roundedRect(M, y, CONTENT_W, 9, 1.6, 1.6, 'F');
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('SALDO TOTAL', M + 4, y + 6);
+      pdf.setTextColor(...(total < 0 ? RED : total > 0 ? GREEN : GRAY_DARK));
+      pdf.setFontSize(10);
+      pdf.text(money(total), PAGE_W - M - 4, y + 6, { align: 'right' });
+      y += 15;
     }
   }
 
@@ -273,20 +331,40 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     bullets(avisos);
   }
 
-  if (notEmpty(s.anotacoes)) {
+  {
     section('Observações');
-    const lines = pdf.splitTextToSize(s.anotacoes, CONTENT_W - 14) as string[];
-    const h = lines.length * 5 + 8;
+    const rows = 5;
+    const rowH = 9;
+    const h = rows * rowH + 4;
     ensure(h);
-    pdf.setFillColor(...AMBER_BG);
-    pdf.roundedRect(M, y, CONTENT_W, h, 2, 2, 'F');
-    pdf.setFillColor(...AMBER_BAR);
-    pdf.rect(M, y, 1.5, h, 'F');
-    pdf.setTextColor(...GRAY_DARK);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9.5);
-    pdf.text(lines, M + 6, y + 6);
+    pdf.setDrawColor(...GRAY_LINE);
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(M, y, CONTENT_W, h, 2, 2, 'S');
+    for (let i = 1; i <= rows - 1; i++) {
+      pdf.line(M + 4, y + 2 + i * rowH, PAGE_W - M - 4, y + 2 + i * rowH);
+    }
     y += h + 8;
+  }
+
+  const checklist = s.checklist?.filter((c) => notEmpty(c.texto)) || [];
+  if (checklist.length) {
+    section('Checklist');
+    checklist.forEach((c) => {
+      ensure(9);
+      pdf.setDrawColor(...GRAY_DARK);
+      pdf.setLineWidth(0.3);
+      pdf.rect(M + 1, y, 4, 4, 'S');
+      if (c.done) {
+        pdf.setFillColor(...BLUE);
+        pdf.rect(M + 1.8, y + 0.8, 2.4, 2.4, 'F');
+      }
+      pdf.setTextColor(...GRAY_DARK);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9.5);
+      pdf.text(pdf.splitTextToSize(c.texto, CONTENT_W - 12)[0], M + 8, y + 3.5);
+      y += 7;
+    });
+    y += 6;
   }
 
   const assinaturas = s.assinaturas.map((a) => a.nome).filter(notEmpty);

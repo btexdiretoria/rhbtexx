@@ -1,0 +1,1 @@
+ALTER TABLE public.daily_summary ADD COLUMN IF NOT EXISTS checklist JSONB NOT NULL DEFAULT '[]'::jsonb;

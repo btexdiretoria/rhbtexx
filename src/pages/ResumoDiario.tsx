@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Calendar, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
-  ArrowLeftRight, AlertTriangle, StickyNote, PenLine, Building2, User, Layers,
-  CalendarDays, Banknote,
+  AlertTriangle, StickyNote, PenLine, Building2, User, Layers,
+  CalendarDays, Banknote, ListChecks,
 } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -10,13 +10,23 @@ import { CSS } from '@dnd-kit/utilities';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
 import { exportResumoDiarioPDF } from '@/utils/resumoDiarioPdf';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+
+export const parseMoney = (v?: string) => {
+  if (!v) return 0;
+  const clean = String(v).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.');
+  const n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
+};
+
+export const fmtMoney = (n: number) =>
+  n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function InlineText({
   value, onChange, className = '', placeholder, align = 'left',
@@ -38,12 +48,35 @@ function InlineText({
   );
 }
 
+function MoneyInput({
+  value, onChange, className = '', inputClass = '', placeholder = '0,00',
+}: { value: string; onChange: (v: string) => void; className?: string; inputClass?: string; placeholder?: string }) {
+  const filled = !!value && value.trim() !== '';
+  return (
+    <div className={`flex items-center gap-1 rounded-md border px-2 py-1 transition-colors
+      focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20
+      ${filled ? 'border-border bg-card' : 'border-dashed border-border/70 bg-muted/40'} ${className}`}>
+      <span className="shrink-0 text-xs font-semibold text-muted-foreground">R$</span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full min-w-0 bg-transparent text-right text-sm outline-none
+          ${filled ? 'font-medium text-foreground' : 'text-muted-foreground'} ${inputClass}`}
+      />
+    </div>
+  );
+}
+
+const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-success' : 'text-foreground');
+
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
   despesas: { title: 'Controle de Despesas', icon: Wallet },
   resultado: { title: 'Resultado Esperado', icon: TrendingUp },
-  receitas_despesas: { title: 'Receitas e Despesas do Dia', icon: ArrowLeftRight },
   avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
   anotacoes: { title: 'Observações', icon: StickyNote },
+  checklist: { title: 'Checklist', icon: ListChecks },
 };
 
 function SortableCard({ id, children }: { id: string; children: React.ReactNode }) {
@@ -83,7 +116,6 @@ export default function ResumoDiario() {
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
   const [responsavel, setResponsavel] = useState('');
-  const [departamento, setDepartamento] = useState('');
 
   useEffect(() => {
     if (loaded) setState(loaded);
@@ -109,7 +141,7 @@ export default function ResumoDiario() {
 
   const handleExportPDF = async () => {
     try {
-      await exportResumoDiarioPDF(state, { empresa, responsavel, departamento, relatorio: 'Resumo Diário' });
+      await exportResumoDiarioPDF(state, { empresa, responsavel, relatorio: 'Resumo Diário' });
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
@@ -124,12 +156,7 @@ export default function ResumoDiario() {
     update({ card_order: arrayMove(order, order.indexOf(String(active.id)), order.indexOf(String(over.id))) });
   };
 
-  const kpis = [
-    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary' },
-    { label: 'Faturamento Necessário', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary' },
-    { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success' },
-    { label: 'Despesas do Dia', icon: Wallet, value: state.despesas_dia, onChange: (v: string) => update({ despesas_dia: v }), accent: 'text-destructive' },
-  ];
+  const saldoAlteracoes = state.alteracoes.reduce((acc, a) => acc + parseMoney(a.valor), 0);
 
   const cardContent: Record<string, React.ReactNode> = {
     despesas: (
@@ -139,35 +166,45 @@ export default function ResumoDiario() {
             <thead>
               <tr className="bg-secondary text-secondary-foreground">
                 <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Descrição</th>
-                <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Gasto</th>
-                <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Orçado</th>
+                <th className="px-3 py-2 text-right text-[0.68rem] font-bold uppercase tracking-wider">Previsão</th>
+                <th className="px-3 py-2 text-right text-[0.7rem] font-semibold uppercase tracking-wider">Gasto</th>
+                <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">% Consumida</th>
                 <th className="w-8" />
               </tr>
             </thead>
             <tbody>
-              {state.despesas.map((item, i) => (
-                <tr key={item.id} className="border-t border-border even:bg-muted/40">
-                  <td className="p-1.5">
-                    <InlineText value={item.descricao} placeholder="Descrição" className="w-full"
-                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], descricao: v }; update({ despesas: arr }); }} />
-                  </td>
-                  <td className="p-1.5">
-                    <InlineText value={item.gasto} align="right" placeholder="R$ 0,00" className="w-full"
-                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], gasto: v }; update({ despesas: arr }); }} />
-                  </td>
-                  <td className="p-1.5">
-                    <InlineText value={item.orcado} align="right" placeholder="R$ 0,00" className="w-full"
-                      onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], orcado: v }; update({ despesas: arr }); }} />
-                  </td>
-                  <td className="p-1.5 text-center">
-                    <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {state.despesas.map((item, i) => {
+                const prev = parseMoney(item.orcado);
+                const gasto = parseMoney(item.gasto);
+                const pct = prev > 0 ? (gasto / prev) * 100 : 0;
+                const pctColor = pct >= 100 ? 'text-destructive' : pct >= 75 ? 'text-warning' : 'text-success';
+                return (
+                  <tr key={item.id} className="border-t border-border even:bg-muted/40">
+                    <td className="p-1.5">
+                      <InlineText value={item.descricao} placeholder="Descrição" className="w-full"
+                        onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], descricao: v }; update({ despesas: arr }); }} />
+                    </td>
+                    <td className="p-1.5">
+                      <MoneyInput value={item.orcado} inputClass="font-bold"
+                        onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], orcado: v }; update({ despesas: arr }); }} />
+                    </td>
+                    <td className="p-1.5">
+                      <MoneyInput value={item.gasto} inputClass="!text-base"
+                        onChange={(v) => { const arr = [...state.despesas]; arr[i] = { ...arr[i], gasto: v }; update({ despesas: arr }); }} />
+                    </td>
+                    <td className={`p-1.5 text-right text-sm font-semibold ${pctColor}`}>
+                      {prev > 0 ? `${pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—'}
+                    </td>
+                    <td className="p-1.5 text-center">
+                      <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
               {!state.despesas.length && (
-                <tr><td colSpan={4} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
+                <tr><td colSpan={5} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
               )}
             </tbody>
           </table>
@@ -179,17 +216,24 @@ export default function ResumoDiario() {
     ),
     resultado: (
       <div className="space-y-4">
-        <div className="space-y-2">
-          {[
-            { l: 'Resultado esperado no início do mês', v: state.resultado_inicio, k: 'resultado_inicio' as const },
-            { l: 'Resultado esperado ontem', v: state.resultado_ontem, k: 'resultado_ontem' as const },
-            { l: 'Resultado esperado hoje', v: state.resultado_hoje, k: 'resultado_hoje' as const },
-          ].map((r) => (
-            <div key={r.k} className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-3 py-2">
-              <span className="text-sm text-muted-foreground">{r.l}</span>
-              <InlineText value={r.v} align="right" placeholder="R$ 0,00" className="w-32" onChange={(v) => update({ [r.k]: v } as any)} />
-            </div>
-          ))}
+        <div className="flex flex-wrap items-end gap-6 rounded-lg bg-muted/50 px-4 py-3">
+          <span className="text-sm font-semibold text-foreground">Resultado esperado</span>
+          <span className="flex-1" />
+          <div className="min-w-[110px] mr-8">
+            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Início do mês</p>
+            <MoneyInput value={state.resultado_inicio} onChange={(v) => update({ resultado_inicio: v })}
+              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_inicio))}`} />
+          </div>
+          <div className="min-w-[110px]">
+            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Ontem</p>
+            <MoneyInput value={state.resultado_ontem} onChange={(v) => update({ resultado_ontem: v })}
+              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_ontem))}`} />
+          </div>
+          <div className="min-w-[110px]">
+            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Hoje</p>
+            <MoneyInput value={state.resultado_hoje} onChange={(v) => update({ resultado_hoje: v })}
+              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_hoje))}`} />
+          </div>
         </div>
         <div className="border-t border-border pt-3">
           <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Alterações</p>
@@ -197,29 +241,24 @@ export default function ResumoDiario() {
             {state.alteracoes.map((item, i) => (
               <div key={item.id} className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <InlineText value={item.texto} placeholder="Descreva a alteração" className="flex-1"
+                <InlineText value={item.texto} placeholder="Descritivo" className="flex-1"
                   onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], texto: v }; update({ alteracoes: arr }); }} />
+                <MoneyInput value={item.valor || ''} className="w-32"
+                  inputClass={signClass(parseMoney(item.valor))}
+                  onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], valor: v }; update({ alteracoes: arr }); }} />
                 <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ alteracoes: state.alteracoes.filter((_, j) => j !== i) })}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={() => update({ alteracoes: [...state.alteracoes, { id: uid(), texto: '' }] })}>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2">
+              <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Saldo total</span>
+              <span className={`text-sm font-bold ${signClass(saldoAlteracoes)}`}>R$ {fmtMoney(saldoAlteracoes)}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => update({ alteracoes: [...state.alteracoes, { id: uid(), texto: '', valor: '' }] })}>
               <Plus className="mr-1 h-4 w-4" /> Adicionar
             </Button>
           </div>
-        </div>
-      </div>
-    ),
-    receitas_despesas: (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-positive-row-bg/40 p-4">
-          <p className="mb-1 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Receitas do Dia</p>
-          <InlineText value={state.receitas_dia} onChange={(v) => update({ receitas_dia: v })} className="w-full !text-lg !font-bold text-success" placeholder="R$ 0,00" />
-        </div>
-        <div className="rounded-xl border border-border bg-negative-row-bg/40 p-4">
-          <p className="mb-1 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Despesas do Dia</p>
-          <InlineText value={state.despesas_dia} onChange={(v) => update({ despesas_dia: v })} className="w-full !text-lg !font-bold text-destructive" placeholder="R$ 0,00" />
         </div>
       </div>
     ),
@@ -242,17 +281,41 @@ export default function ResumoDiario() {
       </div>
     ),
     anotacoes: (
-      <div className="rounded-lg border-l-4 border-warning bg-muted/60 p-3">
-        <Textarea
-          value={state.anotacoes}
-          onChange={(e) => update({ anotacoes: e.target.value })}
-          rows={7}
-          className="resize-y border-0 bg-transparent leading-7 focus-visible:ring-0"
-          placeholder="Escreva suas observações..."
-        />
+      <div className="rounded-lg border border-border bg-card">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="border-b border-dashed border-border last:border-b-0" style={{ height: 34 }} />
+        ))}
+      </div>
+    ),
+    checklist: (
+      <div className="space-y-2">
+        {state.checklist.map((item, i) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <Checkbox
+              checked={item.done}
+              onCheckedChange={(c) => { const arr = [...state.checklist]; arr[i] = { ...arr[i], done: !!c }; update({ checklist: arr }); }}
+            />
+            <InlineText value={item.texto} placeholder="Descritivo" className="flex-1"
+              onChange={(v) => { const arr = [...state.checklist]; arr[i] = { ...arr[i], texto: v }; update({ checklist: arr }); }} />
+            <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ checklist: state.checklist.filter((_, j) => j !== i) })}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+        {!state.checklist.length && <p className="text-xs text-muted-foreground">Nenhum item na lista</p>}
+        <Button variant="outline" size="sm" onClick={() => update({ checklist: [...state.checklist, { id: uid(), texto: '', done: false }] })}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar checkbox
+        </Button>
       </div>
     ),
   };
+
+  const kpis = [
+    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false },
+    { label: 'Faturamento Atual', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary', money: true },
+    { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success', money: true },
+    { label: 'Despesas do Dia', icon: Wallet, value: state.despesas_dia, onChange: (v: string) => update({ despesas_dia: v }), accent: 'text-destructive', money: true },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-in space-y-6 pb-10">
@@ -292,7 +355,7 @@ export default function ResumoDiario() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 border-t border-border bg-card px-6 py-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 border-t border-border bg-card px-6 py-4 sm:grid-cols-2">
           <div>
             <p className="mb-1 flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5" /> Data por extenso
@@ -305,12 +368,6 @@ export default function ResumoDiario() {
             </p>
             <InlineText value={responsavel} onChange={setResponsavel} placeholder="Nome do responsável" className="w-full" />
           </div>
-          <div>
-            <p className="mb-1 flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Layers className="h-3.5 w-3.5" /> Departamento
-            </p>
-            <InlineText value={departamento} onChange={setDepartamento} placeholder="Departamento" className="w-full" />
-          </div>
         </div>
       </header>
 
@@ -322,7 +379,11 @@ export default function ResumoDiario() {
               <k.icon className={`h-4 w-4 ${k.accent}`} />
               <p className="text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">{k.label}</p>
             </div>
-            <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+            {k.money ? (
+              <MoneyInput value={k.value} onChange={k.onChange} inputClass={`!text-xl !font-bold ${k.accent}`} />
+            ) : (
+              <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+            )}
           </div>
         ))}
       </div>
