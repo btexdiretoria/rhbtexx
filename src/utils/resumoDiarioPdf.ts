@@ -333,8 +333,8 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   {
     section('Observações');
-    const rows = 5;
-    const rowH = 9;
+    const rows = 4;
+    const rowH = 7;
     const h = rows * rowH + 4;
     ensure(h);
     pdf.setDrawColor(...GRAY_LINE);
