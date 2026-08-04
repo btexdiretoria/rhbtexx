@@ -270,10 +270,13 @@ export type Database = {
           created_at: string
           despesas: Json | null
           despesas_dia: string | null
+          despesas_programadas: string
           dias_uteis_restante: string | null
           faturamento_necessario: string | null
           id: string
           receitas_dia: string | null
+          receitas_esperadas: string
+          receitas_receber: Json
           resultado_hoje: string | null
           resultado_inicio: string | null
           resultado_ontem: string | null
@@ -290,10 +293,13 @@ export type Database = {
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
+          despesas_programadas?: string
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
           receitas_dia?: string | null
+          receitas_esperadas?: string
+          receitas_receber?: Json
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
@@ -310,10 +316,13 @@ export type Database = {
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
+          despesas_programadas?: string
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
           receitas_dia?: string | null
+          receitas_esperadas?: string
+          receitas_receber?: Json
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
