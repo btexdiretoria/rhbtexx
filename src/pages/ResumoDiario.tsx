@@ -73,11 +73,13 @@ const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-suc
 
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
   despesas: { title: 'Controle de Despesas', icon: Wallet },
+  receitas: { title: 'Receitas a Receber', icon: Banknote },
   resultado: { title: 'Resultado Esperado', icon: TrendingUp },
   avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
   anotacoes: { title: 'Observações', icon: StickyNote },
-  checklist: { title: 'Checklist', icon: ListChecks },
+  checklist: { title: 'Anexos', icon: ListChecks },
 };
+
 
 function SortableCard({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
