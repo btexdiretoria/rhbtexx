@@ -80,7 +80,10 @@ const CashFlowTable = ({
   const [panelFilterFn, setPanelFilterFn] = useState<((e: RawEntry) => boolean) | null>(null);
   const [daySummaryDate, setDaySummaryDate] = useState<string | null>(null);
 
+  const [exporting, setExporting] = useState(false);
+
   const computedRows = useMemo(() => {
+
     const dates = filteredDates;
     const dailyRevenue: Record<string, number> = {};
     const dailyExpense: Record<string, number> = {};
