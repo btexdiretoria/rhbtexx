@@ -73,11 +73,13 @@ const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-suc
 
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
   despesas: { title: 'Controle de Despesas', icon: Wallet },
+  receitas: { title: 'Receitas a Receber', icon: Banknote },
   resultado: { title: 'Resultado Esperado', icon: TrendingUp },
   avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
   anotacoes: { title: 'Observações', icon: StickyNote },
-  checklist: { title: 'Checklist', icon: ListChecks },
+  checklist: { title: 'Anexos', icon: ListChecks },
 };
+
 
 function SortableCard({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -157,6 +159,8 @@ export default function ResumoDiario() {
   };
 
   const saldoAlteracoes = state.alteracoes.reduce((acc, a) => acc + parseMoney(a.valor), 0);
+  const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
+
 
   const cardContent: Record<string, React.ReactNode> = {
     despesas: (
@@ -214,9 +218,46 @@ export default function ResumoDiario() {
         </Button>
       </div>
     ),
+    receitas: (
+      <div className="space-y-2">
+        {state.receitas_receber.map((item, i) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
+            <InlineText value={item.texto} placeholder="Descritivo" className="flex-1"
+              onChange={(v) => { const arr = [...state.receitas_receber]; arr[i] = { ...arr[i], texto: v }; update({ receitas_receber: arr }); }} />
+            <MoneyInput value={item.valor || ''} className="w-32" inputClass="!font-semibold text-success"
+              onChange={(v) => { const arr = [...state.receitas_receber]; arr[i] = { ...arr[i], valor: v }; update({ receitas_receber: arr }); }} />
+            <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ receitas_receber: state.receitas_receber.filter((_, j) => j !== i) })}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+        {!state.receitas_receber.length && <p className="text-xs text-muted-foreground">Nenhuma receita lançada</p>}
+        {state.receitas_receber.length > 1 && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2">
+            <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Total</span>
+            <span className="text-sm font-bold text-success">R$ {fmtMoney(totalReceitasReceber)}</span>
+          </div>
+        )}
+        <Button variant="outline" size="sm" onClick={() => update({ receitas_receber: [...state.receitas_receber, { id: uid(), texto: '', valor: '' }] })}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar receita
+        </Button>
+      </div>
+    ),
     resultado: (
       <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-success/30 bg-success/5 px-3 py-2">
+            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-success">Receitas esperadas para o mês</p>
+            <MoneyInput value={state.receitas_esperadas} onChange={(v) => update({ receitas_esperadas: v })} inputClass="!font-bold text-success" />
+          </div>
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
+            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-destructive">Despesas programadas para o mês</p>
+            <MoneyInput value={state.despesas_programadas} onChange={(v) => update({ despesas_programadas: v })} inputClass="!font-bold text-destructive" />
+          </div>
+        </div>
         <div className="flex flex-wrap items-end gap-6 rounded-lg bg-muted/50 px-4 py-3">
+
           <span className="text-sm font-semibold text-foreground">Resultado esperado</span>
           <span className="flex-1" />
           <div className="min-w-[110px] mr-8">
@@ -304,7 +345,7 @@ export default function ResumoDiario() {
         ))}
         {!state.checklist.length && <p className="text-xs text-muted-foreground">Nenhum item na lista</p>}
         <Button variant="outline" size="sm" onClick={() => update({ checklist: [...state.checklist, { id: uid(), texto: '', done: false }] })}>
-          <Plus className="mr-1 h-4 w-4" /> Adicionar checkbox
+          <Plus className="mr-1 h-4 w-4" /> Adicionar anexo
         </Button>
       </div>
     ),

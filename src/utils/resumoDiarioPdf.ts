@@ -58,44 +58,44 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   const drawHeader = (first: boolean) => {
     if (first) {
       pdf.setFillColor(...NAVY);
-      pdf.rect(0, 0, PAGE_W, 26, 'F');
+      pdf.rect(0, 0, PAGE_W, 18, 'F');
       pdf.setFillColor(...BLUE);
-      pdf.rect(0, 26, PAGE_W, 1.2, 'F');
+      pdf.rect(0, 18, PAGE_W, 0.9, 'F');
 
       // "Logo" — monograma
       pdf.setFillColor(255, 255, 255);
-      pdf.roundedRect(M, 6, 12, 12, 2.2, 2.2, 'F');
+      pdf.roundedRect(M, 4, 9, 9, 1.8, 1.8, 'F');
       pdf.setTextColor(...NAVY);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(11);
-      pdf.text((meta.empresa || 'R').trim().charAt(0).toUpperCase(), M + 6, 14, { align: 'center' });
+      pdf.setFontSize(9);
+      pdf.text((meta.empresa || 'R').trim().charAt(0).toUpperCase(), M + 4.5, 10.3, { align: 'center' });
 
       pdf.setTextColor(...WHITE);
-      pdf.setFontSize(13);
+      pdf.setFontSize(11);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(titulo.toUpperCase(), M + 18, 12.5);
-      pdf.setFontSize(8);
+      pdf.text(titulo.toUpperCase(), M + 13, 8);
+      pdf.setFontSize(7.2);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(205, 219, 245);
-      pdf.text(meta.empresa || '', M + 18, 17.5);
-      pdf.text(dateExtenso(s.summary_date), M + 18, 22);
+      pdf.text(`${meta.empresa || ''}  ·  ${dateExtenso(s.summary_date)}`, M + 13, 12.5);
 
-      const right: string[] = [];
-      if (notEmpty(meta.responsavel)) right.push(`Responsável: ${meta.responsavel}`);
-      right.forEach((t, i) => pdf.text(t, PAGE_W - M, 17.5 + i * 5, { align: 'right' }));
-      y = 36;
+      if (notEmpty(meta.responsavel)) {
+        pdf.text(`Responsável: ${meta.responsavel}`, PAGE_W - M, 12.5, { align: 'right' });
+      }
+      y = 26;
     } else {
       pdf.setFillColor(...NAVY);
-      pdf.rect(0, 0, PAGE_W, 12, 'F');
+      pdf.rect(0, 0, PAGE_W, 10, 'F');
       pdf.setTextColor(...WHITE);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.text(titulo.toUpperCase(), M, 7.5);
+      pdf.setFontSize(7.5);
+      pdf.text(titulo.toUpperCase(), M, 6.5);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(dateExtenso(s.summary_date), PAGE_W - M, 7.5, { align: 'right' });
-      y = 20;
+      pdf.text(dateExtenso(s.summary_date), PAGE_W - M, 6.5, { align: 'right' });
+      y = 18;
     }
   };
+
 
   const newPage = () => {
     pdf.addPage();
@@ -139,55 +139,54 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     y += 26;
   }
 
-  /* ── Título de seção ── */
+  /* ── Título de seção (faixa destacada) ── */
   const section = (title: string) => {
-    ensure(16);
+    ensure(18);
+    const h = 9;
+    pdf.setFillColor(232, 240, 254);
+    pdf.roundedRect(M, y, CONTENT_W, h, 1.6, 1.6, 'F');
+    pdf.setFillColor(...NAVY);
+    pdf.rect(M, y, 2.6, h, 'F');
     pdf.setTextColor(...NAVY);
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10.5);
-    pdf.text(title.toUpperCase(), M, y);
+    pdf.setFontSize(9.8);
+    pdf.text(title.toUpperCase(), M + 6, y + 6.2);
     pdf.setDrawColor(...BLUE);
-    pdf.setLineWidth(0.6);
-    pdf.line(M, y + 2.2, M + 18, y + 2.2);
-    pdf.setDrawColor(...GRAY_LINE);
-    pdf.setLineWidth(0.3);
-    pdf.line(M + 18, y + 2.2, PAGE_W - M, y + 2.2);
-    y += 8;
+    pdf.setLineWidth(0.5);
+    pdf.line(M, y + h, PAGE_W - M, y + h);
+    y += h + 5;
   };
 
   /* ── Tabela zebrada ── */
+  const HEAD_BG: [number, number, number] = [226, 236, 252];
   const table = (headers: string[], rows: string[][], widths: number[], aligns: ('left' | 'right')[] = []) => {
     const rowH = 7.5;
+    const drawHead = () => {
+      pdf.setFillColor(...HEAD_BG);
+      pdf.rect(M, y, CONTENT_W, rowH, 'F');
+      pdf.setDrawColor(...GRAY_LINE);
+      pdf.setLineWidth(0.2);
+      pdf.line(M, y + rowH, PAGE_W - M, y + rowH);
+      pdf.setTextColor(...NAVY);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      let hx = M;
+      headers.forEach((h, i) => {
+        const a = aligns[i] || 'left';
+        pdf.text(h, a === 'right' ? hx + widths[i] - 3 : hx + 3, y + 5, { align: a });
+        hx += widths[i];
+      });
+      y += rowH;
+    };
     ensure(rowH * 2);
-    pdf.setFillColor(...NAVY);
-    pdf.rect(M, y, CONTENT_W, rowH, 'F');
-    pdf.setTextColor(...WHITE);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(8);
-    let x = M;
-    headers.forEach((h, i) => {
-      const a = aligns[i] || 'left';
-      pdf.text(h, a === 'right' ? x + widths[i] - 3 : x + 3, y + 5, { align: a });
-      x += widths[i];
-    });
-    y += rowH;
+    drawHead();
 
     rows.forEach((r, ri) => {
       if (y + rowH > PAGE_H - 20) {
         newPage();
-        pdf.setFillColor(...NAVY);
-        pdf.rect(M, y, CONTENT_W, rowH, 'F');
-        pdf.setTextColor(...WHITE);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8);
-        let hx = M;
-        headers.forEach((h, i) => {
-          const a = aligns[i] || 'left';
-          pdf.text(h, a === 'right' ? hx + widths[i] - 3 : hx + 3, y + 5, { align: a });
-          hx += widths[i];
-        });
-        y += rowH;
+        drawHead();
       }
+
       if (ri % 2 === 1) {
         pdf.setFillColor(249, 250, 251);
         pdf.rect(M, y, CONTENT_W, rowH, 'F');
@@ -262,6 +261,31 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     );
   }
 
+  const receitas = (s.receitas_receber || []).filter((r) => notEmpty(r.texto) || notEmpty(r.valor));
+  if (receitas.length) {
+    section('Receitas a Receber');
+    table(
+      ['Descritivo', 'Valor'],
+      receitas.map((r) => [r.texto, money(r.valor)]),
+      [CONTENT_W - 45, 45],
+      ['left', 'right'],
+    );
+    if (receitas.length > 1) {
+      const totalRec = receitas.reduce((acc, r) => acc + parseMoney(r.valor), 0);
+      ensure(10);
+      pdf.setFillColor(...GRAY_LIGHT);
+      pdf.roundedRect(M, y, CONTENT_W, 9, 1.6, 1.6, 'F');
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('TOTAL DE RECEITAS', M + 4, y + 6);
+      pdf.setTextColor(...GREEN);
+      pdf.setFontSize(10);
+      pdf.text(money(totalRec), PAGE_W - M - 4, y + 6, { align: 'right' });
+      y += 15;
+    }
+  }
+
   const resultCols = [
     { label: 'Início do mês', value: s.resultado_inicio },
     { label: 'Ontem', value: s.resultado_ontem },
@@ -269,9 +293,36 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   ];
   const hasResult = resultCols.some((r) => notEmpty(r.value));
   const alteracoes = s.alteracoes.filter((a) => notEmpty(a.texto) || notEmpty(a.valor));
-  if (hasResult || alteracoes.length) {
+  const mesBoxes = [
+    { label: 'Receitas esperadas para o mês', value: s.receitas_esperadas, color: GREEN },
+    { label: 'Despesas programadas para o mês', value: s.despesas_programadas, color: RED },
+  ].filter((b) => notEmpty(b.value));
+  if (hasResult || alteracoes.length || mesBoxes.length) {
     section('Resultado Esperado');
+    if (mesBoxes.length) {
+      ensure(20);
+      const gap = 5;
+      const bw = (CONTENT_W - gap) / 2;
+      mesBoxes.forEach((b, i) => {
+        const x = M + i * (bw + gap);
+        pdf.setFillColor(...GRAY_LIGHT);
+        pdf.setDrawColor(...GRAY_LINE);
+        pdf.roundedRect(x, y, bw, 17, 2, 2, 'FD');
+        pdf.setFillColor(...b.color);
+        pdf.rect(x, y + 2.5, 1.2, 12, 'F');
+        pdf.setTextColor(...GRAY_SOFT);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.8);
+        pdf.text(b.label.toUpperCase(), x + 4.5, y + 6.5);
+        pdf.setTextColor(...b.color);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.text(money(b.value), x + 4.5, y + 13.5);
+      });
+      y += 22;
+    }
     if (hasResult) {
+
       ensure(20);
       pdf.setFillColor(...GRAY_LIGHT);
       pdf.roundedRect(M, y, CONTENT_W, 18, 2, 2, 'F');
@@ -348,7 +399,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const checklist = s.checklist?.filter((c) => notEmpty(c.texto)) || [];
   if (checklist.length) {
-    section('Checklist');
+    section('Anexos');
     checklist.forEach((c) => {
       ensure(9);
       pdf.setDrawColor(...GRAY_DARK);

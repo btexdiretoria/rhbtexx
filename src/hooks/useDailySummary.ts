@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface DespesaItem { id: string; descricao: string; gasto: string; orcado: string; }
 export interface AlteracaoItem { id: string; texto: string; valor?: string; }
+export interface ReceitaItem { id: string; texto: string; valor?: string; }
 export interface AvisoItem { id: string; texto: string; }
 export interface AssinaturaItem { id: string; nome: string; }
 export interface ChecklistItem { id: string; texto: string; done: boolean; }
@@ -19,6 +20,9 @@ export interface DailySummary {
   alteracoes: AlteracaoItem[];
   receitas_dia: string;
   despesas_dia: string;
+  receitas_receber: ReceitaItem[];
+  receitas_esperadas: string;
+  despesas_programadas: string;
   avisos: AvisoItem[];
   anotacoes: string;
   checklist: ChecklistItem[];
@@ -26,7 +30,7 @@ export interface DailySummary {
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['despesas', 'resultado', 'avisos', 'anotacoes', 'checklist'];
+export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'avisos', 'anotacoes', 'checklist'];
 
 export function emptySummary(date: string): DailySummary {
   return {
@@ -40,6 +44,9 @@ export function emptySummary(date: string): DailySummary {
     alteracoes: [],
     receitas_dia: '',
     despesas_dia: '',
+    receitas_receber: [],
+    receitas_esperadas: '',
+    despesas_programadas: '',
     avisos: [],
     anotacoes: '',
     checklist: [],
@@ -53,6 +60,7 @@ const normalizeOrder = (order?: string[]) => {
   const missing = DEFAULT_CARD_ORDER.filter((k) => !cleaned.includes(k));
   return cleaned.length ? [...cleaned, ...missing] : [...DEFAULT_CARD_ORDER];
 };
+
 
 export function useDailySummary(date: string) {
   return useQuery({
@@ -71,11 +79,15 @@ export function useDailySummary(date: string) {
         ...d,
         despesas: d.despesas || [],
         alteracoes: d.alteracoes || [],
+        receitas_receber: d.receitas_receber || [],
+        receitas_esperadas: d.receitas_esperadas || '',
+        despesas_programadas: d.despesas_programadas || '',
         avisos: d.avisos || [],
         checklist: d.checklist || [],
         assinaturas: d.assinaturas || [],
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
+
     },
   });
 }
