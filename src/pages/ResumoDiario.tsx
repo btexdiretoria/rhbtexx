@@ -345,7 +345,7 @@ export default function ResumoDiario() {
         ))}
         {!state.checklist.length && <p className="text-xs text-muted-foreground">Nenhum item na lista</p>}
         <Button variant="outline" size="sm" onClick={() => update({ checklist: [...state.checklist, { id: uid(), texto: '', done: false }] })}>
-          <Plus className="mr-1 h-4 w-4" /> Adicionar checkbox
+          <Plus className="mr-1 h-4 w-4" /> Adicionar anexo
         </Button>
       </div>
     ),
