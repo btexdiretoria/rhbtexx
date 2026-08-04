@@ -176,11 +176,45 @@ const CashFlowTable = ({
     return undefined;
   };
 
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 30));
+      exportFluxoPDF(
+        dates.map((d) => ({
+          date: d,
+          receita: computedRows.dailyRevenue[d] || 0,
+          despesa: computedRows.dailyExpense[d] || 0,
+          balanco: computedRows.balance[d] || 0,
+          saldoFinal: computedRows.saldoFinal[d] || 0,
+        }))
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
-      {title && (
-        <h3 className="text-sm font-bold text-foreground mb-2">{title}</h3>
-      )}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        {title ? (
+          <h3 className="text-sm font-bold text-foreground">{title}</h3>
+        ) : (
+          <span />
+        )}
+        <Button size="sm" variant="outline" onClick={handleExportPDF} disabled={exporting}>
+          {exporting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Gerando PDF…
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4 mr-1.5" /> Exportar PDF
+            </>
+          )}
+        </Button>
+      </div>
+
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="min-w-max w-full text-sm">
           <colgroup>
