@@ -79,11 +79,15 @@ export function useDailySummary(date: string) {
         ...d,
         despesas: d.despesas || [],
         alteracoes: d.alteracoes || [],
+        receitas_receber: d.receitas_receber || [],
+        receitas_esperadas: d.receitas_esperadas || '',
+        despesas_programadas: d.despesas_programadas || '',
         avisos: d.avisos || [],
         checklist: d.checklist || [],
         assinaturas: d.assinaturas || [],
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
+
     },
   });
 }
