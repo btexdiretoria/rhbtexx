@@ -261,6 +261,31 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     );
   }
 
+  const receitas = (s.receitas_receber || []).filter((r) => notEmpty(r.texto) || notEmpty(r.valor));
+  if (receitas.length) {
+    section('Receitas a Receber');
+    table(
+      ['Descritivo', 'Valor'],
+      receitas.map((r) => [r.texto, money(r.valor)]),
+      [CONTENT_W - 45, 45],
+      ['left', 'right'],
+    );
+    if (receitas.length > 1) {
+      const totalRec = receitas.reduce((acc, r) => acc + parseMoney(r.valor), 0);
+      ensure(10);
+      pdf.setFillColor(...GRAY_LIGHT);
+      pdf.roundedRect(M, y, CONTENT_W, 9, 1.6, 1.6, 'F');
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('TOTAL DE RECEITAS', M + 4, y + 6);
+      pdf.setTextColor(...GREEN);
+      pdf.setFontSize(10);
+      pdf.text(money(totalRec), PAGE_W - M - 4, y + 6, { align: 'right' });
+      y += 15;
+    }
+  }
+
   const resultCols = [
     { label: 'Início do mês', value: s.resultado_inicio },
     { label: 'Ontem', value: s.resultado_ontem },
@@ -268,9 +293,36 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   ];
   const hasResult = resultCols.some((r) => notEmpty(r.value));
   const alteracoes = s.alteracoes.filter((a) => notEmpty(a.texto) || notEmpty(a.valor));
-  if (hasResult || alteracoes.length) {
+  const mesBoxes = [
+    { label: 'Receitas esperadas para o mês', value: s.receitas_esperadas, color: GREEN },
+    { label: 'Despesas programadas para o mês', value: s.despesas_programadas, color: RED },
+  ].filter((b) => notEmpty(b.value));
+  if (hasResult || alteracoes.length || mesBoxes.length) {
     section('Resultado Esperado');
+    if (mesBoxes.length) {
+      ensure(20);
+      const gap = 5;
+      const bw = (CONTENT_W - gap) / 2;
+      mesBoxes.forEach((b, i) => {
+        const x = M + i * (bw + gap);
+        pdf.setFillColor(...GRAY_LIGHT);
+        pdf.setDrawColor(...GRAY_LINE);
+        pdf.roundedRect(x, y, bw, 17, 2, 2, 'FD');
+        pdf.setFillColor(...b.color);
+        pdf.rect(x, y + 2.5, 1.2, 12, 'F');
+        pdf.setTextColor(...GRAY_SOFT);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.8);
+        pdf.text(b.label.toUpperCase(), x + 4.5, y + 6.5);
+        pdf.setTextColor(...b.color);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.text(money(b.value), x + 4.5, y + 13.5);
+      });
+      y += 22;
+    }
     if (hasResult) {
+
       ensure(20);
       pdf.setFillColor(...GRAY_LIGHT);
       pdf.roundedRect(M, y, CONTENT_W, 18, 2, 2, 'F');
