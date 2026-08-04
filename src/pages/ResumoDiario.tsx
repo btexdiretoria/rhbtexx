@@ -159,6 +159,8 @@ export default function ResumoDiario() {
   };
 
   const saldoAlteracoes = state.alteracoes.reduce((acc, a) => acc + parseMoney(a.valor), 0);
+  const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
+
 
   const cardContent: Record<string, React.ReactNode> = {
     despesas: (
