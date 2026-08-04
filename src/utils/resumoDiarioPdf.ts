@@ -399,7 +399,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const checklist = s.checklist?.filter((c) => notEmpty(c.texto)) || [];
   if (checklist.length) {
-    section('Checklist');
+    section('Anexos');
     checklist.forEach((c) => {
       ensure(9);
       pdf.setDrawColor(...GRAY_DARK);
