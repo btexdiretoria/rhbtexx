@@ -139,55 +139,54 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     y += 26;
   }
 
-  /* ── Título de seção ── */
+  /* ── Título de seção (faixa destacada) ── */
   const section = (title: string) => {
-    ensure(16);
+    ensure(18);
+    const h = 9;
+    pdf.setFillColor(232, 240, 254);
+    pdf.roundedRect(M, y, CONTENT_W, h, 1.6, 1.6, 'F');
+    pdf.setFillColor(...NAVY);
+    pdf.rect(M, y, 2.6, h, 'F');
     pdf.setTextColor(...NAVY);
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10.5);
-    pdf.text(title.toUpperCase(), M, y);
+    pdf.setFontSize(9.8);
+    pdf.text(title.toUpperCase(), M + 6, y + 6.2);
     pdf.setDrawColor(...BLUE);
-    pdf.setLineWidth(0.6);
-    pdf.line(M, y + 2.2, M + 18, y + 2.2);
-    pdf.setDrawColor(...GRAY_LINE);
-    pdf.setLineWidth(0.3);
-    pdf.line(M + 18, y + 2.2, PAGE_W - M, y + 2.2);
-    y += 8;
+    pdf.setLineWidth(0.5);
+    pdf.line(M, y + h, PAGE_W - M, y + h);
+    y += h + 5;
   };
 
   /* ── Tabela zebrada ── */
+  const HEAD_BG: [number, number, number] = [226, 236, 252];
   const table = (headers: string[], rows: string[][], widths: number[], aligns: ('left' | 'right')[] = []) => {
     const rowH = 7.5;
+    const drawHead = () => {
+      pdf.setFillColor(...HEAD_BG);
+      pdf.rect(M, y, CONTENT_W, rowH, 'F');
+      pdf.setDrawColor(...GRAY_LINE);
+      pdf.setLineWidth(0.2);
+      pdf.line(M, y + rowH, PAGE_W - M, y + rowH);
+      pdf.setTextColor(...NAVY);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      let hx = M;
+      headers.forEach((h, i) => {
+        const a = aligns[i] || 'left';
+        pdf.text(h, a === 'right' ? hx + widths[i] - 3 : hx + 3, y + 5, { align: a });
+        hx += widths[i];
+      });
+      y += rowH;
+    };
     ensure(rowH * 2);
-    pdf.setFillColor(...NAVY);
-    pdf.rect(M, y, CONTENT_W, rowH, 'F');
-    pdf.setTextColor(...WHITE);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(8);
-    let x = M;
-    headers.forEach((h, i) => {
-      const a = aligns[i] || 'left';
-      pdf.text(h, a === 'right' ? x + widths[i] - 3 : x + 3, y + 5, { align: a });
-      x += widths[i];
-    });
-    y += rowH;
+    drawHead();
 
     rows.forEach((r, ri) => {
       if (y + rowH > PAGE_H - 20) {
         newPage();
-        pdf.setFillColor(...NAVY);
-        pdf.rect(M, y, CONTENT_W, rowH, 'F');
-        pdf.setTextColor(...WHITE);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8);
-        let hx = M;
-        headers.forEach((h, i) => {
-          const a = aligns[i] || 'left';
-          pdf.text(h, a === 'right' ? hx + widths[i] - 3 : hx + 3, y + 5, { align: a });
-          hx += widths[i];
-        });
-        y += rowH;
+        drawHead();
       }
+
       if (ri % 2 === 1) {
         pdf.setFillColor(249, 250, 251);
         pdf.rect(M, y, CONTENT_W, rowH, 'F');
