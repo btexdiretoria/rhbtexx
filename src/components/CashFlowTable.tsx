@@ -1,10 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
 import { CashFlowData, RawEntry, formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight, FileDown, Loader2 } from "lucide-react";
 import TransactionPanel from "@/components/TransactionPanel";
 import { cn } from "@/lib/utils";
 import DaySummaryPanel from "@/components/DaySummaryPanel";
+import { exportFluxoPDF } from "@/utils/fluxoPdf";
+
 
 const todayIso = (() => {
   const d = new Date();
@@ -77,7 +80,10 @@ const CashFlowTable = ({
   const [panelFilterFn, setPanelFilterFn] = useState<((e: RawEntry) => boolean) | null>(null);
   const [daySummaryDate, setDaySummaryDate] = useState<string | null>(null);
 
+  const [exporting, setExporting] = useState(false);
+
   const computedRows = useMemo(() => {
+
     const dates = filteredDates;
     const dailyRevenue: Record<string, number> = {};
     const dailyExpense: Record<string, number> = {};
@@ -170,11 +176,45 @@ const CashFlowTable = ({
     return undefined;
   };
 
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 30));
+      exportFluxoPDF(
+        dates.map((d) => ({
+          date: d,
+          receita: computedRows.dailyRevenue[d] || 0,
+          despesa: computedRows.dailyExpense[d] || 0,
+          balanco: computedRows.balance[d] || 0,
+          saldoFinal: computedRows.saldoFinal[d] || 0,
+        }))
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <>
-      {title && (
-        <h3 className="text-sm font-bold text-foreground mb-2">{title}</h3>
-      )}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        {title ? (
+          <h3 className="text-sm font-bold text-foreground">{title}</h3>
+        ) : (
+          <span />
+        )}
+        <Button size="sm" variant="outline" onClick={handleExportPDF} disabled={exporting}>
+          {exporting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Gerando PDF…
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4 mr-1.5" /> Exportar PDF
+            </>
+          )}
+        </Button>
+      </div>
+
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="min-w-max w-full text-sm">
           <colgroup>
