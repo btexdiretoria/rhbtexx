@@ -1,10 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
 import { CashFlowData, RawEntry, formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight, FileDown, Loader2 } from "lucide-react";
 import TransactionPanel from "@/components/TransactionPanel";
 import { cn } from "@/lib/utils";
 import DaySummaryPanel from "@/components/DaySummaryPanel";
+import { exportFluxoPDF } from "@/utils/fluxoPdf";
+
 
 const todayIso = (() => {
   const d = new Date();
