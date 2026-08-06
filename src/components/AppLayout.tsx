@@ -79,9 +79,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => { await signOut(); navigate('/login'); };
 
-  const activeGroupIndex = sidebarGroups.findIndex(g => g.items.some(i => isPathActive(location.pathname, i.path)));
+  const activeGroupIndex = sidebarGroups.findIndex(g =>
+    g.items.some(i => isPathActive(location.pathname, i.path)) ||
+    (g.subGroups?.some(s => s.items.some(i => isPathActive(location.pathname, i.path))) ?? false)
+  );
   const [openGroup, setOpenGroup] = useState<number | null>(activeGroupIndex >= 0 ? activeGroupIndex : 0);
   const toggleGroup = (idx: number) => setOpenGroup(prev => (prev === idx ? null : idx));
+  const [openSubGroup, setOpenSubGroup] = useState<string | null>(() => {
+    for (const g of sidebarGroups) {
+      const sub = g.subGroups?.find(s => s.items.some(i => isPathActive(location.pathname, i.path)));
+      if (sub) return sub.label;
+    }
+    return null;
+  });
+  const toggleSubGroup = (label: string) => setOpenSubGroup(prev => (prev === label ? null : label));
 
   return (
     <div className="flex min-h-screen w-full">
