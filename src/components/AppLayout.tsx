@@ -9,28 +9,28 @@ import AccessDeniedOverlay from '@/components/AccessDeniedOverlay';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 interface SidebarItem { label: string; icon: React.ElementType; path: string; }
-interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
+interface SidebarSubGroup { label: string; icon: React.ElementType; items: SidebarItem[]; }
+interface SidebarGroup { label: string; icon: React.ElementType; items: SidebarItem[]; subGroups?: SidebarSubGroup[]; }
 
 const sidebarGroups: SidebarGroup[] = [
   { label: 'Recursos Humanos', icon: Briefcase, items: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { label: 'Funcionários', icon: Users, path: '/funcionarios' },
-    { label: 'Novo Funcionário', icon: UserPlus, path: '/novo-funcionario' },
-    { label: 'Avaliações', icon: BarChart3, path: '/avaliacoes' },
-    { label: 'Desligamentos', icon: LogOut, path: '/desligamentos' },
   ]},
   { label: 'Pagamentos', icon: Landmark, items: [
     { label: 'Salário (Bruto)', icon: DollarSign, path: '/salarios' },
     { label: 'Salário (Líquido)', icon: DollarSign, path: '/salario-liquido' },
-    { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
-    { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
-    { label: 'Horas Extras', icon: DollarSign, path: '/horas-extras' },
+  ], subGroups: [
+    { label: 'Benefícios', icon: Gift, items: [
+      { label: 'Vale Alimentação', icon: DollarSign, path: '/vale-alimentacao' },
+      { label: 'Vale Transporte', icon: DollarSign, path: '/vale-transporte' },
+      { label: 'Horas Extras', icon: DollarSign, path: '/horas-extras' },
+    ]},
   ]},
   { label: 'Finanças', icon: Receipt, items: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
-    { label: 'Calendário', icon: CalendarDays, path: '/calendario-financas' },
   ]},
   { label: 'Configurações', icon: Settings, items: [
     { label: 'Usuários', icon: UserCog, path: '/usuarios' },
@@ -44,11 +44,23 @@ const standaloneItems: SidebarItem[] = [
   { label: 'Histórico', icon: ClipboardList, path: '/historico' },
 ];
 
-const allItems = [...sidebarGroups.flatMap(g => g.items), ...standaloneItems];
+const hiddenItems: SidebarItem[] = [
+  { label: 'Novo Funcionário', icon: UserPlus, path: '/novo-funcionario' },
+  { label: 'Avaliações', icon: BarChart3, path: '/avaliacoes' },
+  { label: 'Desligamentos', icon: LogOut, path: '/desligamentos' },
+  { label: 'Calendário', icon: CalendarDays, path: '/calendario-financas' },
+];
+
+const allItems = [
+  ...sidebarGroups.flatMap(g => [...g.items, ...(g.subGroups?.flatMap(s => s.items) ?? [])]),
+  ...standaloneItems,
+  ...hiddenItems,
+];
 
 function isPathActive(pathname: string, path: string) {
   return pathname === path || (path !== '/' && pathname.startsWith(path));
 }
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
