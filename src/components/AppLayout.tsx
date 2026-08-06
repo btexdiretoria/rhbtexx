@@ -172,7 +172,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="pt-2 border-t border-sidebar-border mt-2 space-y-0.5">
-            <ThemeSwitcher variant="sidebar" />
             <button onClick={handleLogout} className="sidebar-item w-full text-left hover:!bg-destructive/20 hover:!text-destructive">
               <Power className="w-5 h-5 flex-shrink-0" /><span>Sair</span>
             </button>
