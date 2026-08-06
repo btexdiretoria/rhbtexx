@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil, Check } from 'lucide-react';
+import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, LayoutList, LayoutGrid, Pencil, Check, UserPlus, BarChart3, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
