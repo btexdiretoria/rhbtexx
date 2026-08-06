@@ -192,7 +192,19 @@ export default function Reports() {
   const currentEmployeeReport = employeeReportOptions.find(o => o.id === selectedEmployeeReport)!;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-foreground">Relatórios</h1>
+        <p className="text-sm text-muted-foreground">Escolha um grupo, selecione o relatório e exporte em PDF ou Excel</p>
+      </div>
+
+      <Tabs defaultValue="funcionarios" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="funcionarios" className="gap-2"><Users className="w-4 h-4" /> Funcionários</TabsTrigger>
+          <TabsTrigger value="financeiros" className="gap-2"><DollarSign className="w-4 h-4" /> Financeiros</TabsTrigger>
+        </TabsList>
+
+      <TabsContent value="funcionarios" className="mt-0">
       {/* Employee Reports */}
       <div>
         <div className="flex items-center gap-3 mb-6">
