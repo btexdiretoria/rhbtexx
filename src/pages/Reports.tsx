@@ -42,14 +42,16 @@ const financialReportOptions: { id: FinancialReportType; label: string; descript
   { id: 'transport', label: 'Vale Transporte', description: 'Pagamentos de vale transporte do período' },
 ];
 
-type EmployeeReportType = 'quadro' | 'desligamentos' | 'aniversariantes' | 'horas_extras';
+type EmployeeReportType = 'quadro' | 'desligamentos' | 'aniversariantes' | 'horas_extras' | 'chaves_pix';
 
 const employeeReportOptions: { id: EmployeeReportType; label: string; description: string; icon: typeof FileSpreadsheet; formats: ('PDF' | 'Excel')[] }[] = [
   { id: 'quadro', label: 'Quadro Atual de Funcionários', description: 'Lista completa de funcionários ativos com dados pessoais e profissionais.', icon: FileSpreadsheet, formats: ['PDF', 'Excel'] },
   { id: 'desligamentos', label: 'Relatório de Desligamentos', description: 'Histórico de desligamentos com motivos, datas e análise por período.', icon: FileText, formats: ['PDF', 'Excel'] },
   { id: 'aniversariantes', label: 'Relatório de Aniversariantes', description: 'Funcionários com aniversário no mês selecionado.', icon: Cake, formats: ['PDF'] },
   { id: 'horas_extras', label: 'Relatório de Horas Extras', description: 'Horas extras importadas no período, com Chave PIX antes do valor.', icon: Clock, formats: ['PDF', 'Excel'] },
+  { id: 'chaves_pix', label: 'Relatório de Chaves PIX', description: 'Nome, status e chave PIX (Ativos, Prestadores, Afastados, Teste e Aviso Prévio).', icon: KeyRound, formats: ['PDF', 'Excel'] },
 ];
+
 
 export default function Reports() {
   const [selectedEmployeeReport, setSelectedEmployeeReport] = useState<EmployeeReportType>('quadro');
@@ -114,7 +116,11 @@ export default function Reports() {
         const periodLabel = `${MONTHS[singleMonth]}/${singleYear}`;
         if (format === 'PDF') exportHorasExtrasPDF(rows, periodLabel);
         else exportHorasExtrasExcel(rows, periodLabel);
+      } else if (title === 'Relatório de Chaves PIX') {
+        if (format === 'PDF') exportChavesPixPDF(employees);
+        else exportChavesPixExcel(employees);
       }
+
       toast({ title: 'Exportação concluída!', description: `${title} foi baixado com sucesso.` });
     } catch (err) {
       toast({ title: 'Erro ao exportar', description: String(err), variant: 'destructive' });
@@ -303,216 +309,135 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {/* Tipo de Relatório */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Relatório</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {financialReportOptions.map(opt => (
-                  <label key={opt.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedReports.includes(opt.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/30'}`}>
-                    <Checkbox checked={selectedReports.includes(opt.id)} onCheckedChange={() => toggleReport(opt.id)} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{opt.label}</p>
-                      <p className="text-xs text-muted-foreground">{opt.description}</p>
-                    </div>
-                  </label>
-                ))}
-              </CardContent>
-            </Card>
+        {/* Compact filter + preview bar */}
+        <Card className="mb-4">
+          <CardContent className="p-3 space-y-3">
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button
+                  className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${periodType === 'single' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50'}`}
+                  onClick={() => setPeriodType('single')}
+                >Mês único</button>
+                <button
+                  className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${periodType === 'range' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50'}`}
+                  onClick={() => setPeriodType('range')}
+                >Intervalo</button>
+              </div>
 
-            {/* Filtros */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5" /> Filtros
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Período</label>
-                  <div className="flex gap-2">
-                    <Button variant={periodType === 'single' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodType('single')}>Mês único</Button>
-                    <Button variant={periodType === 'range' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodType('range')}>Intervalo</Button>
-                  </div>
-                </div>
-
-                {periodType === 'single' ? (
-                  <div className="flex gap-2">
-                    <Select value={String(singleMonth)} onValueChange={v => setSingleMonth(Number(v))}>
-                      <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
-                    </Select>
-                    <Select value={String(singleYear)} onValueChange={v => setSingleYear(Number(v))}>
-                      <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground w-8">De:</span>
-                      <Select value={String(fromMonth)} onValueChange={v => setFromMonth(Number(v))}>
-                        <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <Select value={String(fromYear)} onValueChange={v => setFromYear(Number(v))}>
-                        <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground w-8">Até:</span>
-                      <Select value={String(toMonth)} onValueChange={v => setToMonth(Number(v))}>
-                        <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <Select value={String(toYear)} onValueChange={v => setToYear(Number(v))}>
-                        <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Departamento</label>
-                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os departamentos</SelectItem>
-                      {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                    </SelectContent>
+              {periodType === 'single' ? (
+                <div className="flex gap-1.5">
+                  <Select value={String(singleMonth)} onValueChange={v => setSingleMonth(Number(v))}>
+                    <SelectTrigger className="h-8 w-[120px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Select value={String(singleYear)} onValueChange={v => setSingleYear(Number(v))}>
+                    <SelectTrigger className="h-8 w-[80px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Funcionário</label>
-                  <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os funcionários</SelectItem>
-                      {employees.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                    </SelectContent>
+              ) : (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">De</span>
+                  <Select value={String(fromMonth)} onValueChange={v => setFromMonth(Number(v))}>
+                    <SelectTrigger className="h-8 w-[115px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Select value={String(fromYear)} onValueChange={v => setFromYear(Number(v))}>
+                    <SelectTrigger className="h-8 w-[78px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <span className="text-xs text-muted-foreground">até</span>
+                  <Select value={String(toMonth)} onValueChange={v => setToMonth(Number(v))}>
+                    <SelectTrigger className="h-8 w-[115px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Select value={String(toYear)} onValueChange={v => setToYear(Number(v))}>
+                    <SelectTrigger className="h-8 w-[78px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>{[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+              )}
 
-                {selectedReports.includes('food') && (
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Método de Entrega (Vale Alimentação)</label>
-                    <Select value={deliveryMethodFilter} onValueChange={setDeliveryMethodFilter}>
-                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="Alelo">Alelo</SelectItem>
-                        <SelectItem value="Cesta Básica">Cesta Básica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="h-8 w-[170px] text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
+                  {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
 
-          {/* Preview + Export */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Eye className="w-3.5 h-3.5" /> Prévia dos Totais
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {selectedReports.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Selecione um tipo de relatório</p>
-                ) : (
-                  <>
-                    {selectedReports.includes('gross') && (
-                      <div className="flex justify-between items-center py-2 border-b border-border">
-                        <span className="text-sm text-muted-foreground">Folha Bruta</span>
-                        <span className="text-sm font-semibold text-foreground">{formatCurrency(previewData.grossTotal)}</span>
-                      </div>
-                    )}
-                    {selectedReports.includes('food') && (
-                      <div className="flex justify-between items-center py-2 border-b border-border">
-                        <span className="text-sm text-muted-foreground">Vale Alimentação</span>
-                        <span className="text-sm font-semibold text-foreground">{formatCurrency(previewData.foodTotal)}</span>
-                      </div>
-                    )}
-                    {selectedReports.includes('transport') && (
-                      <div className="flex justify-between items-center py-2 border-b border-border">
-                        <span className="text-sm text-muted-foreground">Vale Transporte</span>
-                        <span className="text-sm font-semibold text-foreground">{formatCurrency(previewData.transportTotal)}</span>
-                      </div>
-                    )}
-                    {selectedReports.includes('net') && (
-                      <>
-                        <div className="flex justify-between items-center py-2 border-b border-border">
-                          <span className="text-sm text-muted-foreground">Salário Líquido — {MONTHS[singleMonth]}/{singleYear}</span>
-                          <span className="text-sm font-semibold text-foreground">{formatCurrency(netTotal)}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-1 border-b border-border">
-                          <span className="text-xs text-muted-foreground">Funcionários com lançamentos</span>
-                          <span className="text-xs font-medium text-foreground">{netRows.length}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground">Funcionários</span>
-                      <span className="text-sm font-semibold text-foreground">{previewData.employeeCount}</span>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+              <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+                <SelectTrigger className="h-8 w-[170px] text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os funcionários</SelectItem>
+                  {employees.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Download className="w-3.5 h-3.5" /> Exportar
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button className="w-full gap-2" onClick={() => handleFinancialExport('PDF')} disabled={selectedReports.length === 0}>
-                  <FileText className="w-4 h-4" /> Exportar PDF
+              {selectedReports.includes('food') && (
+                <Select value={deliveryMethodFilter} onValueChange={setDeliveryMethodFilter}>
+                  <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Entrega: Todos</SelectItem>
+                    <SelectItem value="Alelo">Alelo</SelectItem>
+                    <SelectItem value="Cesta Básica">Cesta Básica</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+
+              <div className="ml-auto flex gap-1.5">
+                <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={() => handleFinancialExport('PDF')} disabled={selectedReports.length === 0}>
+                  <FileText className="w-3.5 h-3.5" /> PDF
                 </Button>
-                <Button variant="outline" className="w-full gap-2" onClick={() => handleFinancialExport('Excel')} disabled={selectedReports.length === 0}>
-                  <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
-                </Button>
-                <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  Inclui: nome da empresa, período, data de geração e filtros aplicados
-                </p>
-              </CardContent>
-            </Card>
-        </div>
-
-        {/* Chaves PIX Report */}
-        <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <KeyRound className="w-4 h-4" /> Chaves PIX
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-              <p className="text-sm text-muted-foreground">
-                Lista de funcionários (Ativos, Prestadores de Serviço, Afastados, Teste e Aviso Prévio) com nome, status e chave PIX cadastrada.
-              </p>
-              <div className="flex gap-2">
-                <Button className="gap-2" onClick={() => { try { exportChavesPixPDF(employees); toast({ title: 'Exportação concluída!', description: 'Chaves PIX (PDF) baixado.' }); } catch (e) { toast({ title: 'Erro ao exportar', description: String(e), variant: 'destructive' }); } }}>
-                  <FileText className="w-4 h-4" /> PDF
-                </Button>
-                <Button variant="outline" className="gap-2" onClick={() => { try { exportChavesPixExcel(employees); toast({ title: 'Exportação concluída!', description: 'Chaves PIX (Excel) baixado.' }); } catch (e) { toast({ title: 'Erro ao exportar', description: String(e), variant: 'destructive' }); } }}>
-                  <FileSpreadsheet className="w-4 h-4" /> Excel
+                <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={() => handleFinancialExport('Excel')} disabled={selectedReports.length === 0}>
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
                 </Button>
               </div>
             </div>
+
+            {/* Totals strip */}
+            {selectedReports.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Selecione abaixo os relatórios para ver a prévia dos totais.</p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                <Badge variant="secondary" className="font-normal text-xs">{periodLabel}</Badge>
+                <Badge variant="outline" className="font-normal text-xs">{previewData.employeeCount} funcionário(s)</Badge>
+                {selectedReports.includes('gross') && (
+                  <span className="text-xs text-muted-foreground">Folha Bruta <b className="text-foreground">{formatCurrency(previewData.grossTotal)}</b></span>
+                )}
+                {selectedReports.includes('net') && (
+                  <span className="text-xs text-muted-foreground">Líquido <b className="text-foreground">{formatCurrency(netTotal)}</b> ({netRows.length})</span>
+                )}
+                {selectedReports.includes('food') && (
+                  <span className="text-xs text-muted-foreground">V. Alimentação <b className="text-foreground">{formatCurrency(previewData.foodTotal)}</b></span>
+                )}
+                {selectedReports.includes('transport') && (
+                  <span className="text-xs text-muted-foreground">V. Transporte <b className="text-foreground">{formatCurrency(previewData.transportTotal)}</b></span>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tipo de Relatório */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Relatório</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {financialReportOptions.map(opt => (
+              <label key={opt.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedReports.includes(opt.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/30'}`}>
+                <Checkbox checked={selectedReports.includes(opt.id)} onCheckedChange={() => toggleReport(opt.id)} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground">{opt.description}</p>
+                </div>
+              </label>
+            ))}
           </CardContent>
         </Card>
       </div>
-      </div>
+
       </TabsContent>
     </Tabs>
     </div>
