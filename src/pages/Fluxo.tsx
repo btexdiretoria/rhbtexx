@@ -9,7 +9,8 @@ import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, 
 import { DateEdits, applyEdits, exportEdits } from "@/lib/simulation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, FlaskConical, Save, Download, Printer, Trash2 } from "lucide-react";
+import { BarChart3, FlaskConical, Save, Download, Printer, Trash2, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -317,8 +318,16 @@ const Index = () => {
             </div>
           </div>
 
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/calendario-financas">
+                <CalendarDays className="h-4 w-4" />
+                Calendário
+              </Link>
+            </Button>
           {data && (
-            <div className="flex items-center gap-2">
+            <>
+
               <Button
                 variant={simulationMode ? "default" : "outline"}
                 onClick={toggleSimulation}
@@ -343,8 +352,10 @@ const Index = () => {
                 <Trash2 className="h-4 w-4" />
                 Limpar
               </Button>
-            </div>
+            </>
           )}
+          </div>
+
         </div>
 
         {/* Upload */}
