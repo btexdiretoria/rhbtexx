@@ -317,8 +317,16 @@ const Index = () => {
             </div>
           </div>
 
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/calendario-financas">
+                <CalendarDays className="h-4 w-4" />
+                Calendário
+              </Link>
+            </Button>
           {data && (
-            <div className="flex items-center gap-2">
+            <>
+
               <Button
                 variant={simulationMode ? "default" : "outline"}
                 onClick={toggleSimulation}
