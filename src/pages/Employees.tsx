@@ -79,6 +79,19 @@ export default function Employees() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {/* Quick access */}
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" className="gap-2">
+          <Link to="/novo-funcionario"><UserPlus className="w-4 h-4" />Novo Funcionário</Link>
+        </Button>
+        <Button asChild variant="outline" className="gap-2">
+          <Link to="/avaliacoes"><BarChart3 className="w-4 h-4" />Avaliações</Link>
+        </Button>
+        <Button asChild variant="outline" className="gap-2">
+          <Link to="/desligamentos"><LogOut className="w-4 h-4" />Desligamentos</Link>
+        </Button>
+      </div>
+
       {/* Filters */}
       <div className="kpi-card">
         <div className="flex flex-col md:flex-row gap-3">
