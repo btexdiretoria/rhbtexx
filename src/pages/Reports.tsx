@@ -116,7 +116,11 @@ export default function Reports() {
         const periodLabel = `${MONTHS[singleMonth]}/${singleYear}`;
         if (format === 'PDF') exportHorasExtrasPDF(rows, periodLabel);
         else exportHorasExtrasExcel(rows, periodLabel);
+      } else if (title === 'Relatório de Chaves PIX') {
+        if (format === 'PDF') exportChavesPixPDF(employees);
+        else exportChavesPixExcel(employees);
       }
+
       toast({ title: 'Exportação concluída!', description: `${title} foi baixado com sucesso.` });
     } catch (err) {
       toast({ title: 'Erro ao exportar', description: String(err), variant: 'destructive' });
