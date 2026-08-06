@@ -500,6 +500,9 @@ export default function Reports() {
         </Card>
       </div>
       </div>
+      </TabsContent>
+    </Tabs>
     </div>
+
   );
 }
