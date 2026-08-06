@@ -276,8 +276,9 @@ export default function Reports() {
         </div>
       </div>
 
-      <Separator />
+      </TabsContent>
 
+      <TabsContent value="financeiros" className="mt-0">
       {/* Financial Reports */}
       <div>
         <div className="flex items-center gap-3 mb-6">
