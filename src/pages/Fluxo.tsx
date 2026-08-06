@@ -9,7 +9,8 @@ import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, 
 import { DateEdits, applyEdits, exportEdits } from "@/lib/simulation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, FlaskConical, Save, Download, Printer, Trash2 } from "lucide-react";
+import { BarChart3, FlaskConical, Save, Download, Printer, Trash2, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
