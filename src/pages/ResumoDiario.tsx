@@ -244,65 +244,9 @@ export default function ResumoDiario() {
         </Button>
       </div>
     ),
-    resultado: (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-success/30 bg-success/5 px-3 py-2">
-            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-success">Receitas esperadas para o mês</p>
-            <MoneyInput value={state.receitas_esperadas} onChange={(v) => update({ receitas_esperadas: v })} inputClass="!font-bold text-success" />
-          </div>
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
-            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-destructive">Despesas programadas para o mês</p>
-            <MoneyInput value={state.despesas_programadas} onChange={(v) => update({ despesas_programadas: v })} inputClass="!font-bold text-destructive" />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-end gap-6 rounded-lg bg-muted/50 px-4 py-3">
+    resultado: renderResultado('caixa'),
+    resultado_comp: renderResultado('competencia'),
 
-          <span className="text-sm font-semibold text-foreground">Resultado esperado</span>
-          <span className="flex-1" />
-          <div className="min-w-[110px] mr-8">
-            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Início do mês</p>
-            <MoneyInput value={state.resultado_inicio} onChange={(v) => update({ resultado_inicio: v })}
-              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_inicio))}`} />
-          </div>
-          <div className="min-w-[110px]">
-            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Ontem</p>
-            <MoneyInput value={state.resultado_ontem} onChange={(v) => update({ resultado_ontem: v })}
-              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_ontem))}`} />
-          </div>
-          <div className="min-w-[110px]">
-            <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">Hoje</p>
-            <MoneyInput value={state.resultado_hoje} onChange={(v) => update({ resultado_hoje: v })}
-              inputClass={`!font-bold ${signClass(parseMoney(state.resultado_hoje))}`} />
-          </div>
-        </div>
-        <div className="border-t border-border pt-3">
-          <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Alterações</p>
-          <div className="space-y-2">
-            {state.alteracoes.map((item, i) => (
-              <div key={item.id} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <InlineText value={item.texto} placeholder="Descritivo" className="flex-1"
-                  onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], texto: v }; update({ alteracoes: arr }); }} />
-                <MoneyInput value={item.valor || ''} className="w-32"
-                  inputClass={signClass(parseMoney(item.valor))}
-                  onChange={(v) => { const arr = [...state.alteracoes]; arr[i] = { ...arr[i], valor: v }; update({ alteracoes: arr }); }} />
-                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ alteracoes: state.alteracoes.filter((_, j) => j !== i) })}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2">
-              <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Saldo total</span>
-              <span className={`text-sm font-bold ${signClass(saldoAlteracoes)}`}>R$ {fmtMoney(saldoAlteracoes)}</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => update({ alteracoes: [...state.alteracoes, { id: uid(), texto: '', valor: '' }] })}>
-              <Plus className="mr-1 h-4 w-4" /> Adicionar
-            </Button>
-          </div>
-        </div>
-      </div>
-    ),
     avisos: (
       <div className="space-y-2">
         {state.avisos.map((item, i) => (
