@@ -262,6 +262,7 @@ export type Database = {
       daily_summary: {
         Row: {
           alteracoes: Json | null
+          alteracoes_comp: Json | null
           anotacoes: string | null
           assinaturas: Json | null
           avisos: Json | null
@@ -271,12 +272,17 @@ export type Database = {
           despesas: Json | null
           despesas_dia: string | null
           despesas_programadas: string
+          despesas_programadas_comp: string | null
           dias_uteis_restante: string | null
           faturamento_necessario: string | null
           id: string
           receitas_dia: string | null
           receitas_esperadas: string
+          receitas_esperadas_comp: string | null
           receitas_receber: Json
+          resultado_comp_hoje: string | null
+          resultado_comp_inicio: string | null
+          resultado_comp_ontem: string | null
           resultado_hoje: string | null
           resultado_inicio: string | null
           resultado_ontem: string | null
@@ -285,6 +291,7 @@ export type Database = {
         }
         Insert: {
           alteracoes?: Json | null
+          alteracoes_comp?: Json | null
           anotacoes?: string | null
           assinaturas?: Json | null
           avisos?: Json | null
@@ -294,12 +301,17 @@ export type Database = {
           despesas?: Json | null
           despesas_dia?: string | null
           despesas_programadas?: string
+          despesas_programadas_comp?: string | null
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
           receitas_dia?: string | null
           receitas_esperadas?: string
+          receitas_esperadas_comp?: string | null
           receitas_receber?: Json
+          resultado_comp_hoje?: string | null
+          resultado_comp_inicio?: string | null
+          resultado_comp_ontem?: string | null
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
@@ -308,6 +320,7 @@ export type Database = {
         }
         Update: {
           alteracoes?: Json | null
+          alteracoes_comp?: Json | null
           anotacoes?: string | null
           assinaturas?: Json | null
           avisos?: Json | null
@@ -317,12 +330,17 @@ export type Database = {
           despesas?: Json | null
           despesas_dia?: string | null
           despesas_programadas?: string
+          despesas_programadas_comp?: string | null
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
           receitas_dia?: string | null
           receitas_esperadas?: string
+          receitas_esperadas_comp?: string | null
           receitas_receber?: Json
+          resultado_comp_hoje?: string | null
+          resultado_comp_inicio?: string | null
+          resultado_comp_ontem?: string | null
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
