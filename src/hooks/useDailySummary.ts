@@ -23,6 +23,13 @@ export interface DailySummary {
   receitas_receber: ReceitaItem[];
   receitas_esperadas: string;
   despesas_programadas: string;
+  /* Resultado esperado — Competência */
+  resultado_comp_inicio: string;
+  resultado_comp_ontem: string;
+  resultado_comp_hoje: string;
+  receitas_esperadas_comp: string;
+  despesas_programadas_comp: string;
+  alteracoes_comp: AlteracaoItem[];
   avisos: AvisoItem[];
   anotacoes: string;
   checklist: ChecklistItem[];
@@ -30,7 +37,8 @@ export interface DailySummary {
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'avisos', 'anotacoes', 'checklist'];
+export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'resultado_comp', 'avisos', 'anotacoes', 'checklist'];
+
 
 export function emptySummary(date: string): DailySummary {
   return {
@@ -47,6 +55,13 @@ export function emptySummary(date: string): DailySummary {
     receitas_receber: [],
     receitas_esperadas: '',
     despesas_programadas: '',
+    resultado_comp_inicio: '',
+    resultado_comp_ontem: '',
+    resultado_comp_hoje: '',
+    receitas_esperadas_comp: '',
+    despesas_programadas_comp: '',
+    alteracoes_comp: [],
+
     avisos: [],
     anotacoes: '',
     checklist: [],
@@ -82,6 +97,10 @@ export function useDailySummary(date: string) {
         receitas_receber: d.receitas_receber || [],
         receitas_esperadas: d.receitas_esperadas || '',
         despesas_programadas: d.despesas_programadas || '',
+        alteracoes_comp: d.alteracoes_comp || [],
+        receitas_esperadas_comp: d.receitas_esperadas_comp || '',
+        despesas_programadas_comp: d.despesas_programadas_comp || '',
+
         avisos: d.avisos || [],
         checklist: d.checklist || [],
         assinaturas: d.assinaturas || [],

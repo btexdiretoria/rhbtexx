@@ -286,19 +286,24 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     }
   }
 
-  const resultCols = [
-    { label: 'Início do mês', value: s.resultado_inicio },
-    { label: 'Ontem', value: s.resultado_ontem },
-    { label: 'Hoje', value: s.resultado_hoje },
-  ];
-  const hasResult = resultCols.some((r) => notEmpty(r.value));
-  const alteracoes = s.alteracoes.filter((a) => notEmpty(a.texto) || notEmpty(a.valor));
-  const mesBoxes = [
-    { label: 'Receitas esperadas para o mês', value: s.receitas_esperadas, color: GREEN },
-    { label: 'Despesas programadas para o mês', value: s.despesas_programadas, color: RED },
-  ].filter((b) => notEmpty(b.value));
-  if (hasResult || alteracoes.length || mesBoxes.length) {
-    section('Resultado Esperado');
+  const renderResultado = (
+    title: string,
+    vals: { inicio?: string; ontem?: string; hoje?: string; rec?: string; desp?: string; alts: { texto: string; valor?: string }[] },
+  ) => {
+    const resultCols = [
+      { label: 'Início do mês', value: vals.inicio },
+      { label: 'Ontem', value: vals.ontem },
+      { label: 'Hoje', value: vals.hoje },
+    ];
+    const hasResult = resultCols.some((r) => notEmpty(r.value));
+    const alteracoes = (vals.alts || []).filter((a) => notEmpty(a.texto) || notEmpty(a.valor));
+    const mesBoxes = [
+      { label: 'Receitas esperadas para o mês', value: vals.rec, color: GREEN },
+      { label: 'Despesas programadas para o mês', value: vals.desp, color: RED },
+    ].filter((b) => notEmpty(b.value));
+    if (!hasResult && !alteracoes.length && !mesBoxes.length) return;
+
+    section(title);
     if (mesBoxes.length) {
       ensure(20);
       const gap = 5;
@@ -322,7 +327,6 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       y += 22;
     }
     if (hasResult) {
-
       ensure(20);
       pdf.setFillColor(...GRAY_LIGHT);
       pdf.roundedRect(M, y, CONTENT_W, 18, 2, 2, 'F');
@@ -331,10 +335,9 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setFontSize(9.5);
       pdf.text('Resultado esperado', M + 4, y + 11);
       const colW = 34;
-      const gaps = [0, 8, 8];
       let cx = PAGE_W - M - (colW * 3 + 8);
       resultCols.forEach((r, i) => {
-        if (i === 1) cx += gaps[1];
+        if (i === 1) cx += 8;
         const n = parseMoney(r.value);
         pdf.setTextColor(...GRAY_SOFT);
         pdf.setFont('helvetica', 'normal');
@@ -374,7 +377,26 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.text(money(total), PAGE_W - M - 4, y + 6, { align: 'right' });
       y += 15;
     }
-  }
+  };
+
+  renderResultado('Resultado Esperado — Caixa', {
+    inicio: s.resultado_inicio,
+    ontem: s.resultado_ontem,
+    hoje: s.resultado_hoje,
+    rec: s.receitas_esperadas,
+    desp: s.despesas_programadas,
+    alts: s.alteracoes || [],
+  });
+
+  renderResultado('Resultado Esperado — Competência', {
+    inicio: s.resultado_comp_inicio,
+    ontem: s.resultado_comp_ontem,
+    hoje: s.resultado_comp_hoje,
+    rec: s.receitas_esperadas_comp,
+    desp: s.despesas_programadas_comp,
+    alts: s.alteracoes_comp || [],
+  });
+
 
   const avisos = s.avisos.map((a) => a.texto).filter(notEmpty);
   if (avisos.length) {
