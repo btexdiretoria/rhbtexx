@@ -55,6 +55,13 @@ export function emptySummary(date: string): DailySummary {
     receitas_receber: [],
     receitas_esperadas: '',
     despesas_programadas: '',
+    resultado_comp_inicio: '',
+    resultado_comp_ontem: '',
+    resultado_comp_hoje: '',
+    receitas_esperadas_comp: '',
+    despesas_programadas_comp: '',
+    alteracoes_comp: [],
+
     avisos: [],
     anotacoes: '',
     checklist: [],
