@@ -97,6 +97,10 @@ export function useDailySummary(date: string) {
         receitas_receber: d.receitas_receber || [],
         receitas_esperadas: d.receitas_esperadas || '',
         despesas_programadas: d.despesas_programadas || '',
+        alteracoes_comp: d.alteracoes_comp || [],
+        receitas_esperadas_comp: d.receitas_esperadas_comp || '',
+        despesas_programadas_comp: d.despesas_programadas_comp || '',
+
         avisos: d.avisos || [],
         checklist: d.checklist || [],
         assinaturas: d.assinaturas || [],
