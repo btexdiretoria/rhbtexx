@@ -162,7 +162,80 @@ export default function ResumoDiario() {
   const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
 
 
+  const saldoAlteracoesComp = state.alteracoes_comp.reduce((acc, a) => acc + parseMoney(a.valor), 0);
+
+  const renderResultado = (variant: 'caixa' | 'competencia') => {
+    const isComp = variant === 'competencia';
+    const alt = isComp ? state.alteracoes_comp : state.alteracoes;
+    const setAlt = (arr: typeof alt) => update(isComp ? { alteracoes_comp: arr } : { alteracoes: arr });
+    const saldo = isComp ? saldoAlteracoesComp : saldoAlteracoes;
+    const rec = isComp ? state.receitas_esperadas_comp : state.receitas_esperadas;
+    const desp = isComp ? state.despesas_programadas_comp : state.despesas_programadas;
+    const res = isComp
+      ? [state.resultado_comp_inicio, state.resultado_comp_ontem, state.resultado_comp_hoje]
+      : [state.resultado_inicio, state.resultado_ontem, state.resultado_hoje];
+    const setRes = (i: number, v: string) => {
+      if (isComp) update(i === 0 ? { resultado_comp_inicio: v } : i === 1 ? { resultado_comp_ontem: v } : { resultado_comp_hoje: v });
+      else update(i === 0 ? { resultado_inicio: v } : i === 1 ? { resultado_ontem: v } : { resultado_hoje: v });
+    };
+    const labels = ['Início do mês', 'Ontem', 'Hoje'];
+    return (
+      <div className="space-y-4">
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${isComp ? 'border-primary/30 bg-primary/5' : 'border-warning/30 bg-warning/5'}`}>
+          <span className={`text-[0.66rem] font-bold uppercase tracking-[0.12em] ${isComp ? 'text-primary' : 'text-warning'}`}>
+            Referente a {isComp ? 'Competência' : 'Caixa'}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-success/30 bg-success/5 px-3 py-2">
+            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-success">Receitas esperadas para o mês</p>
+            <MoneyInput value={rec} onChange={(v) => update(isComp ? { receitas_esperadas_comp: v } : { receitas_esperadas: v })} inputClass="!font-bold text-success" />
+          </div>
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
+            <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-destructive">Despesas programadas para o mês</p>
+            <MoneyInput value={desp} onChange={(v) => update(isComp ? { despesas_programadas_comp: v } : { despesas_programadas: v })} inputClass="!font-bold text-destructive" />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-end gap-6 rounded-lg bg-muted/50 px-4 py-3">
+          <span className="text-sm font-semibold text-foreground">Resultado esperado</span>
+          <span className="flex-1" />
+          {res.map((v, i) => (
+            <div key={labels[i]} className={`min-w-[110px] ${i === 0 ? 'mr-8' : ''}`}>
+              <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">{labels[i]}</p>
+              <MoneyInput value={v} onChange={(nv) => setRes(i, nv)} inputClass={`!font-bold ${signClass(parseMoney(v))}`} />
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-border pt-3">
+          <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Alterações</p>
+          <div className="space-y-2">
+            {alt.map((item, i) => (
+              <div key={item.id} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <InlineText value={item.texto} placeholder="Descritivo" className="flex-1"
+                  onChange={(v) => { const arr = [...alt]; arr[i] = { ...arr[i], texto: v }; setAlt(arr); }} />
+                <MoneyInput value={item.valor || ''} className="w-32" inputClass={signClass(parseMoney(item.valor))}
+                  onChange={(v) => { const arr = [...alt]; arr[i] = { ...arr[i], valor: v }; setAlt(arr); }} />
+                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => setAlt(alt.filter((_, j) => j !== i))}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2">
+              <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Saldo total</span>
+              <span className={`text-sm font-bold ${signClass(saldo)}`}>R$ {fmtMoney(saldo)}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
+              <Plus className="mr-1 h-4 w-4" /> Adicionar
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const cardContent: Record<string, React.ReactNode> = {
+
     despesas: (
       <div className="space-y-3">
         <div className="overflow-hidden rounded-lg border border-border">
