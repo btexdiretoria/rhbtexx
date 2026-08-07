@@ -23,6 +23,13 @@ export interface DailySummary {
   receitas_receber: ReceitaItem[];
   receitas_esperadas: string;
   despesas_programadas: string;
+  /* Resultado esperado — Competência */
+  resultado_comp_inicio: string;
+  resultado_comp_ontem: string;
+  resultado_comp_hoje: string;
+  receitas_esperadas_comp: string;
+  despesas_programadas_comp: string;
+  alteracoes_comp: AlteracaoItem[];
   avisos: AvisoItem[];
   anotacoes: string;
   checklist: ChecklistItem[];
@@ -30,7 +37,8 @@ export interface DailySummary {
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'avisos', 'anotacoes', 'checklist'];
+export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'resultado_comp', 'avisos', 'anotacoes', 'checklist'];
+
 
 export function emptySummary(date: string): DailySummary {
   return {
