@@ -74,7 +74,9 @@ const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-suc
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
   despesas: { title: 'Controle de Despesas', icon: Wallet },
   receitas: { title: 'Receitas a Receber', icon: Banknote },
-  resultado: { title: 'Resultado Esperado', icon: TrendingUp },
+  resultado: { title: 'Resultado Esperado · Caixa', icon: TrendingUp },
+  resultado_comp: { title: 'Resultado Esperado · Competência', icon: TrendingUp },
+
   avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
   anotacoes: { title: 'Observações', icon: StickyNote },
   checklist: { title: 'Anexos', icon: ListChecks },
