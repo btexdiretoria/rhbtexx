@@ -399,6 +399,63 @@ export type Database = {
         }
         Relationships: []
       }
+      dre_category_map: {
+        Row: {
+          category_name: string
+          created_at: string
+          group_name: string
+          id: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          group_name: string
+          id?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          group_name?: string
+          id?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dre_datasets: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          id: string
+          kind: string
+          months: Json
+          rows_data: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          kind: string
+          months?: Json
+          rows_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          kind?: string
+          months?: Json
+          rows_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_documents: {
         Row: {
           created_at: string
