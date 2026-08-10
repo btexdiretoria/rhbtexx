@@ -28,6 +28,8 @@ import Fluxo from "@/pages/Fluxo";
 import FinanceDashboard from "@/pages/FinanceDashboard";
 import FinanceCalendar from "@/pages/FinanceCalendar";
 import ResumoDiario from "@/pages/ResumoDiario";
+import DreCaixa from "@/pages/DreCaixa";
+
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
