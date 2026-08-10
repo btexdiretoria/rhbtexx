@@ -31,7 +31,9 @@ const sidebarGroups: SidebarGroup[] = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard-financas' },
     { label: 'Controle de Despesas', icon: Receipt, path: '/controle-despesas' },
     { label: 'Fluxo', icon: DollarSign, path: '/fluxo' },
+    { label: 'DRE/CAIXA', icon: FileText, path: '/dre-caixa' },
   ]},
+
   { label: 'Configurações', icon: Settings, items: [
     { label: 'Usuários', icon: UserCog, path: '/usuarios' },
     { label: 'Configurações', icon: Settings, path: '/configuracoes' },
