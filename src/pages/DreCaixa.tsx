@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { FileSpreadsheet, FileDown, Settings2, Trash2, Pencil, Plus, AlertTriangle, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,7 @@ export default function DreCaixa() {
   const clearDataset = useClearDreDataset();
   const saveCategory = useSaveDreCategory();
   const saveBatch = useSaveDreCategoriesBatch();
-  const deleteCategory = useDreCategoryDelete();
+  const deleteCategory = useDeleteDreCategory();
 
   const [paramOpen, setParamOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -223,8 +223,8 @@ export default function DreCaixa() {
             </thead>
             <tbody>
               {model.groups.filter((g) => g.rows.length).map((g) => (
-                <>
-                  <tr key={g.group} className={g.group === UNMAPPED_GROUP ? "bg-destructive/10" : "bg-accent/40"}>
+                <React.Fragment key={g.group}>
+                  <tr className={g.group === UNMAPPED_GROUP ? "bg-destructive/10" : "bg-accent/40"}>
                     <td
                       colSpan={1 + model.months.length * 3}
                       className={`px-3 py-1.5 font-semibold uppercase text-xs tracking-wide ${g.group === UNMAPPED_GROUP ? "text-destructive" : ""}`}
@@ -245,7 +245,7 @@ export default function DreCaixa() {
                       })}
                     </tr>
                   ))}
-                  <tr key={`${g.group}-total`} className="border-t bg-muted/50 font-semibold">
+                  <tr className="border-t bg-muted/50 font-semibold">
                     <td className="sticky left-0 z-10 bg-muted/50 px-3 py-1.5">Total {g.group}</td>
                     {model.months.flatMap((m) => {
                       const c = g.totals[m];
@@ -256,7 +256,7 @@ export default function DreCaixa() {
                       ];
                     })}
                   </tr>
-                </>
+                </React.Fragment>
               ))}
               {!!model.months.length && (
                 <tr className="border-t-2 bg-primary/10 font-bold">
@@ -358,8 +358,4 @@ export default function DreCaixa() {
       </Dialog>
     </div>
   );
-}
-
-function useDreCategoryDelete() {
-  return useDeleteDreCategory();
 }
