@@ -28,6 +28,8 @@ import Fluxo from "@/pages/Fluxo";
 import FinanceDashboard from "@/pages/FinanceDashboard";
 import FinanceCalendar from "@/pages/FinanceCalendar";
 import ResumoDiario from "@/pages/ResumoDiario";
+import DreCaixa from "@/pages/DreCaixa";
+
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +68,8 @@ const App = () => (
               <Route path="/fluxo" element={<ProtectedPage><Fluxo /></ProtectedPage>} />
               <Route path="/dashboard-financas" element={<ProtectedPage><FinanceDashboard /></ProtectedPage>} />
               <Route path="/calendario-financas" element={<ProtectedPage><FinanceCalendar /></ProtectedPage>} />
+              <Route path="/dre-caixa" element={<ProtectedPage><DreCaixa /></ProtectedPage>} />
+
               <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
               <Route path="/resumo-diario" element={<ProtectedPage><ResumoDiario /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
