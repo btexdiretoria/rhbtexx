@@ -143,10 +143,38 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.text(pdf.splitTextToSize(k.label.toUpperCase(), w - 8)[0], x + 4.5, y + 7.5);
       pdf.setTextColor(...(k.color || GRAY_DARK));
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
+      pdf.setFontSize(kpis.length >= 5 ? 9.5 : 12);
       pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 15);
     });
     y += 26;
+  }
+
+  /* ── Saldos do dia ── */
+  const saldos = [
+    { label: 'Saldo inicial do dia', value: s.saldo_inicial_dia },
+    { label: 'Saldo final do dia', value: s.saldo_final_dia },
+  ].filter((b) => notEmpty(b.value));
+  if (saldos.length) {
+    ensureBlock(22);
+    const gap = 5;
+    const bw = (CONTENT_W - gap * (saldos.length - 1)) / saldos.length;
+    saldos.forEach((b, i) => {
+      const x = M + i * (bw + gap);
+      pdf.setFillColor(239, 246, 255);
+      pdf.setDrawColor(191, 219, 254);
+      pdf.roundedRect(x, y, bw, 17, 2, 2, 'FD');
+      pdf.setFillColor(...BLUE);
+      pdf.rect(x, y + 2.5, 1.2, 12, 'F');
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(6.8);
+      pdf.text(b.label.toUpperCase(), x + 4.5, y + 6.5);
+      pdf.setTextColor(...BLUE);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.text(money(b.value), x + 4.5, y + 13.5);
+    });
+    y += 22;
   }
 
   /* ── Título de seção (faixa destacada) ── */
