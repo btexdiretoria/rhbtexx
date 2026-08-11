@@ -72,6 +72,7 @@ function MoneyInput({
 const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-success' : 'text-foreground');
 
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
+  controle_semanal: { title: 'Controle Semanal', icon: CalendarDays },
   despesas: { title: 'Controle de Despesas', icon: Wallet },
   receitas: { title: 'Receitas a Receber', icon: Banknote },
   resultado: { title: 'Resultado Esperado · Caixa', icon: TrendingUp },
