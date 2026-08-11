@@ -45,7 +45,7 @@ export interface DailySummary {
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['despesas', 'receitas', 'resultado', 'resultado_comp', 'avisos', 'anotacoes', 'checklist'];
+export const DEFAULT_CARD_ORDER = ['controle_semanal', 'despesas', 'receitas', 'resultado', 'resultado_comp', 'avisos', 'anotacoes', 'checklist'];
 
 
 export function emptySummary(date: string): DailySummary {
@@ -53,6 +53,10 @@ export function emptySummary(date: string): DailySummary {
     summary_date: date,
     dias_uteis_restante: '',
     faturamento_necessario: '',
+    objetivo_faturamento: '',
+    saldo_inicial_dia: '',
+    saldo_final_dia: '',
+    controle_semanal: DEFAULT_SEMANAS(),
     despesas: [],
     resultado_inicio: '',
     resultado_ontem: '',
@@ -80,8 +84,13 @@ export function emptySummary(date: string): DailySummary {
 
 const normalizeOrder = (order?: string[]) => {
   const cleaned = (order || []).filter((k) => DEFAULT_CARD_ORDER.includes(k));
-  const missing = DEFAULT_CARD_ORDER.filter((k) => !cleaned.includes(k));
-  return cleaned.length ? [...cleaned, ...missing] : [...DEFAULT_CARD_ORDER];
+  if (!cleaned.length) return [...DEFAULT_CARD_ORDER];
+  // reinsere chaves novas na posição padrão
+  const result = [...cleaned];
+  DEFAULT_CARD_ORDER.forEach((k, idx) => {
+    if (!result.includes(k)) result.splice(Math.min(idx, result.length), 0, k);
+  });
+  return result;
 };
 
 
