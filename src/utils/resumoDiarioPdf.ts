@@ -355,6 +355,10 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     ].filter((b) => notEmpty(b.value));
     if (!hasResult && !alteracoes.length && !mesBoxes.length) return;
 
+    ensureBlock(
+      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? 24 : 0) +
+      (alteracoes.length ? 5 + tableH(alteracoes.length) + 15 : 0),
+    );
     section(title);
     if (mesBoxes.length) {
       ensure(20);
