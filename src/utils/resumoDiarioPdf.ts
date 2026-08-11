@@ -106,12 +106,22 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     if (y + h > PAGE_H - 20) newPage();
   };
 
+  /* Evita cortar um bloco/departamento entre páginas:
+     se o bloco inteiro não couber, deixa o restante da página em branco. */
+  const AVAILABLE_H = PAGE_H - 20 - 18;
+  const ensureBlock = (h: number) => {
+    if (h <= AVAILABLE_H && y + h > PAGE_H - 20) newPage();
+  };
+  const SECTION_H = 14;
+  const tableH = (rows: number) => 7.5 * (rows + 1) + 6;
+
   drawHeader(true);
 
   /* ── Indicadores (KPI cards) ── */
   const kpis = [
     { label: 'Dias Úteis Restantes', value: s.dias_uteis_restante },
     { label: 'Faturamento Atual', value: notEmpty(s.faturamento_necessario) ? money(s.faturamento_necessario) : '' },
+    { label: 'Objetivo de Faturamento', value: notEmpty(s.objetivo_faturamento) ? money(s.objetivo_faturamento) : '' },
     { label: 'Receitas do Dia', value: notEmpty(s.receitas_dia) ? money(s.receitas_dia) : '', color: GREEN },
     { label: 'Despesas do Dia', value: notEmpty(s.despesas_dia) ? money(s.despesas_dia) : '', color: RED },
   ].filter((k) => notEmpty(k.value));
@@ -133,10 +143,38 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.text(pdf.splitTextToSize(k.label.toUpperCase(), w - 8)[0], x + 4.5, y + 7.5);
       pdf.setTextColor(...(k.color || GRAY_DARK));
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
+      pdf.setFontSize(kpis.length >= 5 ? 9.5 : 12);
       pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 15);
     });
     y += 26;
+  }
+
+  /* ── Saldos do dia ── */
+  const saldos = [
+    { label: 'Saldo inicial do dia', value: s.saldo_inicial_dia },
+    { label: 'Saldo final do dia', value: s.saldo_final_dia },
+  ].filter((b) => notEmpty(b.value));
+  if (saldos.length) {
+    ensureBlock(22);
+    const gap = 5;
+    const bw = (CONTENT_W - gap * (saldos.length - 1)) / saldos.length;
+    saldos.forEach((b, i) => {
+      const x = M + i * (bw + gap);
+      pdf.setFillColor(239, 246, 255);
+      pdf.setDrawColor(191, 219, 254);
+      pdf.roundedRect(x, y, bw, 17, 2, 2, 'FD');
+      pdf.setFillColor(...BLUE);
+      pdf.rect(x, y + 2.5, 1.2, 12, 'F');
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(6.8);
+      pdf.text(b.label.toUpperCase(), x + 4.5, y + 6.5);
+      pdf.setTextColor(...BLUE);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.text(money(b.value), x + 4.5, y + 13.5);
+    });
+    y += 22;
   }
 
   /* ── Título de seção (faixa destacada) ── */
@@ -245,8 +283,21 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   };
 
   /* ── Conteúdo — seções vazias são omitidas ── */
+  const semanas = (s.controle_semanal || []).filter((w) => notEmpty(w.periodo) || notEmpty(w.objetivo));
+  if (semanas.length) {
+    ensureBlock(SECTION_H + tableH(semanas.length));
+    section('Controle Semanal');
+    table(
+      ['Semana', 'Período', 'Objetivo', 'Concluída'],
+      semanas.map((w) => [w.nome, w.periodo, money(w.objetivo), w.done ? 'Sim' : '—']),
+      [CONTENT_W - 110, 55, 30, 25],
+      ['left', 'left', 'right', 'right'],
+    );
+  }
+
   const despesas = s.despesas.filter((d) => notEmpty(d.descricao) || notEmpty(d.gasto) || notEmpty(d.orcado));
   if (despesas.length) {
+    ensureBlock(SECTION_H + tableH(despesas.length));
     section('Controle de Despesas');
     table(
       ['Descrição', 'Previsão', 'Gasto', '% Consumida'],
@@ -263,6 +314,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const receitas = (s.receitas_receber || []).filter((r) => notEmpty(r.texto) || notEmpty(r.valor));
   if (receitas.length) {
+    ensureBlock(SECTION_H + tableH(receitas.length) + (receitas.length > 1 ? 15 : 0));
     section('Receitas a Receber');
     table(
       ['Descritivo', 'Valor'],
@@ -303,6 +355,10 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     ].filter((b) => notEmpty(b.value));
     if (!hasResult && !alteracoes.length && !mesBoxes.length) return;
 
+    ensureBlock(
+      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? 24 : 0) +
+      (alteracoes.length ? 5 + tableH(alteracoes.length) + 15 : 0),
+    );
     section(title);
     if (mesBoxes.length) {
       ensure(20);
@@ -400,16 +456,17 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const avisos = s.avisos.map((a) => a.texto).filter(notEmpty);
   if (avisos.length) {
+    ensureBlock(SECTION_H + avisos.length * 7 + 4);
     section('Avisos e Pendências');
     bullets(avisos);
   }
 
   {
-    section('Observações');
     const rows = 4;
     const rowH = 7;
     const h = rows * rowH + 4;
-    ensure(h);
+    ensureBlock(SECTION_H + h + 8);
+    section('Observações');
     pdf.setDrawColor(...GRAY_LINE);
     pdf.setLineWidth(0.3);
     pdf.roundedRect(M, y, CONTENT_W, h, 2, 2, 'S');
@@ -421,6 +478,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const checklist = s.checklist?.filter((c) => notEmpty(c.texto)) || [];
   if (checklist.length) {
+    ensureBlock(SECTION_H + checklist.length * 7 + 6);
     section('Anexos');
     checklist.forEach((c) => {
       ensure(9);
@@ -442,7 +500,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const assinaturas = s.assinaturas.map((a) => a.nome).filter(notEmpty);
   if (assinaturas.length) {
-    ensure(30);
+    ensureBlock(SECTION_H + Math.ceil(assinaturas.length / 3) * 20 + 4);
     section('Assinaturas');
     const per = Math.min(3, assinaturas.length);
     const gap = 8;

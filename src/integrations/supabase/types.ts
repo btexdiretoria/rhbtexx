@@ -268,6 +268,7 @@ export type Database = {
           avisos: Json | null
           card_order: Json | null
           checklist: Json
+          controle_semanal: Json
           created_at: string
           despesas: Json | null
           despesas_dia: string | null
@@ -276,6 +277,7 @@ export type Database = {
           dias_uteis_restante: string | null
           faturamento_necessario: string | null
           id: string
+          objetivo_faturamento: string | null
           receitas_dia: string | null
           receitas_esperadas: string
           receitas_esperadas_comp: string | null
@@ -286,6 +288,8 @@ export type Database = {
           resultado_hoje: string | null
           resultado_inicio: string | null
           resultado_ontem: string | null
+          saldo_final_dia: string | null
+          saldo_inicial_dia: string | null
           summary_date: string
           updated_at: string
         }
@@ -297,6 +301,7 @@ export type Database = {
           avisos?: Json | null
           card_order?: Json | null
           checklist?: Json
+          controle_semanal?: Json
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
@@ -305,6 +310,7 @@ export type Database = {
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
+          objetivo_faturamento?: string | null
           receitas_dia?: string | null
           receitas_esperadas?: string
           receitas_esperadas_comp?: string | null
@@ -315,6 +321,8 @@ export type Database = {
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
+          saldo_final_dia?: string | null
+          saldo_inicial_dia?: string | null
           summary_date: string
           updated_at?: string
         }
@@ -326,6 +334,7 @@ export type Database = {
           avisos?: Json | null
           card_order?: Json | null
           checklist?: Json
+          controle_semanal?: Json
           created_at?: string
           despesas?: Json | null
           despesas_dia?: string | null
@@ -334,6 +343,7 @@ export type Database = {
           dias_uteis_restante?: string | null
           faturamento_necessario?: string | null
           id?: string
+          objetivo_faturamento?: string | null
           receitas_dia?: string | null
           receitas_esperadas?: string
           receitas_esperadas_comp?: string | null
@@ -344,6 +354,8 @@ export type Database = {
           resultado_hoje?: string | null
           resultado_inicio?: string | null
           resultado_ontem?: string | null
+          saldo_final_dia?: string | null
+          saldo_inicial_dia?: string | null
           summary_date?: string
           updated_at?: string
         }

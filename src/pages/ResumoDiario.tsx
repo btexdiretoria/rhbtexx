@@ -72,6 +72,7 @@ function MoneyInput({
 const signClass = (n: number) => (n < 0 ? 'text-destructive' : n > 0 ? 'text-success' : 'text-foreground');
 
 const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
+  controle_semanal: { title: 'Controle Semanal', icon: CalendarDays },
   despesas: { title: 'Controle de Despesas', icon: Wallet },
   receitas: { title: 'Receitas a Receber', icon: Banknote },
   resultado: { title: 'Resultado Esperado · Caixa', icon: TrendingUp },
@@ -237,6 +238,46 @@ export default function ResumoDiario() {
   };
 
   const cardContent: Record<string, React.ReactNode> = {
+    controle_semanal: (
+      <div className="overflow-hidden rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-secondary text-secondary-foreground">
+              <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Semana</th>
+              <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Período</th>
+              <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Objetivo</th>
+              <th className="px-3 py-2 text-center text-[0.68rem] font-semibold uppercase tracking-wider">Concluída</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(state.controle_semanal || []).map((sem, i) => {
+              const setSem = (patch: Partial<typeof sem>) => {
+                const arr = [...state.controle_semanal];
+                arr[i] = { ...arr[i], ...patch };
+                update({ controle_semanal: arr });
+              };
+              return (
+                <tr key={sem.id} className={`border-t border-border even:bg-muted/40 transition-opacity ${sem.done ? 'opacity-50' : ''}`}>
+                  <td className="px-3 py-1.5 text-sm font-semibold text-foreground">{sem.nome}</td>
+                  <td className="p-1.5">
+                    <InlineText value={sem.periodo} placeholder="01/08 a 07/08" className="w-full"
+                      onChange={(v) => setSem({ periodo: v })} />
+                  </td>
+                  <td className="p-1.5">
+                    <MoneyInput value={sem.objetivo} className="w-32 ml-auto" inputClass="!font-semibold"
+                      onChange={(v) => setSem({ objetivo: v })} />
+                  </td>
+                  <td className="p-1.5 text-center">
+                    <Checkbox checked={sem.done} onCheckedChange={(c) => setSem({ done: !!c })} aria-label={`${sem.nome} concluída`} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    ),
+
 
     despesas: (
       <div className="space-y-3">
@@ -373,6 +414,7 @@ export default function ResumoDiario() {
   const kpis = [
     { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false },
     { label: 'Faturamento Atual', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary', money: true },
+    { label: 'Objetivo de Faturamento', icon: TrendingUp, value: state.objetivo_faturamento, onChange: (v: string) => update({ objetivo_faturamento: v }), accent: 'text-primary', money: true },
     { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success', money: true },
     { label: 'Despesas do Dia', icon: Wallet, value: state.despesas_dia, onChange: (v: string) => update({ despesas_dia: v }), accent: 'text-destructive', money: true },
   ];
@@ -432,7 +474,7 @@ export default function ResumoDiario() {
       </header>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <div className="mb-2 flex items-center gap-2">
@@ -447,6 +489,19 @@ export default function ResumoDiario() {
           </div>
         ))}
       </div>
+
+      {/* Saldos do dia */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo inicial do dia</p>
+          <MoneyInput value={state.saldo_inicial_dia} onChange={(v) => update({ saldo_inicial_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+        </div>
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo final do dia</p>
+          <MoneyInput value={state.saldo_final_dia} onChange={(v) => update({ saldo_final_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+        </div>
+      </div>
+
 
       {/* Cards */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
