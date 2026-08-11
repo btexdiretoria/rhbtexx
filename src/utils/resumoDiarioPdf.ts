@@ -106,6 +106,15 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     if (y + h > PAGE_H - 20) newPage();
   };
 
+  /* Evita cortar um bloco/departamento entre páginas:
+     se o bloco inteiro não couber, deixa o restante da página em branco. */
+  const AVAILABLE_H = PAGE_H - 20 - 18;
+  const ensureBlock = (h: number) => {
+    if (h <= AVAILABLE_H && y + h > PAGE_H - 20) newPage();
+  };
+  const SECTION_H = 14;
+  const tableH = (rows: number) => 7.5 * (rows + 1) + 6;
+
   drawHeader(true);
 
   /* ── Indicadores (KPI cards) ── */
