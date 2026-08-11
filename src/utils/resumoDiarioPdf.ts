@@ -456,16 +456,17 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const avisos = s.avisos.map((a) => a.texto).filter(notEmpty);
   if (avisos.length) {
+    ensureBlock(SECTION_H + avisos.length * 7 + 4);
     section('Avisos e Pendências');
     bullets(avisos);
   }
 
   {
-    section('Observações');
     const rows = 4;
     const rowH = 7;
     const h = rows * rowH + 4;
-    ensure(h);
+    ensureBlock(SECTION_H + h + 8);
+    section('Observações');
     pdf.setDrawColor(...GRAY_LINE);
     pdf.setLineWidth(0.3);
     pdf.roundedRect(M, y, CONTENT_W, h, 2, 2, 'S');
@@ -477,6 +478,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const checklist = s.checklist?.filter((c) => notEmpty(c.texto)) || [];
   if (checklist.length) {
+    ensureBlock(SECTION_H + checklist.length * 7 + 6);
     section('Anexos');
     checklist.forEach((c) => {
       ensure(9);
