@@ -238,6 +238,46 @@ export default function ResumoDiario() {
   };
 
   const cardContent: Record<string, React.ReactNode> = {
+    controle_semanal: (
+      <div className="overflow-hidden rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-secondary text-secondary-foreground">
+              <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Semana</th>
+              <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Período</th>
+              <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Objetivo</th>
+              <th className="px-3 py-2 text-center text-[0.68rem] font-semibold uppercase tracking-wider">Concluída</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(state.controle_semanal || []).map((sem, i) => {
+              const setSem = (patch: Partial<typeof sem>) => {
+                const arr = [...state.controle_semanal];
+                arr[i] = { ...arr[i], ...patch };
+                update({ controle_semanal: arr });
+              };
+              return (
+                <tr key={sem.id} className={`border-t border-border even:bg-muted/40 transition-opacity ${sem.done ? 'opacity-50' : ''}`}>
+                  <td className="px-3 py-1.5 text-sm font-semibold text-foreground">{sem.nome}</td>
+                  <td className="p-1.5">
+                    <InlineText value={sem.periodo} placeholder="01/08 a 07/08" className="w-full"
+                      onChange={(v) => setSem({ periodo: v })} />
+                  </td>
+                  <td className="p-1.5">
+                    <MoneyInput value={sem.objetivo} className="w-32 ml-auto" inputClass="!font-semibold"
+                      onChange={(v) => setSem({ objetivo: v })} />
+                  </td>
+                  <td className="p-1.5 text-center">
+                    <Checkbox checked={sem.done} onCheckedChange={(c) => setSem({ done: !!c })} aria-label={`${sem.nome} concluída`} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    ),
+
 
     despesas: (
       <div className="space-y-3">
