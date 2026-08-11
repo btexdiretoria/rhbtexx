@@ -283,8 +283,21 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   };
 
   /* ── Conteúdo — seções vazias são omitidas ── */
+  const semanas = (s.controle_semanal || []).filter((w) => notEmpty(w.periodo) || notEmpty(w.objetivo));
+  if (semanas.length) {
+    ensureBlock(SECTION_H + tableH(semanas.length));
+    section('Controle Semanal');
+    table(
+      ['Semana', 'Período', 'Objetivo', 'Concluída'],
+      semanas.map((w) => [w.nome, w.periodo, money(w.objetivo), w.done ? 'Sim' : '—']),
+      [CONTENT_W - 110, 55, 30, 25],
+      ['left', 'left', 'right', 'right'],
+    );
+  }
+
   const despesas = s.despesas.filter((d) => notEmpty(d.descricao) || notEmpty(d.gasto) || notEmpty(d.orcado));
   if (despesas.length) {
+    ensureBlock(SECTION_H + tableH(despesas.length));
     section('Controle de Despesas');
     table(
       ['Descrição', 'Previsão', 'Gasto', '% Consumida'],
@@ -301,6 +314,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const receitas = (s.receitas_receber || []).filter((r) => notEmpty(r.texto) || notEmpty(r.valor));
   if (receitas.length) {
+    ensureBlock(SECTION_H + tableH(receitas.length) + (receitas.length > 1 ? 15 : 0));
     section('Receitas a Receber');
     table(
       ['Descritivo', 'Valor'],
