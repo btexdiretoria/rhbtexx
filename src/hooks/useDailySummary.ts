@@ -7,6 +7,10 @@ export interface ReceitaItem { id: string; texto: string; valor?: string; }
 export interface AvisoItem { id: string; texto: string; }
 export interface AssinaturaItem { id: string; nome: string; }
 export interface ChecklistItem { id: string; texto: string; done: boolean; }
+export interface SemanaItem { id: string; nome: string; periodo: string; objetivo: string; done: boolean; }
+
+export const DEFAULT_SEMANAS = (): SemanaItem[] =>
+  [1, 2, 3, 4, 5].map((n) => ({ id: `semana-${n}`, nome: `Semana ${n}`, periodo: '', objetivo: '', done: false }));
 
 export interface DailySummary {
   id?: string;
