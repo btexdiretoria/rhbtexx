@@ -500,7 +500,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
 
   const assinaturas = s.assinaturas.map((a) => a.nome).filter(notEmpty);
   if (assinaturas.length) {
-    ensure(30);
+    ensureBlock(SECTION_H + Math.ceil(assinaturas.length / 3) * 20 + 4);
     section('Assinaturas');
     const per = Math.min(3, assinaturas.length);
     const gap = 8;
