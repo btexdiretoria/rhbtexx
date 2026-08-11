@@ -17,6 +17,10 @@ export interface DailySummary {
   summary_date: string;
   dias_uteis_restante: string;
   faturamento_necessario: string;
+  objetivo_faturamento: string;
+  saldo_inicial_dia: string;
+  saldo_final_dia: string;
+  controle_semanal: SemanaItem[];
   despesas: DespesaItem[];
   resultado_inicio: string;
   resultado_ontem: string;
