@@ -121,6 +121,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   const kpis = [
     { label: 'Dias Úteis Restantes', value: s.dias_uteis_restante },
     { label: 'Faturamento Atual', value: notEmpty(s.faturamento_necessario) ? money(s.faturamento_necessario) : '' },
+    { label: 'Objetivo de Faturamento', value: notEmpty(s.objetivo_faturamento) ? money(s.objetivo_faturamento) : '' },
     { label: 'Receitas do Dia', value: notEmpty(s.receitas_dia) ? money(s.receitas_dia) : '', color: GREEN },
     { label: 'Despesas do Dia', value: notEmpty(s.despesas_dia) ? money(s.despesas_dia) : '', color: RED },
   ].filter((k) => notEmpty(k.value));
