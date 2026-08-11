@@ -474,7 +474,7 @@ export default function ResumoDiario() {
       </header>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <div className="mb-2 flex items-center gap-2">
@@ -489,6 +489,19 @@ export default function ResumoDiario() {
           </div>
         ))}
       </div>
+
+      {/* Saldos do dia */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo inicial do dia</p>
+          <MoneyInput value={state.saldo_inicial_dia} onChange={(v) => update({ saldo_inicial_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+        </div>
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo final do dia</p>
+          <MoneyInput value={state.saldo_final_dia} onChange={(v) => update({ saldo_final_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+        </div>
+      </div>
+
 
       {/* Cards */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
