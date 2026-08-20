@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Calendar, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
-  AlertTriangle, StickyNote, PenLine, Building2, User, Layers,
-  CalendarDays, Banknote, ListChecks,
+  AlertTriangle, PenLine, Building2, User, Layers,
+  CalendarDays, Banknote, ListChecks, UserX, ArrowRight,
 } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { format, parse } from 'date-fns';
+import { addDays, format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -78,8 +78,8 @@ const CARD_META: Record<string, { title: string; icon: React.ElementType }> = {
   resultado: { title: 'Resultado Esperado · Caixa', icon: TrendingUp },
   resultado_comp: { title: 'Resultado Esperado · Competência', icon: TrendingUp },
 
+  ausencias: { title: 'Controle de Ausências', icon: UserX },
   avisos: { title: 'Avisos e Pendências', icon: AlertTriangle },
-  anotacoes: { title: 'Observações', icon: StickyNote },
   checklist: { title: 'Anexos', icon: ListChecks },
 };
 
@@ -117,6 +117,11 @@ export default function ResumoDiario() {
   const today = format(new Date(), 'yyyy-MM-dd');
   const [date, setDate] = useState(today);
   const { data: loaded } = useDailySummary(date);
+  const prevDate = useMemo(() => {
+    try { return format(addDays(parse(date, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd'); }
+    catch { return date; }
+  }, [date]);
+  const { data: prevSummary } = useDailySummary(prevDate);
   const { data: company } = useCompanySettings();
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
@@ -165,6 +170,14 @@ export default function ResumoDiario() {
   const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
 
 
+  const despesaTrend = (descricao: string, gasto: string) => {
+    const key = (descricao || '').trim().toLowerCase();
+    if (!key) return '=';
+    const prev = (prevSummary?.despesas || []).find((d) => (d.descricao || '').trim().toLowerCase() === key);
+    if (!prev) return '=';
+    return parseMoney(gasto) > parseMoney(prev.gasto) ? '+' : '=';
+  };
+
   const saldoAlteracoesComp = state.alteracoes_comp.reduce((acc, a) => acc + parseMoney(a.valor), 0);
 
   const renderResultado = (variant: 'caixa' | 'competencia') => {
@@ -199,13 +212,23 @@ export default function ResumoDiario() {
             <MoneyInput value={desp} onChange={(v) => update(isComp ? { despesas_programadas_comp: v } : { despesas_programadas: v })} inputClass="!font-bold text-destructive" />
           </div>
         </div>
-        <div className="flex flex-wrap items-end gap-6 rounded-lg bg-muted/50 px-4 py-3">
+        <div className="flex flex-wrap items-end gap-4 rounded-lg bg-muted/50 px-4 py-3">
           <span className="text-sm font-semibold text-foreground">Resultado esperado</span>
           <span className="flex-1" />
           {res.map((v, i) => (
-            <div key={labels[i]} className={`min-w-[110px] ${i === 0 ? 'mr-8' : ''}`}>
-              <p className="mb-1 text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">{labels[i]}</p>
-              <MoneyInput value={v} onChange={(nv) => setRes(i, nv)} inputClass={`!font-bold ${signClass(parseMoney(v))}`} />
+            <div key={labels[i]} className="flex items-end gap-3">
+              {i === 2 && <ArrowRight className="mb-2 h-4 w-4 shrink-0 text-muted-foreground" />}
+              <div className={i === 0 ? 'min-w-[92px] opacity-60 mr-4' : 'min-w-[110px]'}>
+                <p className={`mb-1 font-semibold uppercase tracking-wider text-muted-foreground ${i === 0 ? 'text-[0.58rem]' : 'text-[0.66rem]'}`}>{labels[i]}</p>
+                <MoneyInput value={v} onChange={(nv) => setRes(i, nv)}
+                  inputClass={`${i === 0 ? '!text-xs font-semibold' : '!font-bold'} ${signClass(parseMoney(v))}`} />
+                {i === 2 && !isComp && (
+                  <div className="mt-1.5 opacity-60">
+                    <p className="mb-0.5 text-[0.58rem] font-semibold uppercase tracking-wider text-muted-foreground">Acumulado</p>
+                    <MoneyInput value={state.resultado_acumulado} onChange={(nv) => update({ resultado_acumulado: nv })} inputClass="!text-xs font-semibold" />
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -289,6 +312,7 @@ export default function ResumoDiario() {
                 <th className="px-3 py-2 text-right text-[0.68rem] font-bold uppercase tracking-wider">Previsão</th>
                 <th className="px-3 py-2 text-right text-[0.7rem] font-semibold uppercase tracking-wider">Gasto</th>
                 <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">% Consumida</th>
+                <th className="px-2 py-2 text-center text-[0.68rem] font-semibold uppercase tracking-wider">= / +</th>
                 <th className="w-8" />
               </tr>
             </thead>
@@ -315,6 +339,9 @@ export default function ResumoDiario() {
                     <td className={`p-1.5 text-right text-sm font-semibold ${pctColor}`}>
                       {prev > 0 ? `${pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—'}
                     </td>
+                    <td className="px-2 py-1.5 text-center text-sm font-bold">
+                      {(() => { const tr = despesaTrend(item.descricao, item.gasto); return <span className={tr === '+' ? 'text-destructive' : 'text-muted-foreground'}>{tr}</span>; })()}
+                    </td>
                     <td className="p-1.5 text-center">
                       <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>
                         <Trash2 className="h-3.5 w-3.5" />
@@ -324,7 +351,7 @@ export default function ResumoDiario() {
                 );
               })}
               {!state.despesas.length && (
-                <tr><td colSpan={5} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
+                <tr><td colSpan={6} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
               )}
             </tbody>
           </table>
@@ -381,11 +408,23 @@ export default function ResumoDiario() {
         </Button>
       </div>
     ),
-    anotacoes: (
-      <div className="rounded-lg border border-border bg-card">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="border-b border-dashed border-border last:border-b-0" style={{ height: 34 }} />
+    ausencias: (
+      <div className="space-y-2">
+        {(state.controle_ausencias || []).map((item, i) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <InlineText value={item.nome} placeholder="Nome" className="w-40"
+              onChange={(v) => { const arr = [...state.controle_ausencias]; arr[i] = { ...arr[i], nome: v }; update({ controle_ausencias: arr }); }} />
+            <InlineText value={item.justificativa} placeholder="Justificativa" className="flex-1"
+              onChange={(v) => { const arr = [...state.controle_ausencias]; arr[i] = { ...arr[i], justificativa: v }; update({ controle_ausencias: arr }); }} />
+            <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ controle_ausencias: state.controle_ausencias.filter((_, j) => j !== i) })}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         ))}
+        {!(state.controle_ausencias || []).length && <p className="text-xs text-muted-foreground">Nenhuma ausência registrada</p>}
+        <Button variant="outline" size="sm" onClick={() => update({ controle_ausencias: [...(state.controle_ausencias || []), { id: uid(), nome: '', justificativa: '' }] })}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar ausência
+        </Button>
       </div>
     ),
     checklist: (
@@ -477,14 +516,26 @@ export default function ResumoDiario() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="mb-2 flex items-center gap-2">
-              <k.icon className={`h-4 w-4 ${k.accent}`} />
-              <p className="text-[0.66rem] font-semibold uppercase tracking-wider text-muted-foreground">{k.label}</p>
+            <div className="mb-2 flex items-start gap-2">
+              <k.icon className={`mt-0.5 h-4 w-4 shrink-0 ${k.accent}`} />
+              <p className="min-w-0 break-words text-[0.62rem] font-semibold uppercase leading-tight tracking-wide text-muted-foreground">{k.label}</p>
             </div>
             {k.money ? (
               <MoneyInput value={k.value} onChange={k.onChange} inputClass={`!text-xl !font-bold ${k.accent}`} />
             ) : (
               <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+            )}
+            {k.label === 'Objetivo de Faturamento' && (
+              <div className="mt-2 space-y-1 border-t border-border pt-2">
+                <p className="text-[0.58rem] font-semibold uppercase tracking-wide text-muted-foreground">Possíveis perdas</p>
+                <MoneyInput value={state.possiveis_perdas} onChange={(v) => update({ possiveis_perdas: v })} inputClass="!text-sm font-semibold text-destructive" />
+                {parseMoney(state.possiveis_perdas) !== 0 && (
+                  <div className="flex items-baseline justify-between gap-2 pt-1">
+                    <span className="text-[0.58rem] font-semibold uppercase tracking-wide text-muted-foreground">Novo objetivo</span>
+                    <span className="text-sm font-bold text-primary">R$ {fmtMoney(parseMoney(state.objetivo_faturamento) - parseMoney(state.possiveis_perdas))}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         ))}
