@@ -144,6 +144,15 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate("");
     setDescription("");
     setValueStr("");
+    setEditingId(null);
+  };
+
+  const startEdit = (it: AlteracaoItem) => {
+    setEditingId(it.id);
+    setDate(it.date || "");
+    setDescription(it.description || "");
+    setValueStr(String(it.value ?? ""));
+    setOpen(true);
   };
 
   const handleSave = () => {
@@ -158,6 +167,17 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     const parsed = parseFloat(valueStr.replace(",", "."));
     if (isNaN(parsed)) {
       toast.error("Informe um valor numérico válido.");
+      return;
+    }
+    if (editingId) {
+      onChange(
+        items.map((i) =>
+          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed } : i,
+        ),
+      );
+      reset();
+      setOpen(false);
+      toast.success("Lançamento atualizado.");
       return;
     }
     const item: AlteracaoItem = {
@@ -175,6 +195,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const handleDelete = (id: string) => {
     onChange(items.filter((i) => i.id !== id));
   };
+
 
   const sorted = useMemo(() => {
     const filtered = items.filter((i) => {
