@@ -364,6 +364,18 @@ export default function ResumoDiario() {
                   </tr>
                 );
               })}
+              {state.despesas.length > 0 && (
+                <tr className="border-t-2 border-border bg-muted/60 font-bold">
+                  <td className="px-3 py-2 text-sm text-foreground">Total</td>
+                  <td className="px-3 py-2 text-right text-sm text-foreground">
+                    R$ {fmtMoney(state.despesas.reduce((acc, d) => acc + parseMoney(d.orcado), 0))}
+                  </td>
+                  <td className="px-3 py-2 text-right text-sm text-foreground">
+                    R$ {fmtMoney(state.despesas.reduce((acc, d) => acc + parseMoney(d.gasto), 0))}
+                  </td>
+                  <td colSpan={3} />
+                </tr>
+              )}
               {!state.despesas.length && (
                 <tr><td colSpan={6} className="px-3 py-4 text-center text-xs text-muted-foreground">Nenhum item lançado</td></tr>
               )}
