@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [managerModal, setManagerModal] = useState<{ dept: string; members: Employee[] } | null>(null);
   const [selectedManagerId, setSelectedManagerId] = useState<string>('');
   const [projecaoModal, setProjecaoModal] = useState<{ tipo: TipoProjecao; items: ProjecaoItem[]; total: number } | null>(null);
+  const [expandedSectors, setExpandedSectors] = useState(true);
 
   useEffect(() => { localStorage.setItem('probation_acknowledged', JSON.stringify(acknowledgedIds)); }, [acknowledgedIds]);
   useEffect(() => { localStorage.setItem('aviso_previo_acknowledged', JSON.stringify(acknowledgedAvisoIds)); }, [acknowledgedAvisoIds]);
