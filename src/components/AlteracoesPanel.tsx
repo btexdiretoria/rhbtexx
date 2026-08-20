@@ -265,7 +265,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
             </div>
 
             <div className="space-y-1.5 md:w-56">
-              <Label className="text-xs text-muted-foreground">Resultado anual</Label>
+              <Label className="text-xs text-muted-foreground">{hideMonthYearFilters ? "Resultado anual" : "Resultado mensal"}</Label>
               <div
                 className={cn(
                   "h-10 flex items-center px-3 rounded-md border border-border bg-muted/40 text-base font-bold tabular-nums",
