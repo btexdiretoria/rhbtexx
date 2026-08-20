@@ -18,6 +18,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Plus, Trash2, ChevronDown, ChevronRight, FolderPlus, GripVertical, Pencil } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
