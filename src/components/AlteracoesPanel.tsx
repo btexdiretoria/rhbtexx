@@ -606,7 +606,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Inserir Acontecimento</DialogTitle>
+            <DialogTitle>{editingId ? "Editar Lançamento" : "Inserir Acontecimento"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
