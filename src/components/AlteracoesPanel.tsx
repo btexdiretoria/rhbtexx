@@ -62,7 +62,8 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
   const currentYear = new Date().getFullYear();
-  const [monthFilter, setMonthFilter] = useState<string>("all"); // "all" | "YYYY-MM"
+  const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+  const [monthFilter, setMonthFilter] = useState<string>(hideMonthYearFilters ? "all" : currentMonth); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
   const [listOpen, setListOpen] = useState(true);
