@@ -551,7 +551,16 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                         >
                           {formatCurrency(it.value)}
                         </td>
-                        <td className="px-3 py-1.5 text-right print:hidden">
+                        <td className="px-3 py-1.5 text-right print:hidden whitespace-nowrap">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => startEdit(it)}
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -562,6 +571,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </td>
+
                       </tr>
                     ))}
                   </tbody>
