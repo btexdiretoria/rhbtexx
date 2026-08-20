@@ -151,7 +151,10 @@ export default function ResumoDiario() {
 
   const handleExportPDF = async () => {
     try {
-      await exportResumoDiarioPDF(state, { empresa, responsavel, relatorio: 'Resumo Diário' });
+      await exportResumoDiarioPDF(state, {
+        empresa, responsavel, relatorio: 'Resumo Diário',
+        despesasAnteriores: (prevSummary?.despesas || []).map((d) => ({ descricao: d.descricao, gasto: d.gasto })),
+      });
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
