@@ -480,11 +480,31 @@ export default function ResumoDiario() {
           <h1 className="font-heading text-2xl font-bold text-foreground">Resumo Diário</h1>
           <p className="text-sm text-muted-foreground">Relatório executivo de acompanhamento operacional</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+            <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">Exportar</span>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {[
+                { key: 'caixaAnual', label: 'Caixa Anual' },
+                { key: 'caixaDia', label: 'Caixa do Dia' },
+                { key: 'dreAnual', label: 'DRE Anual' },
+                { key: 'dreDia', label: 'DRE do Dia' },
+              ].map((item) => (
+                <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-xs text-foreground">
+                  <Checkbox
+                    checked={exportChecklist[item.key as keyof typeof exportChecklist]}
+                    onCheckedChange={(c) => setExportChecklist((s) => ({ ...s, [item.key]: !!c }))}
+                    aria-label={item.label}
+                  />
+                  <span>{item.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <Button variant="outline" size="sm" onClick={handleSave} disabled={saveMut.isPending}>
             <Save className="mr-1 h-4 w-4" /> Salvar
           </Button>
-          <Button size="sm" onClick={handleExportPDF}>
+          <Button size="sm" onClick={handleExportPDF} disabled={!allExportChecked}>
             <Printer className="mr-1 h-4 w-4" /> Exportar PDF
           </Button>
         </div>
