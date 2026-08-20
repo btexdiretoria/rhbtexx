@@ -346,6 +346,12 @@ export default function Dashboard() {
         </div>
         <div className={`grid gap-4 ${expandedSectors ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'}`}>
           {[...setores].sort((a, b) => {
+            const ultimos = ['INSS', 'Administrativo', 'Manutenção'];
+            const aUltimo = ultimos.indexOf(a.dept);
+            const bUltimo = ultimos.indexOf(b.dept);
+            if (aUltimo !== -1 && bUltimo !== -1) return aUltimo - bUltimo;
+            if (aUltimo !== -1) return 1;
+            if (bUltimo !== -1) return -1;
             if (a.dept === 'Traseiro') return -1;
             if (b.dept === 'Traseiro') return 1;
             if (a.dept === 'PCP') return 1;
