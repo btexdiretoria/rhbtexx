@@ -173,14 +173,6 @@ export default function ResumoDiario() {
   const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
 
 
-  const despesaTrend = (descricao: string, gasto: string) => {
-    const key = (descricao || '').trim().toLowerCase();
-    if (!key) return '=';
-    const prev = (prevSummary?.despesas || []).find((d) => (d.descricao || '').trim().toLowerCase() === key);
-    if (!prev) return '=';
-    return parseMoney(gasto) > parseMoney(prev.gasto) ? '+' : '=';
-  };
-
   const saldoAlteracoesComp = state.alteracoes_comp.reduce((acc, a) => acc + parseMoney(a.valor), 0);
 
   const renderResultado = (variant: 'caixa' | 'competencia') => {
@@ -343,7 +335,19 @@ export default function ResumoDiario() {
                       {prev > 0 ? `${pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—'}
                     </td>
                     <td className="px-2 py-1.5 text-center text-sm font-bold">
-                      {(() => { const tr = despesaTrend(item.descricao, item.gasto); return <span className={tr === '+' ? 'text-destructive' : 'text-muted-foreground'}>{tr}</span>; })()}
+                      {(() => {
+                        const tr = item.trend === '+' ? '+' : '=';
+                        return (
+                          <button
+                            type="button"
+                            title="Clique para alternar entre = e +"
+                            className={`h-6 w-6 rounded border border-border transition-colors hover:bg-muted ${tr === '+' ? 'text-destructive' : 'text-muted-foreground'}`}
+                            onClick={() => { const arr = [...state.despesas]; arr[i] = { ...arr[i], trend: tr === '+' ? '=' : '+' }; update({ despesas: arr }); }}
+                          >
+                            {tr}
+                          </button>
+                        );
+                      })()}
                     </td>
                     <td className="p-1.5 text-center">
                       <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ despesas: state.despesas.filter((_, j) => j !== i) })}>

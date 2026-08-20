@@ -333,19 +333,13 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   if (despesas.length) {
     ensureBlock(SECTION_H + tableH(despesas.length));
     section('Controle de Despesas');
-    const trend = (descricao: string, gasto: string) => {
-      const key = (descricao || '').trim().toLowerCase();
-      const ant = (meta.despesasAnteriores || []).find((a) => (a.descricao || '').trim().toLowerCase() === key);
-      if (!key || !ant) return '=';
-      return parseMoney(gasto) > parseMoney(ant.gasto) ? '+' : '=';
-    };
     table(
       ['Descrição', 'Previsão', 'Gasto', '% Consumida', ''],
       despesas.map((d) => {
         const prev = parseMoney(d.orcado);
         const gasto = parseMoney(d.gasto);
         const pct = prev > 0 ? `${((gasto / prev) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—';
-        return [d.descricao, money(prev), money(gasto), pct, trend(d.descricao, d.gasto)];
+        return [d.descricao, money(prev), money(gasto), pct, d.trend === '+' ? '+' : '='];
       }),
       [CONTENT_W - 112, 34, 34, 32, 12],
       ['left', 'right', 'right', 'right', 'right'],

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface DespesaItem { id: string; descricao: string; gasto: string; orcado: string; }
+export interface DespesaItem { id: string; descricao: string; gasto: string; orcado: string; trend?: '=' | '+'; }
 export interface AlteracaoItem { id: string; texto: string; valor?: string; }
 export interface ReceitaItem { id: string; texto: string; valor?: string; }
 export interface AvisoItem { id: string; texto: string; }
