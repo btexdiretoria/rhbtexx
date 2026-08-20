@@ -364,8 +364,8 @@ export default function Dashboard() {
                 <>
                   <div className="mb-3">
                     <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-xs text-muted-foreground">Líder do Setor</p>
-                      {isAdmin && (
+                      <p className="text-xs text-muted-foreground">{setor.permiteLider ? 'Líder do Setor' : 'Responsável'}</p>
+                      {isAdmin && setor.permiteLider && (
                         <button
                           onClick={() => openManagerModal(setor.dept, setor.members)}
                           className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
