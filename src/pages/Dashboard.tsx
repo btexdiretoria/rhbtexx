@@ -139,7 +139,8 @@ export default function Dashboard() {
       const leader = managerId ? empMap.get(managerId) || null : null;
       const ativos = members.filter(m => m.status === 'Ativo').length;
       const outros = members.filter(m => m.status !== 'Ativo').length;
-      return { dept, members, leader, ativos, outros, total: members.length };
+      const permiteLider = !['INSS', 'Administrativo', 'Manutenção'].includes(dept);
+      return { dept, members, leader, ativos, outros, total: members.length, permiteLider };
     });
   }, [employees, managerMap, empMap]);
 
