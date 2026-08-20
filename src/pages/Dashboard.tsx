@@ -139,7 +139,8 @@ export default function Dashboard() {
       const leader = managerId ? empMap.get(managerId) || null : null;
       const ativos = members.filter(m => m.status === 'Ativo').length;
       const outros = members.filter(m => m.status !== 'Ativo').length;
-      return { dept, members, leader, ativos, outros, total: members.length };
+      const permiteLider = !['INSS', 'Administrativo', 'Manutenção'].includes(dept);
+      return { dept, members, leader, ativos, outros, total: members.length, permiteLider };
     });
   }, [employees, managerMap, empMap]);
 
@@ -345,6 +346,12 @@ export default function Dashboard() {
         </div>
         <div className={`grid gap-4 ${expandedSectors ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'}`}>
           {[...setores].sort((a, b) => {
+            const ultimos = ['INSS', 'Administrativo', 'Manutenção'];
+            const aUltimo = ultimos.indexOf(a.dept);
+            const bUltimo = ultimos.indexOf(b.dept);
+            if (aUltimo !== -1 && bUltimo !== -1) return aUltimo - bUltimo;
+            if (aUltimo !== -1) return 1;
+            if (bUltimo !== -1) return -1;
             if (a.dept === 'Traseiro') return -1;
             if (b.dept === 'Traseiro') return 1;
             if (a.dept === 'PCP') return 1;
@@ -363,8 +370,8 @@ export default function Dashboard() {
                 <>
                   <div className="mb-3">
                     <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-xs text-muted-foreground">Líder do Setor</p>
-                      {isAdmin && (
+                      <p className="text-xs text-muted-foreground">{setor.permiteLider ? 'Líder do Setor' : 'Responsável'}</p>
+                      {isAdmin && setor.permiteLider && (
                         <button
                           onClick={() => openManagerModal(setor.dept, setor.members)}
                           className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
@@ -401,8 +408,8 @@ export default function Dashboard() {
               {!expandedSectors && (
                 <div className="mb-2">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs text-muted-foreground">Líder</p>
-                    {isAdmin && (
+                    <p className="text-xs text-muted-foreground">{setor.permiteLider ? 'Líder' : 'Responsável'}</p>
+                    {isAdmin && setor.permiteLider && (
                       <button
                         onClick={() => openManagerModal(setor.dept, setor.members)}
                         className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
