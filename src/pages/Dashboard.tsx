@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil, Gift, Palmtree, Percent } from 'lucide-react';
+import { Users, UserCheck, UserMinus, Cake, Monitor, DollarSign, Target, UserCog, Package, Scale, BarChart3, Clock, X, Wrench, Pencil, Gift, Palmtree, Percent, LayoutGrid, List } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [managerModal, setManagerModal] = useState<{ dept: string; members: Employee[] } | null>(null);
   const [selectedManagerId, setSelectedManagerId] = useState<string>('');
   const [projecaoModal, setProjecaoModal] = useState<{ tipo: TipoProjecao; items: ProjecaoItem[]; total: number } | null>(null);
+  const [expandedSectors, setExpandedSectors] = useState(true);
 
   useEffect(() => { localStorage.setItem('probation_acknowledged', JSON.stringify(acknowledgedIds)); }, [acknowledgedIds]);
   useEffect(() => { localStorage.setItem('aviso_previo_acknowledged', JSON.stringify(acknowledgedAvisoIds)); }, [acknowledgedAvisoIds]);
@@ -331,8 +332,18 @@ export default function Dashboard() {
       )}
 
       <div>
-        <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Quadro de Setores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <h3 className="font-heading font-semibold text-foreground text-lg">Quadro de Setores</h3>
+          <button
+            onClick={() => setExpandedSectors(v => !v)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-md px-2.5 py-1.5 bg-background transition-colors"
+            title={expandedSectors ? 'Visualização resumida' : 'Visualização detalhada'}
+          >
+            {expandedSectors ? <LayoutGrid className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+            {expandedSectors ? 'Resumido' : 'Detalhado'}
+          </button>
+        </div>
+        <div className={`grid gap-4 ${expandedSectors ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'}`}>
           {[...setores].sort((a, b) => {
             if (a.dept === 'Traseiro') return -1;
             if (b.dept === 'Traseiro') return 1;
@@ -340,52 +351,80 @@ export default function Dashboard() {
             if (b.dept === 'PCP') return -1;
             return 0;
           }).map(setor => (
-            <div key={setor.dept} className="kpi-card flex flex-col min-h-[280px]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">{deptIcons[setor.dept] || <Users className="w-5 h-5" />}</div>
-                  <h4 className="font-heading font-bold text-foreground">{setor.dept}</h4>
+            <div key={setor.dept} className={`kpi-card flex flex-col ${expandedSectors ? 'min-h-[280px]' : 'min-h-0'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">{deptIcons[setor.dept] || <Users className="w-4 h-4" />}</div>
+                  <h4 className="font-heading font-bold text-foreground text-sm truncate">{setor.dept}</h4>
                 </div>
-                <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-1 rounded-full">{setor.total} funcionário{setor.total !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full whitespace-nowrap">{setor.total}</span>
               </div>
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-muted-foreground">Líder do Setor</p>
-                  {isAdmin && (
-                    <button
-                      onClick={() => openManagerModal(setor.dept, setor.members)}
-                      className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                      title="Definir Gestor"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
+              {expandedSectors && (
+                <>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-xs text-muted-foreground">Líder do Setor</p>
+                      {isAdmin && (
+                        <button
+                          onClick={() => openManagerModal(setor.dept, setor.members)}
+                          className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Definir Gestor"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    {setor.leader ? (
+                      <div className="flex items-center gap-2.5">
+                        <AvatarInitials name={setor.leader.nome} size="md" />
+                        <div><p className="text-sm font-medium text-foreground leading-tight">{setor.leader.nome}</p><p className="text-xs text-muted-foreground">{setor.leader.cargo}</p></div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /><span className="text-sm">Sem líder definido</span></div>
+                    )}
+                  </div>
+                  <div className="mb-3">
+                    <div className="border-t border-border pt-2 mb-1.5"><p className="text-xs text-muted-foreground mb-1.5">Funcionários do Setor</p></div>
+                    <div className="space-y-1 max-h-[320px] overflow-y-auto">
+                      {setor.members.slice(0, 8).map(m => (
+                        <Link to={`/funcionarios/${m.id}`} key={m.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">{m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground break-words leading-tight">{m.nome}</p><p className="text-xs text-muted-foreground">{m.cargo}</p></div>
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${statusDot[m.status] || 'bg-muted-foreground'}`} />
+                        </Link>
+                      ))}
+                    </div>
+                    {setor.members.length > 8 && <Link to="/funcionarios" className="text-xs text-primary hover:underline mt-1.5 inline-block">Ver todos ({setor.members.length})</Link>}
+                  </div>
+                </>
+              )}
+              {!expandedSectors && (
+                <div className="mb-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-muted-foreground">Líder</p>
+                    {isAdmin && (
+                      <button
+                        onClick={() => openManagerModal(setor.dept, setor.members)}
+                        className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                        title="Definir Gestor"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  {setor.leader ? (
+                    <div className="flex items-center gap-2">
+                      <AvatarInitials name={setor.leader.nome} size="sm" />
+                      <p className="text-xs font-medium text-foreground truncate">{setor.leader.nome}</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">—</p>
                   )}
                 </div>
-                {setor.leader ? (
-                  <div className="flex items-center gap-3">
-                    <AvatarInitials name={setor.leader.nome} size="md" />
-                    <div><p className="text-sm font-medium text-foreground">{setor.leader.nome}</p><p className="text-xs text-muted-foreground">{setor.leader.cargo}</p></div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /><span className="text-sm">Sem líder definido</span></div>
-                )}
-              </div>
-              <div className="mb-4">
-                <div className="border-t border-border pt-3 mb-2"><p className="text-xs text-muted-foreground mb-2">Funcionários do Setor</p></div>
-                <div className="space-y-1 max-h-[320px] overflow-y-auto">
-                  {setor.members.slice(0, 8).map(m => (
-                    <Link to={`/funcionarios/${m.id}`} key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">{m.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
-                      <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground break-words leading-tight">{m.nome}</p><p className="text-xs text-muted-foreground">{m.cargo}</p></div>
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${statusDot[m.status] || 'bg-muted-foreground'}`} />
-                    </Link>
-                  ))}
-                </div>
-                {setor.members.length > 8 && <Link to="/funcionarios" className="text-xs text-primary hover:underline mt-2 inline-block">Ver todos ({setor.members.length})</Link>}
-              </div>
-              <div className="flex items-center gap-4 pt-3 border-t border-border mt-auto">
-                <div className="flex items-center gap-1.5 text-xs"><UserCheck className="w-3.5 h-3.5 text-emerald-500" /><span className="text-muted-foreground">Ativos:</span><span className="font-semibold text-foreground">{setor.ativos}</span></div>
-                <div className="flex items-center gap-1.5 text-xs"><UserMinus className="w-3.5 h-3.5 text-amber-500" /><span className="text-muted-foreground">Outros:</span><span className="font-semibold text-foreground">{setor.outros}</span></div>
+              )}
+              <div className="flex items-center gap-3 pt-2 border-t border-border mt-auto">
+                <div className="flex items-center gap-1 text-xs"><UserCheck className="w-3 h-3 text-emerald-500" /><span className="text-muted-foreground">Ativos:</span><span className="font-semibold text-foreground">{setor.ativos}</span></div>
+                <div className="flex items-center gap-1 text-xs"><UserMinus className="w-3 h-3 text-amber-500" /><span className="text-muted-foreground">Outros:</span><span className="font-semibold text-foreground">{setor.outros}</span></div>
               </div>
             </div>
           ))}
