@@ -18,6 +18,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Plus, Trash2, ChevronDown, ChevronRight, FolderPlus, GripVertical, Pencil } from "lucide-react";
 import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
@@ -108,6 +116,10 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     onChange(items.map((it) => (it.id === id ? { ...it, groupId } : it)));
     setDraggingId(null);
     setDragOverGroup(null);
+  };
+
+  const moveToGroup = (id: string, groupId: string | null) => {
+    onChange(items.map((it) => (it.id === id ? { ...it, groupId } : it)));
   };
 
 
@@ -309,46 +321,74 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                   { id: null, name: "Sem separação" },
                 ];
                 const renderRow = (it: AlteracaoItem) => (
-                  <tr
-                    key={it.id}
-                    draggable
-                    onDragStart={handleDragStart(it.id)}
-                    onDragEnd={() => setDraggingId(null)}
-                    className={cn(
-                      "border-t border-border hover:bg-row-alt transition-colors cursor-move",
-                      draggingId === it.id && "opacity-50",
-                    )}
-                  >
-                    <td className="px-2 py-1.5 w-6 text-muted-foreground">
-                      <GripVertical className="h-3.5 w-3.5" />
-                    </td>
-                    <td className="px-3 py-1.5 text-foreground whitespace-nowrap">{formatDateBR(it.date)}</td>
-                    <td className="px-3 py-1.5 text-foreground">{it.description}</td>
-                    <td
-                      className={cn(
-                        "px-3 py-1.5 text-right font-medium whitespace-nowrap",
-                        it.value > 0
-                          ? "text-positive-foreground"
-                          : it.value < 0
-                            ? "text-negative-foreground"
-                            : "text-muted-foreground",
-                      )}
-                    >
-                      {formatCurrency(it.value)}
-                    </td>
-                    <td className="px-3 py-1.5 text-right print:hidden">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleDelete(it.id)}
-                        aria-label="Excluir"
+                  <ContextMenu key={it.id}>
+                    <ContextMenuTrigger asChild>
+                      <tr
+                        draggable
+                        onDragStart={handleDragStart(it.id)}
+                        onDragEnd={() => setDraggingId(null)}
+                        className={cn(
+                          "border-t border-border hover:bg-row-alt transition-colors cursor-move",
+                          draggingId === it.id && "opacity-50",
+                        )}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </td>
-                  </tr>
+                        <td className="px-2 py-1.5 w-6 text-muted-foreground">
+                          <GripVertical className="h-3.5 w-3.5" />
+                        </td>
+                        <td className="px-3 py-1.5 text-foreground whitespace-nowrap">{formatDateBR(it.date)}</td>
+                        <td className="px-3 py-1.5 text-foreground">{it.description}</td>
+                        <td
+                          className={cn(
+                            "px-3 py-1.5 text-right font-medium whitespace-nowrap",
+                            it.value > 0
+                              ? "text-positive-foreground"
+                              : it.value < 0
+                                ? "text-negative-foreground"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {formatCurrency(it.value)}
+                        </td>
+                        <td className="px-3 py-1.5 text-right print:hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleDelete(it.id)}
+                            aria-label="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </td>
+                      </tr>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-56">
+                      <ContextMenuLabel>Mover para separação</ContextMenuLabel>
+                      <ContextMenuSeparator />
+                      {groups.length === 0 && (
+                        <ContextMenuItem disabled>Nenhuma separação criada</ContextMenuItem>
+                      )}
+                      {groups.map((g) => (
+                        <ContextMenuItem
+                          key={g.id}
+                          disabled={(it.groupId || null) === g.id}
+                          onSelect={() => moveToGroup(it.id, g.id)}
+                        >
+                          {g.name}
+                        </ContextMenuItem>
+                      ))}
+                      {(it.groupId || null) !== null && (
+                        <>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem onSelect={() => moveToGroup(it.id, null)}>
+                            Remover da separação
+                          </ContextMenuItem>
+                        </>
+                      )}
+                    </ContextMenuContent>
+                  </ContextMenu>
                 );
+
                 return (
                   <div className="space-y-3">
                     {buckets.map((b) => {
