@@ -118,6 +118,10 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDragOverGroup(null);
   };
 
+  const moveToGroup = (id: string, groupId: string | null) => {
+    onChange(items.map((it) => (it.id === id ? { ...it, groupId } : it)));
+  };
+
 
   // Sync local input when prop changes (e.g., after restore from DB)
   useEffect(() => {
