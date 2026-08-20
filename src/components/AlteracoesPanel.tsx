@@ -395,6 +395,8 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                       </tr>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-56">
+                      <ContextMenuItem onSelect={() => startEdit(it)}>Editar lançamento</ContextMenuItem>
+                      <ContextMenuSeparator />
                       <ContextMenuLabel>Mover para separação</ContextMenuLabel>
                       <ContextMenuSeparator />
                       {groups.length === 0 && (
