@@ -10,11 +10,11 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useFinancial';
 import { exportFuncionariosPDF } from '@/utils/exportReports';
 
-type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Teste';
-const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste' };
+type StatusFuncionario = 'Ativo' | 'Afastado' | 'Desligado' | 'Prestador de Serviço' | 'Teste' | 'Aviso Prévio';
+const statusDisplayLabel: Record<StatusFuncionario, string> = { Ativo: 'Ativo', Afastado: 'Afastado', Desligado: 'Desligado', 'Prestador de Serviço': 'Prestador de Serviço', Teste: 'Teste', 'Aviso Prévio': 'Aviso Prévio' };
 
 
-const ALL_STATUSES: StatusFuncionario[] = ['Ativo', 'Teste', 'Afastado', 'Desligado', 'Prestador de Serviço'];
+const ALL_STATUSES: StatusFuncionario[] = ['Ativo', 'Teste', 'Afastado', 'Aviso Prévio', 'Desligado', 'Prestador de Serviço'];
 const pageSizeOptions = [10, 25, 50, 100];
 
 const deptColors: Record<string, string> = {

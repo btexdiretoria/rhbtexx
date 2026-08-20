@@ -22,7 +22,7 @@ export default function NewEmployee() {
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
     chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-    cargo: '', departamento: '', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '',
+    cargo: '', departamento: '', status: 'Ativo', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '',
   });
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -60,7 +60,7 @@ export default function NewEmployee() {
         data_admissao: form.dataAdmissao,
         data_fim_experiencia: form.dataFimExperiencia || null,
         matricula: `MAT${Date.now().toString().slice(-6)}`,
-        status: 'Ativo',
+        status: form.status || 'Ativo',
       });
       logAction('Cadastro', form.nome, `Cadastrou novo funcionário ${form.nome} como ${form.cargo || 'sem cargo definido'}`);
       toast({ title: 'Funcionário cadastrado com sucesso!', description: `${form.nome} foi adicionado ao sistema.` });
@@ -110,6 +110,7 @@ export default function NewEmployee() {
               <div><Label>Cargo *</Label><Input value={form.cargo} onChange={e => update('cargo', e.target.value)} /></div>
               <div><Label>Departamento *</Label><Select value={form.departamento} onValueChange={v => update('departamento', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{departments.map(d => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Data de Admissão *</Label><Input type="date" value={form.dataAdmissao} onChange={e => update('dataAdmissao', e.target.value)} /></div>
+              <div><Label>Status</Label><Select value={form.status} onValueChange={v => update('status', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['Ativo','Teste','Afastado','Aviso Prévio','Desligado','Prestador de Serviço'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Tipo de Contrato</Label><Select value={form.tipoContrato} onValueChange={v => update('tipoContrato', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CLT','PJ','Estágio','Temporário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Salário</Label><Input type="number" value={form.salario} onChange={e => update('salario', e.target.value)} placeholder="0.00" /></div>
               <div>
