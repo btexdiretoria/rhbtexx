@@ -4,6 +4,7 @@ import { Check, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
@@ -22,7 +23,7 @@ export default function NewEmployee() {
     nome: '', cpf: '', rg: '', dataNascimento: '', genero: '', telefone: '', emailPessoal: '',
     chavePix: '', tipoChavePix: '',
     rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-    cargo: '', departamento: '', status: 'Ativo', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '',
+    cargo: '', departamento: '', status: 'Ativo', tipoContrato: '', salario: '', cargaHoraria: '', emailCorporativo: '', dataAdmissao: '', dataFimExperiencia: '', atestadoAcompanhante: false,
   });
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -61,6 +62,7 @@ export default function NewEmployee() {
         data_fim_experiencia: form.dataFimExperiencia || null,
         matricula: `MAT${Date.now().toString().slice(-6)}`,
         status: form.status || 'Ativo',
+        atestado_acompanhante: form.atestadoAcompanhante,
       });
       logAction('Cadastro', form.nome, `Cadastrou novo funcionário ${form.nome} como ${form.cargo || 'sem cargo definido'}`);
       toast({ title: 'Funcionário cadastrado com sucesso!', description: `${form.nome} foi adicionado ao sistema.` });
@@ -113,6 +115,10 @@ export default function NewEmployee() {
               <div><Label>Status</Label><Select value={form.status} onValueChange={v => update('status', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['Ativo','Teste','Afastado','Aviso Prévio','Desligado','Prestador de Serviço'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Tipo de Contrato</Label><Select value={form.tipoContrato} onValueChange={v => update('tipoContrato', v)}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{['CLT','PJ','Estágio','Temporário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Salário</Label><Input type="number" value={form.salario} onChange={e => update('salario', e.target.value)} placeholder="0.00" /></div>
+              <div className="flex items-center gap-2">
+                <Checkbox id="atestadoAcompanhante" checked={form.atestadoAcompanhante} onCheckedChange={v => setForm(prev => ({ ...prev, atestadoAcompanhante: v === true }))} />
+                <Label htmlFor="atestadoAcompanhante" className="font-normal cursor-pointer">Atestado de acompanhante</Label>
+              </div>
               <div>
                 <Label>Fim do Período de Experiência</Label>
                 <div className="flex gap-2 items-center">

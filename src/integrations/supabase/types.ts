@@ -555,6 +555,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          atestado_acompanhante: boolean | null
           aviso_previo_ciente: boolean | null
           carga_horaria: number | null
           cargo: string
@@ -600,6 +601,7 @@ export type Database = {
           valor_rescisao: number | null
         }
         Insert: {
+          atestado_acompanhante?: boolean | null
           aviso_previo_ciente?: boolean | null
           carga_horaria?: number | null
           cargo: string
@@ -645,6 +647,7 @@ export type Database = {
           valor_rescisao?: number | null
         }
         Update: {
+          atestado_acompanhante?: boolean | null
           aviso_previo_ciente?: boolean | null
           carga_horaria?: number | null
           cargo?: string

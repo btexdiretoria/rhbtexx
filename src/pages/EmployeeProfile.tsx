@@ -101,7 +101,7 @@ export default function EmployeeProfile() {
 
   const startEdit = () => { setEditData({ ...employee }); setErrors({}); setEditing(true); };
   const cancelEdit = () => { setEditing(false); setEditData({}); setErrors({}); };
-  const updateField = (field: string, value: string | number) => setEditData(prev => ({ ...prev, [field]: value }));
+  const updateField = (field: string, value: string | number | boolean) => setEditData(prev => ({ ...prev, [field]: value }));
 
   const doSave = async () => {
     try {
@@ -258,6 +258,17 @@ export default function EmployeeProfile() {
             
             <EditableRow label="Status" value={d.status} editing={editing} onChange={v => updateField('status', v)} options={statusOptions} />
             <EditableRow label="Fim Experiência" value={editing ? d.data_fim_experiencia : formatDateLocal(d.data_fim_experiencia)} editing={editing} onChange={v => updateField('data_fim_experiencia', v)} type="date" />
+            <div className="py-2">
+              <p className="text-xs text-muted-foreground mb-1">Atestado de acompanhante</p>
+              {editing ? (
+                <div className="flex items-center gap-2">
+                  <Checkbox id="atestado_acompanhante" checked={!!d.atestado_acompanhante} onCheckedChange={v => updateField('atestado_acompanhante', v === true)} />
+                  <Label htmlFor="atestado_acompanhante" className="text-sm font-normal cursor-pointer">Atestado de acompanhante</Label>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-foreground">{d.atestado_acompanhante ? 'Sim' : 'Não'}</p>
+              )}
+            </div>
             {d.status === 'Aviso Prévio' && (
               <>
                 <EditableRow label="Data Início Aviso Prévio" value={editing ? d.data_inicio_aviso_previo : formatDateLocal(d.data_inicio_aviso_previo)} editing={editing} onChange={v => updateField('data_inicio_aviso_previo', v)} type="date" />
