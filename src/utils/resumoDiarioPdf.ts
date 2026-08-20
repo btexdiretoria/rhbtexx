@@ -149,11 +149,15 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setTextColor(...GRAY_SOFT);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(6.8);
-      pdf.text(pdf.splitTextToSize(k.label.toUpperCase(), w - 8)[0], x + 4.5, y + 7.5);
+      const labelLines = pdf.splitTextToSize(k.label.toUpperCase(), w - 8) as string[];
+      labelLines.slice(0, 2).forEach((line, li) => {
+        pdf.text(line, x + 4.5, y + 7.5 + li * 3.2);
+      });
+      const labelH = Math.min(labelLines.length, 2) * 3.2 + 1.5;
       pdf.setTextColor(...(k.color || GRAY_DARK));
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(kpis.length >= 5 ? 9.5 : 12);
-      pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 15);
+      pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 7.5 + labelH);
     });
     y += 26;
   }
