@@ -7,6 +7,7 @@ export interface ReceitaItem { id: string; texto: string; valor?: string; }
 export interface AvisoItem { id: string; texto: string; }
 export interface AssinaturaItem { id: string; nome: string; }
 export interface ChecklistItem { id: string; texto: string; done: boolean; }
+export interface AusenciaItem { id: string; nome: string; justificativa: string; }
 export interface SemanaItem { id: string; nome: string; periodo: string; objetivo: string; done: boolean; }
 
 export const DEFAULT_SEMANAS = (): SemanaItem[] =>
@@ -25,6 +26,9 @@ export interface DailySummary {
   resultado_inicio: string;
   resultado_ontem: string;
   resultado_hoje: string;
+  resultado_acumulado: string;
+  possiveis_perdas: string;
+  controle_ausencias: AusenciaItem[];
   alteracoes: AlteracaoItem[];
   receitas_dia: string;
   despesas_dia: string;
@@ -45,7 +49,7 @@ export interface DailySummary {
   card_order: string[];
 }
 
-export const DEFAULT_CARD_ORDER = ['controle_semanal', 'despesas', 'receitas', 'resultado', 'resultado_comp', 'avisos', 'anotacoes', 'checklist'];
+export const DEFAULT_CARD_ORDER = ['controle_semanal', 'despesas', 'receitas', 'resultado', 'resultado_comp', 'ausencias', 'avisos', 'checklist'];
 
 
 export function emptySummary(date: string): DailySummary {
@@ -61,6 +65,9 @@ export function emptySummary(date: string): DailySummary {
     resultado_inicio: '',
     resultado_ontem: '',
     resultado_hoje: '',
+    resultado_acumulado: '',
+    possiveis_perdas: '',
+    controle_ausencias: [],
     alteracoes: [],
     receitas_dia: '',
     despesas_dia: '',
@@ -115,6 +122,9 @@ export function useDailySummary(date: string) {
         saldo_final_dia: d.saldo_final_dia || '',
         controle_semanal: (d.controle_semanal?.length ? d.controle_semanal : DEFAULT_SEMANAS()),
         alteracoes: d.alteracoes || [],
+        resultado_acumulado: d.resultado_acumulado || '',
+        possiveis_perdas: d.possiveis_perdas || '',
+        controle_ausencias: d.controle_ausencias || [],
         receitas_receber: d.receitas_receber || [],
         receitas_esperadas: d.receitas_esperadas || '',
         despesas_programadas: d.despesas_programadas || '',

@@ -268,6 +268,7 @@ export type Database = {
           avisos: Json | null
           card_order: Json | null
           checklist: Json
+          controle_ausencias: Json
           controle_semanal: Json
           created_at: string
           despesas: Json | null
@@ -278,10 +279,12 @@ export type Database = {
           faturamento_necessario: string | null
           id: string
           objetivo_faturamento: string | null
+          possiveis_perdas: string | null
           receitas_dia: string | null
           receitas_esperadas: string
           receitas_esperadas_comp: string | null
           receitas_receber: Json
+          resultado_acumulado: string | null
           resultado_comp_hoje: string | null
           resultado_comp_inicio: string | null
           resultado_comp_ontem: string | null
@@ -301,6 +304,7 @@ export type Database = {
           avisos?: Json | null
           card_order?: Json | null
           checklist?: Json
+          controle_ausencias?: Json
           controle_semanal?: Json
           created_at?: string
           despesas?: Json | null
@@ -311,10 +315,12 @@ export type Database = {
           faturamento_necessario?: string | null
           id?: string
           objetivo_faturamento?: string | null
+          possiveis_perdas?: string | null
           receitas_dia?: string | null
           receitas_esperadas?: string
           receitas_esperadas_comp?: string | null
           receitas_receber?: Json
+          resultado_acumulado?: string | null
           resultado_comp_hoje?: string | null
           resultado_comp_inicio?: string | null
           resultado_comp_ontem?: string | null
@@ -334,6 +340,7 @@ export type Database = {
           avisos?: Json | null
           card_order?: Json | null
           checklist?: Json
+          controle_ausencias?: Json
           controle_semanal?: Json
           created_at?: string
           despesas?: Json | null
@@ -344,10 +351,12 @@ export type Database = {
           faturamento_necessario?: string | null
           id?: string
           objetivo_faturamento?: string | null
+          possiveis_perdas?: string | null
           receitas_dia?: string | null
           receitas_esperadas?: string
           receitas_esperadas_comp?: string | null
           receitas_receber?: Json
+          resultado_acumulado?: string | null
           resultado_comp_hoje?: string | null
           resultado_comp_inicio?: string | null
           resultado_comp_ontem?: string | null
