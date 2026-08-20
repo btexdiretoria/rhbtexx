@@ -66,6 +66,7 @@ const MONTH_NAMES = [
 
 const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false, enableGroups = false, groups = [], onGroupsChange }: Props) => {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
@@ -144,6 +145,15 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate("");
     setDescription("");
     setValueStr("");
+    setEditingId(null);
+  };
+
+  const startEdit = (it: AlteracaoItem) => {
+    setEditingId(it.id);
+    setDate(it.date || "");
+    setDescription(it.description || "");
+    setValueStr(String(it.value ?? ""));
+    setOpen(true);
   };
 
   const handleSave = () => {
@@ -158,6 +168,17 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     const parsed = parseFloat(valueStr.replace(",", "."));
     if (isNaN(parsed)) {
       toast.error("Informe um valor numérico válido.");
+      return;
+    }
+    if (editingId) {
+      onChange(
+        items.map((i) =>
+          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed } : i,
+        ),
+      );
+      reset();
+      setOpen(false);
+      toast.success("Lançamento atualizado.");
       return;
     }
     const item: AlteracaoItem = {
@@ -175,6 +196,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const handleDelete = (id: string) => {
     onChange(items.filter((i) => i.id !== id));
   };
+
 
   const sorted = useMemo(() => {
     const filtered = items.filter((i) => {
@@ -349,7 +371,16 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                         >
                           {formatCurrency(it.value)}
                         </td>
-                        <td className="px-3 py-1.5 text-right print:hidden">
+                        <td className="px-3 py-1.5 text-right print:hidden whitespace-nowrap">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => startEdit(it)}
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -360,9 +391,12 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </td>
+
                       </tr>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-56">
+                      <ContextMenuItem onSelect={() => startEdit(it)}>Editar lançamento</ContextMenuItem>
+                      <ContextMenuSeparator />
                       <ContextMenuLabel>Mover para separação</ContextMenuLabel>
                       <ContextMenuSeparator />
                       {groups.length === 0 && (
@@ -519,7 +553,16 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                         >
                           {formatCurrency(it.value)}
                         </td>
-                        <td className="px-3 py-1.5 text-right print:hidden">
+                        <td className="px-3 py-1.5 text-right print:hidden whitespace-nowrap">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => startEdit(it)}
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -530,6 +573,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </td>
+
                       </tr>
                     ))}
                   </tbody>
@@ -562,7 +606,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Inserir Acontecimento</DialogTitle>
+            <DialogTitle>{editingId ? "Editar Lançamento" : "Inserir Acontecimento"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
