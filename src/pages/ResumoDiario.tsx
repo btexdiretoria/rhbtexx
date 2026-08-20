@@ -126,6 +126,13 @@ export default function ResumoDiario() {
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
   const [responsavel, setResponsavel] = useState('');
+  const [exportChecklist, setExportChecklist] = useState({
+    caixaAnual: false,
+    caixaDia: false,
+    dreAnual: false,
+    dreDia: false,
+  });
+  const allExportChecked = Object.values(exportChecklist).every(Boolean);
 
   useEffect(() => {
     if (loaded) setState(loaded);
