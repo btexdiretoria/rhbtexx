@@ -21,9 +21,19 @@ export default function ExpenseControl() {
   const [editValue, setEditValue] = useState('');
 
   const { data: categories = [], isLoading } = useExpenseCategories(selectedYear, selectedMonth);
+  const { data: company } = useCompanySettings();
   const createCategory = useCreateExpenseCategory();
   const updateCategory = useUpdateExpenseCategory();
   const deleteCategory = useDeleteExpenseCategory();
+
+  const handleExportPDF = () => {
+    exportExpenseControlPDF(
+      categories as ExpenseCategoryRow[],
+      MONTHS[selectedMonth],
+      selectedYear,
+      company?.company_name
+    );
+  };
 
   const addCategory = () => {
     createCategory.mutate({ name: 'Nova Categoria', forecast: 0, spent: 0, year: selectedYear, month: selectedMonth, sort_order: categories.length });
