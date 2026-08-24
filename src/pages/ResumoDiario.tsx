@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
-import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
+import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
 import { exportResumoDiarioPDF } from '@/utils/resumoDiarioPdf';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -122,6 +122,7 @@ export default function ResumoDiario() {
     catch { return date; }
   }, [date]);
   const { data: prevSummary } = useDailySummary(prevDate);
+  const { data: lastSummary } = useLastDailySummary(date);
   const { data: company } = useCompanySettings();
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
@@ -135,8 +136,15 @@ export default function ResumoDiario() {
   const allExportChecked = Object.values(exportChecklist).every(Boolean);
 
   useEffect(() => {
-    if (loaded) setState(loaded);
-  }, [loaded]);
+    if (loaded?.id) {
+      setState(loaded);
+    } else if (loaded && lastSummary) {
+      // nenhum resumo salvo nesta data: mantém as informações do último resumo salvo
+      setState({ ...lastSummary, summary_date: date });
+    } else if (loaded) {
+      setState(loaded);
+    }
+  }, [loaded, lastSummary, date]);
 
   const dateLabel = useMemo(() => {
     try { return format(parse(date, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR }); }
