@@ -80,8 +80,8 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
-  const currentYear = new Date().getFullYear();
-  const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+  const [impact, setImpact] = useState<AlteracaoImpact>("ambos");
+
   const [monthFilter, setMonthFilter] = useState<string>(hideMonthYearFilters ? "all" : currentMonth); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
