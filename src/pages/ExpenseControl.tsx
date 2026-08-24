@@ -3,8 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Clock } from 'lucide-react';
-import { useExpenseCategories, useCreateExpenseCategory, useUpdateExpenseCategory, useDeleteExpenseCategory } from '@/hooks/useFinancial';
+import { Plus, Trash2, Clock, FileDown } from 'lucide-react';
+import { useExpenseCategories, useCreateExpenseCategory, useUpdateExpenseCategory, useDeleteExpenseCategory, useCompanySettings } from '@/hooks/useFinancial';
+import { exportExpenseControlPDF, type ExpenseCategoryRow } from '@/utils/expenseControlPdf';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -20,9 +21,19 @@ export default function ExpenseControl() {
   const [editValue, setEditValue] = useState('');
 
   const { data: categories = [], isLoading } = useExpenseCategories(selectedYear, selectedMonth);
+  const { data: company } = useCompanySettings();
   const createCategory = useCreateExpenseCategory();
   const updateCategory = useUpdateExpenseCategory();
   const deleteCategory = useDeleteExpenseCategory();
+
+  const handleExportPDF = () => {
+    exportExpenseControlPDF(
+      categories as ExpenseCategoryRow[],
+      MONTHS[selectedMonth],
+      selectedYear,
+      company?.company_name
+    );
+  };
 
   const addCategory = () => {
     createCategory.mutate({ name: 'Nova Categoria', forecast: 0, spent: 0, year: selectedYear, month: selectedMonth, sort_order: categories.length });
@@ -65,7 +76,12 @@ export default function ExpenseControl() {
         <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground"><Clock className="w-3.5 h-3.5" />Última atualização: {formatLastUpdated(lastUpdated)}</div>
       </div>
 
-      <div className="flex justify-end"><Button onClick={addCategory} className="gap-2"><Plus className="w-4 h-4" />Adicionar Categoria</Button></div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={handleExportPDF} className="gap-2" disabled={categories.length === 0}>
+          <FileDown className="w-4 h-4" />Exportar PDF
+        </Button>
+        <Button onClick={addCategory} className="gap-2"><Plus className="w-4 h-4" />Adicionar Categoria</Button>
+      </div>
 
       <div className="space-y-3">
         {categories.length === 0 ? (
