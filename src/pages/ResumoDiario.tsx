@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
-import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
+import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
 import { exportResumoDiarioPDF } from '@/utils/resumoDiarioPdf';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
