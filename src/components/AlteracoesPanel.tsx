@@ -31,13 +31,23 @@ import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+export type AlteracaoImpact = "dre" | "caixa" | "ambos";
+
+export const IMPACT_LABEL: Record<AlteracaoImpact, string> = {
+  dre: "DRE",
+  caixa: "Caixa",
+  ambos: "DRE/Caixa",
+};
+
 export interface AlteracaoItem {
   id: string;
   date: string; // YYYY-MM-DD
   description: string;
   value: number;
   groupId?: string | null;
+  impact?: AlteracaoImpact;
 }
+
 
 export interface AlteracaoGroup {
   id: string;
