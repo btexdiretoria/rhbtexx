@@ -122,6 +122,7 @@ export default function ResumoDiario() {
     catch { return date; }
   }, [date]);
   const { data: prevSummary } = useDailySummary(prevDate);
+  const { data: lastSummary } = useLastDailySummary(date);
   const { data: company } = useCompanySettings();
   const saveMut = useSaveDailySummary();
   const [state, setState] = useState<DailySummary>(emptySummary(date));
