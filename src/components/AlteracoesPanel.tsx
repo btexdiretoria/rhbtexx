@@ -31,13 +31,23 @@ import { formatCurrency, formatDateBR } from "@/lib/cashflow";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+export type AlteracaoImpact = "dre" | "caixa" | "ambos";
+
+export const IMPACT_LABEL: Record<AlteracaoImpact, string> = {
+  dre: "DRE",
+  caixa: "Caixa",
+  ambos: "DRE/Caixa",
+};
+
 export interface AlteracaoItem {
   id: string;
   date: string; // YYYY-MM-DD
   description: string;
   value: number;
   groupId?: string | null;
+  impact?: AlteracaoImpact;
 }
+
 
 export interface AlteracaoGroup {
   id: string;
@@ -70,8 +80,8 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [valueStr, setValueStr] = useState("");
-  const currentYear = new Date().getFullYear();
-  const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+  const [impact, setImpact] = useState<AlteracaoImpact>("ambos");
+
   const [monthFilter, setMonthFilter] = useState<string>(hideMonthYearFilters ? "all" : currentMonth); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
