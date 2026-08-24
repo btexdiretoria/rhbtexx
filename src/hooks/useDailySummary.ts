@@ -142,6 +142,45 @@ export function useDailySummary(date: string) {
   });
 }
 
+/**
+ * Último resumo salvo anterior à data informada.
+ * Usado para manter as informações permanentemente: ao abrir um novo dia,
+ * o conteúdo do último resumo salvo é carregado como ponto de partida.
+ */
+export function useLastDailySummary(date: string) {
+  return useQuery({
+    queryKey: ['daily_summary_last', date],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('daily_summary' as any)
+        .select('*')
+        .lt('summary_date', date)
+        .order('summary_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const d = data as any;
+      return {
+        ...emptySummary(date),
+        ...d,
+        id: undefined,
+        summary_date: date,
+        despesas: d.despesas || [],
+        controle_semanal: (d.controle_semanal?.length ? d.controle_semanal : DEFAULT_SEMANAS()),
+        alteracoes: d.alteracoes || [],
+        controle_ausencias: d.controle_ausencias || [],
+        receitas_receber: d.receitas_receber || [],
+        alteracoes_comp: d.alteracoes_comp || [],
+        avisos: d.avisos || [],
+        checklist: d.checklist || [],
+        assinaturas: d.assinaturas || [],
+        card_order: normalizeOrder(d.card_order),
+      } as DailySummary;
+    },
+  });
+}
+
 export function useSaveDailySummary() {
   const qc = useQueryClient();
   return useMutation({
