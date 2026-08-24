@@ -135,8 +135,15 @@ export default function ResumoDiario() {
   const allExportChecked = Object.values(exportChecklist).every(Boolean);
 
   useEffect(() => {
-    if (loaded) setState(loaded);
-  }, [loaded]);
+    if (loaded?.id) {
+      setState(loaded);
+    } else if (loaded && lastSummary) {
+      // nenhum resumo salvo nesta data: mantém as informações do último resumo salvo
+      setState({ ...lastSummary, summary_date: date });
+    } else if (loaded) {
+      setState(loaded);
+    }
+  }, [loaded, lastSummary, date]);
 
   const dateLabel = useMemo(() => {
     try { return format(parse(date, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR }); }
