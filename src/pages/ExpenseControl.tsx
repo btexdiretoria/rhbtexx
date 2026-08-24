@@ -76,7 +76,12 @@ export default function ExpenseControl() {
         <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground"><Clock className="w-3.5 h-3.5" />Última atualização: {formatLastUpdated(lastUpdated)}</div>
       </div>
 
-      <div className="flex justify-end"><Button onClick={addCategory} className="gap-2"><Plus className="w-4 h-4" />Adicionar Categoria</Button></div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={handleExportPDF} className="gap-2" disabled={categories.length === 0}>
+          <FileDown className="w-4 h-4" />Exportar PDF
+        </Button>
+        <Button onClick={addCategory} className="gap-2"><Plus className="w-4 h-4" />Adicionar Categoria</Button>
+      </div>
 
       <div className="space-y-3">
         {categories.length === 0 ? (
