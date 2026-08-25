@@ -75,6 +75,10 @@ const MONTH_NAMES = [
 ];
 
 const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false, enableGroups = false, groups = [], onGroupsChange }: Props) => {
+  const today = new Date();
+  const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
+  const currentYear = today.getFullYear();
+
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [date, setDate] = useState("");
