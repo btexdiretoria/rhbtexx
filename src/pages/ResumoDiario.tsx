@@ -313,9 +313,14 @@ export default function ResumoDiario() {
               <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Saldo total</span>
               <span className={`text-sm font-bold ${signClass(saldo)}`}>R$ {fmtMoney(saldo)}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
-              <Plus className="mr-1 h-4 w-4" /> Adicionar
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
+                <Plus className="mr-1 h-4 w-4" /> Adicionar
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => { setPullVariant(variant); setPullStart(''); setPullEnd(''); }}>
+                <Download className="mr-1 h-4 w-4" /> Puxar eventualidades
+              </Button>
+            </div>
           </div>
         </div>
       </div>
