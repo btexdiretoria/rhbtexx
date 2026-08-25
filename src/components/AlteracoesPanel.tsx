@@ -159,6 +159,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate("");
     setDescription("");
     setValueStr("");
+    setImpact("ambos");
     setEditingId(null);
   };
 
@@ -167,6 +168,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate(it.date || "");
     setDescription(it.description || "");
     setValueStr(String(it.value ?? ""));
+    setImpact(it.impact ?? "ambos");
     setOpen(true);
   };
 
@@ -187,7 +189,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     if (editingId) {
       onChange(
         items.map((i) =>
-          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed } : i,
+          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed, impact } : i,
         ),
       );
       reset();
@@ -200,6 +202,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
       date,
       description: description.trim(),
       value: parsed,
+      impact,
     };
     onChange([...items, item]);
     reset();
