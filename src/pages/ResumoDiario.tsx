@@ -705,6 +705,36 @@ export default function ResumoDiario() {
           </Button>
         </div>
       </section>
+
+      <Dialog open={pullVariant !== null} onOpenChange={(o) => { if (!o) setPullVariant(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Puxar eventualidades · {pullVariant === 'competencia' ? 'Competência' : 'Caixa'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Selecione o período. Serão importadas as eventualidades marcadas como{' '}
+              {pullVariant === 'competencia' ? '"DRE"' : '"Caixa"'} ou "DRE/Caixa".
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="pull-start">Data inicial</Label>
+                <Input id="pull-start" type="date" value={pullStart} onChange={(e) => setPullStart(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pull-end">Data final</Label>
+                <Input id="pull-end" type="date" value={pullEnd} onChange={(e) => setPullEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPullVariant(null)}>Cancelar</Button>
+            <Button onClick={handlePull} disabled={pulling}>{pulling ? 'Buscando...' : 'Puxar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
