@@ -159,6 +159,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate("");
     setDescription("");
     setValueStr("");
+    setImpact("ambos");
     setEditingId(null);
   };
 
@@ -167,6 +168,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setDate(it.date || "");
     setDescription(it.description || "");
     setValueStr(String(it.value ?? ""));
+    setImpact(it.impact ?? "ambos");
     setOpen(true);
   };
 
@@ -187,7 +189,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     if (editingId) {
       onChange(
         items.map((i) =>
-          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed } : i,
+          i.id === editingId ? { ...i, date, description: description.trim(), value: parsed, impact } : i,
         ),
       );
       reset();
@@ -200,6 +202,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
       date,
       description: description.trim(),
       value: parsed,
+      impact,
     };
     onChange([...items, item]);
     reset();
@@ -662,6 +665,19 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                     : "",
                 )}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="alt-impact">Impacto</Label>
+              <Select value={impact} onValueChange={(v) => setImpact(v as AlteracaoImpact)}>
+                <SelectTrigger id="alt-impact">
+                  <SelectValue placeholder="Selecione o impacto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dre">{IMPACT_LABEL.dre}</SelectItem>
+                  <SelectItem value="caixa">{IMPACT_LABEL.caixa}</SelectItem>
+                  <SelectItem value="ambos">{IMPACT_LABEL.ambos}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
