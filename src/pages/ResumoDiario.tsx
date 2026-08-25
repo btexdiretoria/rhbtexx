@@ -195,6 +195,51 @@ export default function ResumoDiario() {
   const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
 
 
+
+  // ─── Puxar eventualidades do Fluxo ───
+  const [pullVariant, setPullVariant] = useState<'caixa' | 'competencia' | null>(null);
+  const [pullStart, setPullStart] = useState('');
+  const [pullEnd, setPullEnd] = useState('');
+  const [pulling, setPulling] = useState(false);
+
+  const handlePull = async () => {
+    if (!pullVariant) return;
+    if (!pullStart || !pullEnd) {
+      toast({ title: 'Informe o período', description: 'Preencha a data inicial e final.', variant: 'destructive' });
+      return;
+    }
+    setPulling(true);
+    try {
+      const { data, error } = await supabase
+        .from('cashflow_state')
+        .select('alteracoes')
+        .eq('state_key', 'default')
+        .maybeSingle();
+      if (error) throw error;
+      const all = (((data as any)?.alteracoes as AlteracaoItem[]) || []).filter((it) => {
+        if (!it?.date) return false;
+        if (it.date < pullStart || it.date > pullEnd) return false;
+        const impact = it.impact ?? 'ambos';
+        return impact === 'ambos' || (pullVariant === 'competencia' ? impact === 'dre' : impact === 'caixa');
+      });
+      if (!all.length) {
+        toast({ title: 'Nenhuma eventualidade encontrada para o período' });
+        setPulling(false);
+        return;
+      }
+      const novos = all.map((it) => ({ id: uid(), texto: it.description, valor: String(it.value ?? '') }));
+      const isComp = pullVariant === 'competencia';
+      const atual = isComp ? state.alteracoes_comp : state.alteracoes;
+      update(isComp ? { alteracoes_comp: [...atual, ...novos] } : { alteracoes: [...atual, ...novos] });
+      toast({ title: `${novos.length} eventualidade(s) importada(s)` });
+      setPullVariant(null);
+    } catch (e: any) {
+      toast({ title: 'Erro ao puxar eventualidades', description: e.message, variant: 'destructive' });
+    } finally {
+      setPulling(false);
+    }
+  };
+
   const saldoAlteracoesComp = state.alteracoes_comp.reduce((acc, a) => acc + parseMoney(a.valor), 0);
 
   const renderResultado = (variant: 'caixa' | 'competencia') => {
