@@ -663,6 +663,19 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
                 )}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="alt-impact">Impacto</Label>
+              <Select value={impact} onValueChange={(v) => setImpact(v as AlteracaoImpact)}>
+                <SelectTrigger id="alt-impact">
+                  <SelectValue placeholder="Selecione o impacto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dre">{IMPACT_LABEL.dre}</SelectItem>
+                  <SelectItem value="caixa">{IMPACT_LABEL.caixa}</SelectItem>
+                  <SelectItem value="ambos">{IMPACT_LABEL.ambos}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setOpen(false); reset(); }}>
