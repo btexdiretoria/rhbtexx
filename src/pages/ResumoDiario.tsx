@@ -11,6 +11,13 @@ import { addDays, format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import type { AlteracaoItem } from '@/components/AlteracoesPanel';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
