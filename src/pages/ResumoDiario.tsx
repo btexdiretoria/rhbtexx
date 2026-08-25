@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Calendar, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
   AlertTriangle, PenLine, Building2, User, Layers,
-  CalendarDays, Banknote, ListChecks, UserX, ArrowRight,
+  CalendarDays, Banknote, ListChecks, UserX, ArrowRight, Download,
 } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -11,6 +11,13 @@ import { addDays, format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import type { AlteracaoItem } from '@/components/AlteracoesPanel';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
 import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
@@ -188,6 +195,51 @@ export default function ResumoDiario() {
   const totalReceitasReceber = state.receitas_receber.reduce((acc, r) => acc + parseMoney(r.valor), 0);
 
 
+
+  // ─── Puxar eventualidades do Fluxo ───
+  const [pullVariant, setPullVariant] = useState<'caixa' | 'competencia' | null>(null);
+  const [pullStart, setPullStart] = useState('');
+  const [pullEnd, setPullEnd] = useState('');
+  const [pulling, setPulling] = useState(false);
+
+  const handlePull = async () => {
+    if (!pullVariant) return;
+    if (!pullStart || !pullEnd) {
+      toast({ title: 'Informe o período', description: 'Preencha a data inicial e final.', variant: 'destructive' });
+      return;
+    }
+    setPulling(true);
+    try {
+      const { data, error } = await supabase
+        .from('cashflow_state')
+        .select('alteracoes')
+        .eq('state_key', 'default')
+        .maybeSingle();
+      if (error) throw error;
+      const all = (((data as any)?.alteracoes as AlteracaoItem[]) || []).filter((it) => {
+        if (!it?.date) return false;
+        if (it.date < pullStart || it.date > pullEnd) return false;
+        const impact = it.impact ?? 'ambos';
+        return impact === 'ambos' || (pullVariant === 'competencia' ? impact === 'dre' : impact === 'caixa');
+      });
+      if (!all.length) {
+        toast({ title: 'Nenhuma eventualidade encontrada para o período' });
+        setPulling(false);
+        return;
+      }
+      const novos = all.map((it) => ({ id: uid(), texto: it.description, valor: String(it.value ?? '') }));
+      const isComp = pullVariant === 'competencia';
+      const atual = isComp ? state.alteracoes_comp : state.alteracoes;
+      update(isComp ? { alteracoes_comp: [...atual, ...novos] } : { alteracoes: [...atual, ...novos] });
+      toast({ title: `${novos.length} eventualidade(s) importada(s)` });
+      setPullVariant(null);
+    } catch (e: any) {
+      toast({ title: 'Erro ao puxar eventualidades', description: e.message, variant: 'destructive' });
+    } finally {
+      setPulling(false);
+    }
+  };
+
   const saldoAlteracoesComp = state.alteracoes_comp.reduce((acc, a) => acc + parseMoney(a.valor), 0);
 
   const renderResultado = (variant: 'caixa' | 'competencia') => {
@@ -261,9 +313,14 @@ export default function ResumoDiario() {
               <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Saldo total</span>
               <span className={`text-sm font-bold ${signClass(saldo)}`}>R$ {fmtMoney(saldo)}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
-              <Plus className="mr-1 h-4 w-4" /> Adicionar
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
+                <Plus className="mr-1 h-4 w-4" /> Adicionar
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => { setPullVariant(variant); setPullStart(''); setPullEnd(''); }}>
+                <Download className="mr-1 h-4 w-4" /> Puxar eventualidades
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -648,6 +705,36 @@ export default function ResumoDiario() {
           </Button>
         </div>
       </section>
+
+      <Dialog open={pullVariant !== null} onOpenChange={(o) => { if (!o) setPullVariant(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Puxar eventualidades · {pullVariant === 'competencia' ? 'Competência' : 'Caixa'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Selecione o período. Serão importadas as eventualidades marcadas como{' '}
+              {pullVariant === 'competencia' ? '"DRE"' : '"Caixa"'} ou "DRE/Caixa".
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="pull-start">Data inicial</Label>
+                <Input id="pull-start" type="date" value={pullStart} onChange={(e) => setPullStart(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pull-end">Data final</Label>
+                <Input id="pull-end" type="date" value={pullEnd} onChange={(e) => setPullEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPullVariant(null)}>Cancelar</Button>
+            <Button onClick={handlePull} disabled={pulling}>{pulling ? 'Buscando...' : 'Puxar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
