@@ -25,6 +25,7 @@ import Overtime from "@/pages/Overtime";
 import FoodVoucher from "@/pages/FoodVoucher";
 import ExpenseControl from "@/pages/ExpenseControl";
 import Fluxo from "@/pages/Fluxo";
+import Resultados from "@/pages/Resultados";
 import FinanceDashboard from "@/pages/FinanceDashboard";
 import FinanceCalendar from "@/pages/FinanceCalendar";
 import ResumoDiario from "@/pages/ResumoDiario";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/horas-extras" element={<ProtectedPage><Overtime /></ProtectedPage>} />
               <Route path="/controle-despesas" element={<ProtectedPage><ExpenseControl /></ProtectedPage>} />
               <Route path="/fluxo" element={<ProtectedPage><Fluxo /></ProtectedPage>} />
+              <Route path="/resultados" element={<ProtectedPage><Resultados /></ProtectedPage>} />
               <Route path="/dashboard-financas" element={<ProtectedPage><FinanceDashboard /></ProtectedPage>} />
               <Route path="/calendario-financas" element={<ProtectedPage><FinanceCalendar /></ProtectedPage>} />
               <Route path="/dre-caixa" element={<ProtectedPage><DreCaixa /></ProtectedPage>} />
