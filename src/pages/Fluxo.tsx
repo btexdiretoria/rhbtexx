@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import FileUpload from "@/components/FileUpload";
 import CategoryBuckets from "@/components/CategoryBuckets";
-import MonthlyBalance from "@/components/MonthlyBalance";
-import AlteracoesPanel, { type AlteracaoItem } from "@/components/AlteracoesPanel";
+import { type AlteracaoItem } from "@/components/AlteracoesPanel";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import CashFlowTable from "@/components/CashFlowTable";
 import { parseFile, buildCashFlow, formatCurrency, formatDateBR, type RawEntry, type CashFlowData } from "@/lib/cashflow";
@@ -461,47 +460,6 @@ const Index = () => {
             {/* Category buckets summary */}
             <CategoryBuckets entries={entries} startDate={startDate} endDate={endDate} />
 
-            {/* Eventualidades */}
-            <AlteracoesPanel
-              title="✍️ Eventualidades"
-              totalLabel="Valor total de eventualidades do mês"
-              items={alteracoes}
-              onChange={setAlteracoes}
-              valorPrevisto={valorPrevisto}
-              onValorPrevistoChange={setValorPrevisto}
-              enableGroups
-              groups={alteracoesGroups}
-              onGroupsChange={setAlteracoesGroups}
-              baseSaldoFinal={(() => {
-
-                const activeData = simulationMode && simulatedData ? simulatedData : data;
-                const activeDates = simulationMode ? simulatedFilteredDates : filteredDates;
-                if (!activeData || activeDates.length === 0) return 0;
-                let prev = 0;
-                for (const d of activeDates) {
-                  let rev = 0, exp = 0;
-                  for (const cat of activeData.revenueCategories) rev += activeData.matrix[`rev::${cat}`]?.[d] || 0;
-                  for (const cat of activeData.expenseCategories) exp += activeData.matrix[`exp::${cat}`]?.[d] || 0;
-                  prev = prev + rev + exp;
-                }
-                return prev;
-              })()}
-            />
-
-            {/* Alteração de resultado Anual */}
-            <AlteracoesPanel
-              title="📊 Alteração de resultado Anual"
-              totalLabel="Valor total de alterações do Ano"
-              hideMonthYearFilters
-              items={alteracoesAnual}
-              onChange={setAlteracoesAnual}
-              valorPrevisto={valorPrevistoAnual}
-              onValorPrevistoChange={setValorPrevistoAnual}
-              baseSaldoFinal={0}
-            />
-
-            {/* Monthly balance */}
-            <MonthlyBalance data={data} />
 
             {/* Print button */}
             <div className="flex justify-end print:hidden">
