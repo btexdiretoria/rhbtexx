@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Calendar, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
+  Calendar as CalendarIcon, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
   AlertTriangle, PenLine, Building2, User, Layers,
   CalendarDays, Banknote, ListChecks, UserX, ArrowRight, Download,
 } from 'lucide-react';
@@ -9,13 +9,15 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities';
 import { addDays, format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Calendar as DateRangeCalendar } from '@/components/ui/calendar';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import type { AlteracaoItem } from '@/components/AlteracoesPanel';
 import { useToast } from '@/hooks/use-toast';
@@ -198,16 +200,32 @@ export default function ResumoDiario() {
 
   // ─── Puxar eventualidades do Fluxo ───
   const [pullVariant, setPullVariant] = useState<'caixa' | 'competencia' | null>(null);
-  const [pullStart, setPullStart] = useState('');
-  const [pullEnd, setPullEnd] = useState('');
+  const [pullRange, setPullRange] = useState<DateRange | undefined>();
   const [pulling, setPulling] = useState(false);
+
+  const pullRangeLabel = useMemo(() => {
+    if (!pullRange?.from) return 'Selecionar dia ou período';
+    const fromLabel = format(pullRange.from, 'dd/MM/yyyy');
+    const to = pullRange.to ?? pullRange.from;
+    const toLabel = format(to, 'dd/MM/yyyy');
+    return fromLabel === toLabel ? fromLabel : `${fromLabel} até ${toLabel}`;
+  }, [pullRange]);
+
+  const selectPullToday = () => {
+    const current = new Date();
+    setPullRange({ from: current, to: current });
+  };
 
   const handlePull = async () => {
     if (!pullVariant) return;
-    if (!pullStart || !pullEnd) {
-      toast({ title: 'Informe o período', description: 'Preencha a data inicial e final.', variant: 'destructive' });
+    const from = pullRange?.from;
+    const to = pullRange?.to ?? pullRange?.from;
+    if (!from || !to) {
+      toast({ title: 'Informe o período', description: 'Selecione um dia ou intervalo.', variant: 'destructive' });
       return;
     }
+    const pullStart = format(from, 'yyyy-MM-dd');
+    const pullEnd = format(to, 'yyyy-MM-dd');
     setPulling(true);
     try {
       const { data, error } = await supabase
@@ -317,7 +335,7 @@ export default function ResumoDiario() {
               <Button variant="outline" size="sm" onClick={() => setAlt([...alt, { id: uid(), texto: '', valor: '' }])}>
                 <Plus className="mr-1 h-4 w-4" /> Adicionar
               </Button>
-              <Button variant="secondary" size="sm" onClick={() => { setPullVariant(variant); setPullStart(''); setPullEnd(''); }}>
+              <Button variant="secondary" size="sm" onClick={() => { setPullVariant(variant); setPullRange(undefined); }}>
                 <Download className="mr-1 h-4 w-4" /> Puxar eventualidades
               </Button>
             </div>
@@ -598,7 +616,7 @@ export default function ResumoDiario() {
             <p className="text-sm opacity-80">{empresa}</p>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-primary/15 px-4 py-2">
-            <Calendar className="h-4 w-4" />
+            <CalendarIcon className="h-4 w-4" />
             <input
               type="date"
               value={date}
@@ -718,14 +736,30 @@ export default function ResumoDiario() {
               Selecione o período. Serão importadas as eventualidades marcadas como{' '}
               {pullVariant === 'competencia' ? '"DRE"' : '"Caixa"'} ou "DRE/Caixa".
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="pull-start">Data inicial</Label>
-                <Input id="pull-start" type="date" value={pullStart} onChange={(e) => setPullStart(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pull-end">Data final</Label>
-                <Input id="pull-end" type="date" value={pullEnd} onChange={(e) => setPullEnd(e.target.value)} />
+            <div className="space-y-2">
+              <Label>Data ou período</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="flex-1 justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {pullRangeLabel}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <DateRangeCalendar
+                      mode="range"
+                      selected={pullRange}
+                      onSelect={setPullRange}
+                      numberOfMonths={1}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Button type="button" variant="secondary" size="sm" className="sm:self-stretch" onClick={selectPullToday}>
+                  Hoje
+                </Button>
               </div>
             </div>
           </div>
