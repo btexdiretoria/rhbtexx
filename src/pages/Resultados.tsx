@@ -14,8 +14,10 @@ const Resultados = () => {
   const [endDate, setEndDate] = useState("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
+  const [valorPrevistoComp, setValorPrevistoComp] = useState<number>(0);
   const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
   const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
+  const [valorPrevistoAnualComp, setValorPrevistoAnualComp] = useState<number>(0);
   const [alteracoesGroups, setAlteracoesGroups] = useState<{ id: string; name: string }[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const saveTimer = useRef<number | null>(null);
