@@ -14,8 +14,10 @@ const Resultados = () => {
   const [endDate, setEndDate] = useState("");
   const [alteracoes, setAlteracoes] = useState<AlteracaoItem[]>([]);
   const [valorPrevisto, setValorPrevisto] = useState<number>(0);
+  const [valorPrevistoComp, setValorPrevistoComp] = useState<number>(0);
   const [alteracoesAnual, setAlteracoesAnual] = useState<AlteracaoItem[]>([]);
   const [valorPrevistoAnual, setValorPrevistoAnual] = useState<number>(0);
+  const [valorPrevistoAnualComp, setValorPrevistoAnualComp] = useState<number>(0);
   const [alteracoesGroups, setAlteracoesGroups] = useState<{ id: string; name: string }[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const saveTimer = useRef<number | null>(null);
@@ -35,8 +37,10 @@ const Resultados = () => {
           setEndDate(row.end_date || "");
           setAlteracoes((row.alteracoes as unknown as AlteracaoItem[]) || []);
           setValorPrevisto(Number((row as any).valor_previsto) || 0);
+          setValorPrevistoComp(Number((row as any).valor_previsto_comp) || 0);
           setAlteracoesAnual(((row as any).alteracoes_anual as unknown as AlteracaoItem[]) || []);
           setValorPrevistoAnual(Number((row as any).valor_previsto_anual) || 0);
+          setValorPrevistoAnualComp(Number((row as any).valor_previsto_anual_comp) || 0);
           setAlteracoesGroups(((row as any).alteracoes_groups as any) || []);
         }
       } catch (e) {
@@ -58,8 +62,10 @@ const Resultados = () => {
           .update({
             alteracoes: alteracoes as unknown as never,
             valor_previsto: valorPrevisto,
+            valor_previsto_comp: valorPrevistoComp,
             alteracoes_anual: alteracoesAnual as unknown as never,
             valor_previsto_anual: valorPrevistoAnual,
+            valor_previsto_anual_comp: valorPrevistoAnualComp,
             alteracoes_groups: alteracoesGroups as unknown as never,
           })
           .eq("state_key", STATE_KEY);
@@ -71,7 +77,8 @@ const Resultados = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, alteracoesGroups, hydrated]);
+  }, [alteracoes, valorPrevisto, valorPrevistoComp, alteracoesAnual, valorPrevistoAnual, valorPrevistoAnualComp, alteracoesGroups, hydrated]);
+
 
   const data = useMemo(() => (entries.length ? buildCashFlow(entries) : null), [entries]);
 
@@ -116,6 +123,8 @@ const Resultados = () => {
           onChange={setAlteracoes}
           valorPrevisto={valorPrevisto}
           onValorPrevistoChange={setValorPrevisto}
+          valorPrevistoComp={valorPrevistoComp}
+          onValorPrevistoCompChange={setValorPrevistoComp}
           enableGroups
           groups={alteracoesGroups}
           onGroupsChange={setAlteracoesGroups}
@@ -130,6 +139,8 @@ const Resultados = () => {
           onChange={setAlteracoesAnual}
           valorPrevisto={valorPrevistoAnual}
           onValorPrevistoChange={setValorPrevistoAnual}
+          valorPrevistoComp={valorPrevistoAnualComp}
+          onValorPrevistoCompChange={setValorPrevistoAnualComp}
           baseSaldoFinal={0}
         />
 
