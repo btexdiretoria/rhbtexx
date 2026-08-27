@@ -37,8 +37,10 @@ const Resultados = () => {
           setEndDate(row.end_date || "");
           setAlteracoes((row.alteracoes as unknown as AlteracaoItem[]) || []);
           setValorPrevisto(Number((row as any).valor_previsto) || 0);
+          setValorPrevistoComp(Number((row as any).valor_previsto_comp) || 0);
           setAlteracoesAnual(((row as any).alteracoes_anual as unknown as AlteracaoItem[]) || []);
           setValorPrevistoAnual(Number((row as any).valor_previsto_anual) || 0);
+          setValorPrevistoAnualComp(Number((row as any).valor_previsto_anual_comp) || 0);
           setAlteracoesGroups(((row as any).alteracoes_groups as any) || []);
         }
       } catch (e) {
