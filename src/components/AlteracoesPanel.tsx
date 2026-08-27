@@ -234,6 +234,23 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     [sorted],
   );
 
+  // Caixa: impacto "caixa" ou "ambos" | Competência: impacto "dre" ou "ambos"
+  const totalCaixa = useMemo(
+    () =>
+      sorted
+        .filter((it) => (it.impact ?? "ambos") === "caixa" || (it.impact ?? "ambos") === "ambos")
+        .reduce((acc, it) => acc + (it.value || 0), 0),
+    [sorted],
+  );
+
+  const totalComp = useMemo(
+    () =>
+      sorted
+        .filter((it) => (it.impact ?? "ambos") === "dre" || (it.impact ?? "ambos") === "ambos")
+        .reduce((acc, it) => acc + (it.value || 0), 0),
+    [sorted],
+  );
+
   return (
     <>
       <Card>
