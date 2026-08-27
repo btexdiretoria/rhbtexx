@@ -60,6 +60,8 @@ interface Props {
   baseSaldoFinal: number;
   valorPrevisto?: number;
   onValorPrevistoChange?: (value: number) => void;
+  valorPrevistoComp?: number;
+  onValorPrevistoCompChange?: (value: number) => void;
   title?: string;
   totalLabel?: string;
   hideMonthYearFilters?: boolean;
