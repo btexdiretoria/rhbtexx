@@ -76,7 +76,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false, enableGroups = false, groups = [], onGroupsChange }: Props) => {
+const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoChange, valorPrevistoComp = 0, onValorPrevistoCompChange, title = "✍️ Eventualidades", totalLabel = "Valor total de eventualidades do mês", hideMonthYearFilters = false, enableGroups = false, groups = [], onGroupsChange }: Props) => {
   const today = new Date();
   const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
   const currentYear = today.getFullYear();
@@ -91,6 +91,7 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
   const [monthFilter, setMonthFilter] = useState<string>(hideMonthYearFilters ? "all" : currentMonth); // "all" | "YYYY-MM"
   const [yearFilter, setYearFilter] = useState<string>(String(currentYear));
   const [valorPrevistoStr, setValorPrevistoStr] = useState<string>(valorPrevisto ? String(valorPrevisto) : "");
+  const [valorPrevistoCompStr, setValorPrevistoCompStr] = useState<string>(valorPrevistoComp ? String(valorPrevistoComp) : "");
   const [listOpen, setListOpen] = useState(true);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverGroup, setDragOverGroup] = useState<string | null>(null);
