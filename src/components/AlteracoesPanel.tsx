@@ -242,95 +242,141 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Top controls: Month filter + Valor Previsto Inicial */}
-          <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-border pb-4">
-            {!hideMonthYearFilters && (
-              <>
-                <div className="space-y-1.5 md:w-44">
-                  <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
-                    Mês
-                  </Label>
-                  <Select value={monthFilter} onValueChange={setMonthFilter}>
-                    <SelectTrigger id="month-filter">
-                      <SelectValue placeholder="Selecione o mês" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os meses</SelectItem>
-                      {MONTH_NAMES.map((name, idx) => {
-                        const mm = String(idx + 1).padStart(2, "0");
-                        return (
-                          <SelectItem key={mm} value={mm}>
-                            {name}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5 md:w-32">
-                  <Label htmlFor="year-filter" className="text-xs text-muted-foreground">
-                    Ano
-                  </Label>
-                  <Select value={yearFilter} onValueChange={setYearFilter}>
-                    <SelectTrigger id="year-filter">
-                      <SelectValue placeholder="Ano" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {yearOptions.map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y}
+          {/* Period filter */}
+          {!hideMonthYearFilters && (
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="space-y-1.5 md:w-44">
+                <Label htmlFor="month-filter" className="text-xs text-muted-foreground">
+                  Mês
+                </Label>
+                <Select value={monthFilter} onValueChange={setMonthFilter}>
+                  <SelectTrigger id="month-filter">
+                    <SelectValue placeholder="Selecione o mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os meses</SelectItem>
+                    {MONTH_NAMES.map((name, idx) => {
+                      const mm = String(idx + 1).padStart(2, "0");
+                      return (
+                        <SelectItem key={mm} value={mm}>
+                          {name}
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5 md:w-32">
+                <Label htmlFor="year-filter" className="text-xs text-muted-foreground">
+                  Ano
+                </Label>
+                <Select value={yearFilter} onValueChange={setYearFilter}>
+                  <SelectTrigger id="year-filter">
+                    <SelectValue placeholder="Ano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {yearOptions.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {/* Highlighted result blocks: Caixa + Competência */}
+          <div className="grid gap-4 md:grid-cols-2 border-b border-border pb-4">
+            {([
+              {
+                key: "caixa" as const,
+                heading: "💵 Caixa",
+                subtitle: "Impacto: Caixa e DRE/Caixa",
+                previsto: valorPrevisto,
+                onPrevisto: onValorPrevistoChange,
+                str: valorPrevistoStr,
+                setStr: setValorPrevistoStr,
+                total: totalCaixa,
+              },
+              {
+                key: "comp" as const,
+                heading: "📘 Competência",
+                subtitle: "Impacto: DRE e DRE/Caixa",
+                previsto: valorPrevistoComp,
+                onPrevisto: onValorPrevistoCompChange,
+                str: valorPrevistoCompStr,
+                setStr: setValorPrevistoCompStr,
+                total: totalComp,
+              },
+            ]).map((b) => {
+              const result = (b.previsto || 0) + b.total;
+              return (
+                <div key={b.key} className="rounded-lg border-2 border-border bg-muted/30 p-4 space-y-3">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">{b.heading}</h3>
+                    <p className="text-xs text-muted-foreground">{b.subtitle}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`valor-previsto-${b.key}`} className="text-xs text-muted-foreground">
+                      Valor Previsto Inicial
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                        R$
+                      </span>
+                      <Input
+                        id={`valor-previsto-${b.key}`}
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        value={b.str}
+                        onChange={(e) => b.setStr(e.target.value)}
+                        onBlur={() => {
+                          const n = parseFloat(b.str.replace(",", "."));
+                          b.onPrevisto?.(isNaN(n) ? 0 : n);
+                        }}
+                        placeholder="0,00"
+                        className="pl-9 bg-background"
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Acontecimentos</span>
+                    <span
+                      className={cn(
+                        "font-medium tabular-nums",
+                        b.total > 0 ? "text-positive-foreground" : b.total < 0 ? "text-negative-foreground" : "",
+                      )}
+                    >
+                      {formatCurrency(b.total)}
+                    </span>
+                  </div>
+                  <div className="space-y-1 border-t border-border pt-2">
+                    <Label className="text-xs text-muted-foreground">
+                      {hideMonthYearFilters ? "Resultado anual" : "Resultado mensal"}
+                    </Label>
+                    <div
+                      className={cn(
+                        "text-xl font-bold tabular-nums",
+                        result > 0
+                          ? "text-positive-foreground"
+                          : result < 0
+                            ? "text-negative-foreground"
+                            : "text-foreground",
+                      )}
+                    >
+                      {formatCurrency(result)}
+                    </div>
+                  </div>
                 </div>
-              </>
-            )}
-
-            <div className="space-y-1.5 md:w-56">
-              <Label htmlFor="valor-previsto" className="text-xs text-muted-foreground">
-                Valor Previsto Inicial
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                  R$
-                </span>
-                <Input
-                  id="valor-previsto"
-                  type="number"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={valorPrevistoStr}
-                  onChange={(e) => setValorPrevistoStr(e.target.value)}
-                  onBlur={() => {
-                    const n = parseFloat(valorPrevistoStr.replace(",", "."));
-                    onValorPrevistoChange?.(isNaN(n) ? 0 : n);
-                  }}
-                  placeholder="0,00"
-                  className="pl-9"
-                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5 md:w-56">
-              <Label className="text-xs text-muted-foreground">{hideMonthYearFilters ? "Resultado anual" : "Resultado mensal"}</Label>
-              <div
-                className={cn(
-                  "h-10 flex items-center px-3 rounded-md border border-border bg-muted/40 text-base font-bold tabular-nums",
-                  (valorPrevisto + totalAcontecimentos) > 0
-                    ? "text-positive-foreground"
-                    : (valorPrevisto + totalAcontecimentos) < 0
-                      ? "text-negative-foreground"
-                      : "text-foreground",
-                )}
-              >
-                {formatCurrency(valorPrevisto + totalAcontecimentos)}
-              </div>
-            </div>
+              );
+            })}
           </div>
+
 
           <div className="flex items-center gap-2 print:hidden">
             <Button
