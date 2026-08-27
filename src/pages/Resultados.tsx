@@ -62,8 +62,10 @@ const Resultados = () => {
           .update({
             alteracoes: alteracoes as unknown as never,
             valor_previsto: valorPrevisto,
+            valor_previsto_comp: valorPrevistoComp,
             alteracoes_anual: alteracoesAnual as unknown as never,
             valor_previsto_anual: valorPrevistoAnual,
+            valor_previsto_anual_comp: valorPrevistoAnualComp,
             alteracoes_groups: alteracoesGroups as unknown as never,
           })
           .eq("state_key", STATE_KEY);
@@ -75,7 +77,8 @@ const Resultados = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [alteracoes, valorPrevisto, alteracoesAnual, valorPrevistoAnual, alteracoesGroups, hydrated]);
+  }, [alteracoes, valorPrevisto, valorPrevistoComp, alteracoesAnual, valorPrevistoAnual, valorPrevistoAnualComp, alteracoesGroups, hydrated]);
+
 
   const data = useMemo(() => (entries.length ? buildCashFlow(entries) : null), [entries]);
 
