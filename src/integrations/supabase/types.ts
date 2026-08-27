@@ -191,6 +191,8 @@ export type Database = {
           updated_at: string
           valor_previsto: number
           valor_previsto_anual: number
+          valor_previsto_anual_comp: number
+          valor_previsto_comp: number
         }
         Insert: {
           alteracoes?: Json
@@ -210,6 +212,8 @@ export type Database = {
           updated_at?: string
           valor_previsto?: number
           valor_previsto_anual?: number
+          valor_previsto_anual_comp?: number
+          valor_previsto_comp?: number
         }
         Update: {
           alteracoes?: Json
@@ -229,6 +233,8 @@ export type Database = {
           updated_at?: string
           valor_previsto?: number
           valor_previsto_anual?: number
+          valor_previsto_anual_comp?: number
+          valor_previsto_comp?: number
         }
         Relationships: []
       }
