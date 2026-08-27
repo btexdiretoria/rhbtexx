@@ -123,6 +123,8 @@ const Resultados = () => {
           onChange={setAlteracoes}
           valorPrevisto={valorPrevisto}
           onValorPrevistoChange={setValorPrevisto}
+          valorPrevistoComp={valorPrevistoComp}
+          onValorPrevistoCompChange={setValorPrevistoComp}
           enableGroups
           groups={alteracoesGroups}
           onGroupsChange={setAlteracoesGroups}
@@ -137,6 +139,8 @@ const Resultados = () => {
           onChange={setAlteracoesAnual}
           valorPrevisto={valorPrevistoAnual}
           onValorPrevistoChange={setValorPrevistoAnual}
+          valorPrevistoComp={valorPrevistoAnualComp}
+          onValorPrevistoCompChange={setValorPrevistoAnualComp}
           baseSaldoFinal={0}
         />
 
