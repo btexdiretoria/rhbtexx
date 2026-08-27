@@ -146,6 +146,10 @@ const AlteracoesPanel = ({ items, onChange, valorPrevisto = 0, onValorPrevistoCh
     setValorPrevistoStr(valorPrevisto ? String(valorPrevisto) : "");
   }, [valorPrevisto]);
 
+  useEffect(() => {
+    setValorPrevistoCompStr(valorPrevistoComp ? String(valorPrevistoComp) : "");
+  }, [valorPrevistoComp]);
+
 
   // Years: current year ± 5 plus any years present in items
   const yearOptions = useMemo(() => {
