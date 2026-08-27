@@ -902,6 +902,112 @@ export type Database = {
         }
         Relationships: []
       }
+      hr_process_case_steps: {
+        Row: {
+          case_id: string
+          concluido: boolean
+          concluido_em: string | null
+          created_at: string
+          id: string
+          nome: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_process_case_steps_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "hr_process_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_process_cases: {
+        Row: {
+          created_at: string
+          data_referencia: string | null
+          employee_id: string
+          id: string
+          observacoes: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_referencia?: string | null
+          employee_id: string
+          id?: string
+          observacoes?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_referencia?: string | null
+          employee_id?: string
+          id?: string
+          observacoes?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_process_cases_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_process_templates: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          sort_order: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          sort_order?: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          sort_order?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       net_salary_columns: {
         Row: {
           column_id: string
