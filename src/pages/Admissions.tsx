@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Settings2, Trash2, UserPlus, UserMinus, CheckCircle2 } from 'lucide-react';
+import { Plus, Settings2, Trash2, UserPlus, UserMinus, CheckCircle2, Eye, EyeOff, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,8 @@ export default function Admissions() {
   const [newOpen, setNewOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const [filterTipo, setFilterTipo] = useState<'todos' | HrProcessTipo>('todos');
+  const [showSteps, setShowSteps] = useState(true);
+  const [showFinalizados, setShowFinalizados] = useState(false);
 
   const [tipo, setTipo] = useState<HrProcessTipo>('admissao');
   const [employeeId, setEmployeeId] = useState('');
