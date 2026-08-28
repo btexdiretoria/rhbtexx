@@ -11,6 +11,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Employees from "@/pages/Employees";
 import EmployeeProfile from "@/pages/EmployeeProfile";
+import Admissions from "@/pages/Admissions";
 import NewEmployee from "@/pages/NewEmployee";
 import Evaluations from "@/pages/Evaluations";
 import Terminations from "@/pages/Terminations";
