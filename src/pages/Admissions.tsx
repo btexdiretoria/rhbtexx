@@ -110,6 +110,17 @@ export default function Admissions() {
             <SelectItem value="demissao">Demissões</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          size="icon"
+          title={showSteps ? 'Ocultar lista de processos' : 'Mostrar lista de processos'}
+          onClick={() => setShowSteps(v => !v)}
+        >
+          {showSteps ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        </Button>
+        <Button variant={showFinalizados ? 'default' : 'outline'} onClick={() => setShowFinalizados(v => !v)}>
+          <Archive className="w-4 h-4 mr-2" />Finalizados ({finalizados.length})
+        </Button>
         <Button variant="outline" onClick={() => setConfigOpen(true)}>
           <Settings2 className="w-4 h-4 mr-2" />Configurar processos
         </Button>
@@ -120,17 +131,18 @@ export default function Admissions() {
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
-      ) : visibleCases.length === 0 ? (
+      ) : emAndamento.length === 0 ? (
         <Card className="p-10 text-center text-sm text-muted-foreground">
-          Nenhum lançamento registrado.
+          Nenhum lançamento em andamento.
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {visibleCases.map(c => {
+          {emAndamento.map(c => {
             const steps = [...(c.hr_process_case_steps ?? [])].sort((a, b) => a.sort_order - b.sort_order);
             const done = steps.filter(s => s.concluido).length;
             const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
             const isAdm = c.tipo === 'admissao';
+            const next = steps.find(s => !s.concluido);
             return (
               <Card key={c.id} className="p-5 space-y-4">
                 <div className="flex items-start gap-3">
@@ -139,12 +151,17 @@ export default function Admissions() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-foreground truncate">{employeeName(c.employee_id)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {TIPO_LABEL[c.tipo as HrProcessTipo]}
-                      {c.data_referencia ? ` · ${new Date(c.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''}
-                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${isAdm ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                        {TIPO_LABEL[c.tipo as HrProcessTipo]}
+                      </span>
+                      {c.data_referencia && (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(c.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {pct === 100 && <CheckCircle2 className="w-5 h-5 text-primary" />}
                   <Button variant="ghost" size="icon" onClick={() => deleteCase.mutate(c.id)}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
@@ -157,25 +174,73 @@ export default function Admissions() {
                   <Progress value={pct} />
                 </div>
 
-                <div className="space-y-2">
-                  {steps.length === 0 && (
-                    <p className="text-xs text-muted-foreground">Nenhuma etapa configurada para este tipo.</p>
-                  )}
-                  {steps.map(s => (
-                    <label key={s.id} className="flex items-center gap-3 text-sm cursor-pointer">
-                      <Checkbox
-                        checked={s.concluido}
-                        onCheckedChange={(v) => toggleStep.mutate({ id: s.id, concluido: !!v })}
-                      />
-                      <span className={s.concluido ? 'line-through text-muted-foreground' : 'text-foreground'}>{s.nome}</span>
-                    </label>
-                  ))}
-                </div>
+                {showSteps ? (
+                  <div className="space-y-2">
+                    {steps.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Nenhuma etapa configurada para este tipo.</p>
+                    )}
+                    {steps.map(s => (
+                      <label key={s.id} className="flex items-center gap-3 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={s.concluido}
+                          onCheckedChange={(v) => toggleStep.mutate({ id: s.id, concluido: !!v })}
+                        />
+                        <span className={s.concluido ? 'line-through text-muted-foreground' : 'text-foreground'}>{s.nome}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : next ? (
+                  <label className="flex items-center gap-3 text-sm cursor-pointer rounded-lg border border-border px-3 py-2">
+                    <Checkbox
+                      checked={false}
+                      onCheckedChange={(v) => toggleStep.mutate({ id: next.id, concluido: !!v })}
+                    />
+                    <span className="text-foreground">
+                      <span className="text-xs text-muted-foreground mr-1">Próximo:</span>{next.nome}
+                    </span>
+                  </label>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Nenhuma etapa pendente.</p>
+                )}
 
                 {c.observacoes && <p className="text-xs text-muted-foreground border-t border-border pt-3">{c.observacoes}</p>}
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {showFinalizados && (
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm font-semibold text-foreground">Finalizados</h3>
+          {finalizados.length === 0 ? (
+            <Card className="p-6 text-center text-sm text-muted-foreground">Nenhum processo finalizado.</Card>
+          ) : (
+            <Card className="divide-y divide-border">
+              {finalizados.map(c => {
+                const isAdm = c.tipo === 'admissao';
+                return (
+                  <div key={c.id} className="flex items-center gap-3 px-4 py-3">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                    <span className="flex-1 min-w-0 truncate text-sm font-medium text-foreground">
+                      {employeeName(c.employee_id)}
+                    </span>
+                    <span className={`rounded-md px-2 py-0.5 text-xs font-bold uppercase ${isAdm ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                      {TIPO_LABEL[c.tipo as HrProcessTipo]}
+                    </span>
+                    {c.data_referencia && (
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(c.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => deleteCase.mutate(c.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </Card>
+          )}
         </div>
       )}
 
