@@ -46,10 +46,18 @@ export default function Admissions() {
 
   const employeeName = (id: string) => employees.find(e => e.id === id)?.nome ?? '—';
 
+  const isFinalizado = (c: any) => {
+    const steps = c.hr_process_case_steps ?? [];
+    return steps.length > 0 && steps.every((s: any) => s.concluido);
+  };
+
   const visibleCases = useMemo(
     () => (filterTipo === 'todos' ? cases : cases.filter(c => c.tipo === filterTipo)),
     [cases, filterTipo],
   );
+
+  const emAndamento = useMemo(() => visibleCases.filter(c => !isFinalizado(c)), [visibleCases]);
+  const finalizados = useMemo(() => visibleCases.filter(c => isFinalizado(c)), [visibleCases]);
 
   const cfgList = templates.filter(t => t.tipo === cfgTipo);
 
