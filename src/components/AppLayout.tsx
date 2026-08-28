@@ -16,6 +16,7 @@ const sidebarGroups: SidebarGroup[] = [
   { label: 'Recursos Humanos', icon: Briefcase, items: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { label: 'Funcionários', icon: Users, path: '/funcionarios' },
+    { label: 'Admissões/Demissões', icon: ClipboardCheck, path: '/admissoes-demissoes' },
   ]},
   { label: 'Pagamentos', icon: Landmark, items: [
     { label: 'Salário (Bruto)', icon: DollarSign, path: '/salarios' },
