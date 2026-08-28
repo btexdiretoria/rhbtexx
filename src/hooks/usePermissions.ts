@@ -19,7 +19,7 @@ export const ALL_SECTIONS = [
 
 // Map routes to section keys
 export function getSectionKeyForPath(path: string): string | null {
-  if (path === '/' || path.startsWith('/funcionarios') || path.startsWith('/novo-funcionario') || path.startsWith('/avaliacoes') || path.startsWith('/desligamentos')) return 'rh';
+  if (path === '/' || path.startsWith('/funcionarios') || path.startsWith('/novo-funcionario') || path.startsWith('/avaliacoes') || path.startsWith('/desligamentos') || path.startsWith('/admissoes-demissoes')) return 'rh';
   if (path.startsWith('/salarios') || path.startsWith('/salario-liquido') || path.startsWith('/vale-alimentacao') || path.startsWith('/vale-transporte')) return 'financeiro';
   if (path.startsWith('/controle-despesas') || path.startsWith('/fluxo') || path.startsWith('/resultados') || path.startsWith('/dashboard-financas') || path.startsWith('/calendario-financas') || path.startsWith('/dre-caixa')) return 'financas';
   if (path.startsWith('/usuarios') || path.startsWith('/configuracoes')) return 'configuracoes';
