@@ -212,7 +212,11 @@ export interface NetSalaryRow {
   proventos: number;
   descontos: number;
   liquido: number;
+  status?: string;
+  conta_santander?: boolean;
 }
+
+export const netSalaryDestino = (r: NetSalaryRow) => r.conta_santander ? 'SANTANDER' : (r.chave_pix || '—');
 
 interface FinancialExportOptions {
   selectedReports: FinancialReportType[];
