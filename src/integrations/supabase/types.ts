@@ -567,6 +567,7 @@ export type Database = {
           cargo: string
           centro_custo: string | null
           chave_pix: string | null
+          conta_santander: boolean
           contrato_assinado: boolean | null
           cpf: string
           created_at: string
@@ -613,6 +614,7 @@ export type Database = {
           cargo: string
           centro_custo?: string | null
           chave_pix?: string | null
+          conta_santander?: boolean
           contrato_assinado?: boolean | null
           cpf: string
           created_at?: string
@@ -659,6 +661,7 @@ export type Database = {
           cargo?: string
           centro_custo?: string | null
           chave_pix?: string | null
+          conta_santander?: boolean
           contrato_assinado?: boolean | null
           cpf?: string
           created_at?: string
