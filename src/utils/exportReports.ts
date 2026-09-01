@@ -303,9 +303,25 @@ export function exportFinanceiroPDF(opts: FinancialExportOptions) {
     let head: string[];
     if (netRows && netRows.length > 0) {
       head = ['Nome', 'Chave PIX', 'Proventos', 'Descontos', 'Líquido'];
-      rows = netRows.map(r => {
-        totalLiq += r.liquido;
-        return [r.nome, r.chave_pix || '—', formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)];
+      const groups = new Map<string, NetSalaryRow[]>();
+      netRows.forEach(r => {
+        const key = r.status || 'Sem status';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(r);
+      });
+      rows = [];
+      Array.from(groups.keys()).sort().forEach(status => {
+        const list = groups.get(status)!;
+        const subtotal = list.reduce((s, r) => s + r.liquido, 0);
+        totalLiq += subtotal;
+        rows.push([{ content: status, colSpan: head.length, styles: { fontStyle: 'bold', fillColor: [232, 240, 247], halign: 'left' } }]);
+        list.forEach(r => {
+          rows.push([r.nome, netSalaryDestino(r), formatCurrency(r.proventos), formatCurrency(r.descontos), formatCurrency(r.liquido)]);
+        });
+        rows.push([
+          { content: `Total ${status}`, colSpan: head.length - 1, styles: { fontStyle: 'bold', halign: 'right' } },
+          { content: formatCurrency(subtotal), styles: { fontStyle: 'bold', halign: 'right' } },
+        ]);
       });
     } else {
       head = ['Nome', 'Bruto', 'INSS', 'IRRF', 'Líquido'];
