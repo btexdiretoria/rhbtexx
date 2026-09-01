@@ -269,6 +269,18 @@ export default function EmployeeProfile() {
                 <p className="text-sm font-medium text-foreground">{d.atestado_acompanhante ? 'Sim' : 'Não'}</p>
               )}
             </div>
+            <div className="py-2">
+              <p className="text-xs text-muted-foreground mb-1">Conta Santander</p>
+              {editing ? (
+                <div className="flex items-center gap-2">
+                  <Button type="button" size="sm" variant={(d as any).conta_santander ? 'default' : 'outline'} onClick={() => updateField('conta_santander' as any, true)}>Sim</Button>
+                  <Button type="button" size="sm" variant={!(d as any).conta_santander ? 'default' : 'outline'} onClick={() => updateField('conta_santander' as any, false)}>Não</Button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-foreground">{(d as any).conta_santander ? 'Sim' : 'Não'}</p>
+              )}
+            </div>
+
             {d.status === 'Aviso Prévio' && (
               <>
                 <EditableRow label="Data Início Aviso Prévio" value={editing ? d.data_inicio_aviso_previo : formatDateLocal(d.data_inicio_aviso_previo)} editing={editing} onChange={v => updateField('data_inicio_aviso_previo', v)} type="date" />
