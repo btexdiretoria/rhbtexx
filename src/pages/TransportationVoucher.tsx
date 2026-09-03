@@ -28,7 +28,8 @@ export default function TransportationVoucher() {
   const deleteEntry = useDeleteTransportVoucher();
   const upsertEntry = useUpsertTransportVoucher();
 
-  const activeEmployees = useMemo(() => allEmployees.filter(f => f.status === 'Ativo'), [allEmployees]);
+  const eligibleStatuses = ['Ativo', 'Prestador de Serviço', 'Teste'];
+  const activeEmployees = useMemo(() => allEmployees.filter(f => eligibleStatuses.includes(f.status)), [allEmployees]);
   const availableEmployees = useMemo(() =>
     activeEmployees.filter(e => !entries.some(en => en.employee_id === e.id)).filter(e => e.nome.toLowerCase().includes(search.toLowerCase())),
     [activeEmployees, entries, search]);
