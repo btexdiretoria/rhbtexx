@@ -93,13 +93,15 @@ export default function TransportationVoucher() {
           <TableHead>Funcionário</TableHead>
           <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Pagamento 1 (R$)</TableHead>
           <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Data Pgto 1</TableHead>
+          <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Referente a (1)</TableHead>
           <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Pagamento 2 (R$)</TableHead>
           <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Data Pgto 2</TableHead>
+          <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Referente a (2)</TableHead>
           <TableHead className="text-center font-bold">Total</TableHead>
           <TableHead className="w-10"></TableHead>
         </TableRow></TableHeader>
         <TableBody>
-          {entries.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum funcionário adicionado para este mês.</TableCell></TableRow>
+          {entries.length === 0 ? <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum funcionário adicionado para este mês.</TableCell></TableRow>
           : entries.map(entry => {
             const emp = getEmployee(entry.employee_id);
             if (!emp) return null;
