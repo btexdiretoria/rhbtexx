@@ -48,6 +48,12 @@ export default function TransportationVoucher() {
     upsertEntry.mutate({ ...entry, [field]: value });
   };
 
+  const updateRange = (entryId: string, prefix: 'payment1' | 'payment2', start: string | null, end: string | null) => {
+    const entry = entries.find(e => e.id === entryId);
+    if (!entry) return;
+    upsertEntry.mutate({ ...entry, [`${prefix}_ref_start`]: start, [`${prefix}_ref_end`]: end });
+  };
+
   const total = useMemo(() => entries.reduce((s, e) => s + e.payment1_value + e.payment2_value, 0), [entries]);
   const getEmployee = (id: string) => allEmployees.find(f => f.id === id);
 
