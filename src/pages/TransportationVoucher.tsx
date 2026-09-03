@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Trash2, CalendarIcon, Search, Bus } from 'lucide-react';
 import { format } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTransportVoucherEntries, useCreateTransportVoucherEntry, useDeleteTransportVoucher, useUpsertTransportVoucher } from '@/hooks/useFinancial';
@@ -46,6 +47,12 @@ export default function TransportationVoucher() {
     const entry = entries.find(e => e.id === entryId);
     if (!entry) return;
     upsertEntry.mutate({ ...entry, [field]: value });
+  };
+
+  const updateRange = (entryId: string, prefix: 'payment1' | 'payment2', start: string | null, end: string | null) => {
+    const entry = entries.find(e => e.id === entryId);
+    if (!entry) return;
+    upsertEntry.mutate({ ...entry, [`${prefix}_ref_start`]: start, [`${prefix}_ref_end`]: end });
   };
 
   const total = useMemo(() => entries.reduce((s, e) => s + e.payment1_value + e.payment2_value, 0), [entries]);
@@ -93,13 +100,15 @@ export default function TransportationVoucher() {
           <TableHead>Funcionário</TableHead>
           <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Pagamento 1 (R$)</TableHead>
           <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Data Pgto 1</TableHead>
+          <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Referente a (1)</TableHead>
           <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Pagamento 2 (R$)</TableHead>
           <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Data Pgto 2</TableHead>
+          <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Referente a (2)</TableHead>
           <TableHead className="text-center font-bold">Total</TableHead>
           <TableHead className="w-10"></TableHead>
         </TableRow></TableHeader>
         <TableBody>
-          {entries.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum funcionário adicionado para este mês.</TableCell></TableRow>
+          {entries.length === 0 ? <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum funcionário adicionado para este mês.</TableCell></TableRow>
           : entries.map(entry => {
             const emp = getEmployee(entry.employee_id);
             if (!emp) return null;
@@ -108,8 +117,10 @@ export default function TransportationVoucher() {
                 <TableCell className="font-medium">{emp.nome}</TableCell>
                 <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><BlurNumberInput value={entry.payment1_value} onCommit={v => updateEntry2(entry.id, 'payment1_value', v)} /></TableCell>
                 <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><DatePickerCell value={entry.payment1_date || ''} onChange={d => updateEntry2(entry.id, 'payment1_date', d)} /></TableCell>
+                <TableCell className="bg-emerald-50/50 dark:bg-emerald-950/10"><DateRangeCell start={entry.payment1_ref_start} end={entry.payment1_ref_end} onChange={(s, e) => updateRange(entry.id, 'payment1', s, e)} /></TableCell>
                 <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><BlurNumberInput value={entry.payment2_value} onCommit={v => updateEntry2(entry.id, 'payment2_value', v)} /></TableCell>
                 <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><DatePickerCell value={entry.payment2_date || ''} onChange={d => updateEntry2(entry.id, 'payment2_date', d)} /></TableCell>
+                <TableCell className="bg-blue-50/50 dark:bg-blue-950/10"><DateRangeCell start={entry.payment2_ref_start} end={entry.payment2_ref_end} onChange={(s, e) => updateRange(entry.id, 'payment2', s, e)} /></TableCell>
                 <TableCell className="text-center font-bold">{formatCurrency(entry.payment1_value + entry.payment2_value)}</TableCell>
                 <TableCell><Button variant="ghost" size="icon" onClick={() => removeEmployee(entry.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button></TableCell>
               </TableRow>
@@ -157,6 +168,37 @@ function DatePickerCell({ value, onChange }: { value: string; onChange: (v: stri
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar mode="single" selected={date} onSelect={d => d && onChange(d.toISOString())} initialFocus className={cn("p-3 pointer-events-auto")} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DateRangeCell({ start, end, onChange }: { start?: string | null; end?: string | null; onChange: (start: string | null, end: string | null) => void }) {
+  const range: DateRange | undefined = start ? { from: new Date(start + 'T00:00:00'), to: end ? new Date(end + 'T00:00:00') : undefined } : undefined;
+  const label = range?.from
+    ? range.to && range.to.getTime() !== range.from.getTime()
+      ? `${format(range.from, 'dd/MM')} - ${format(range.to, 'dd/MM/yyyy')}`
+      : format(range.from, 'dd/MM/yyyy')
+    : 'Selecionar';
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn("w-[170px] justify-start text-left text-xs font-normal", !range?.from && "text-muted-foreground")}>
+          <CalendarIcon className="mr-1 h-3 w-3" />{label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          selected={range}
+          onSelect={r => onChange(r?.from ? format(r.from, 'yyyy-MM-dd') : null, r?.to ? format(r.to, 'yyyy-MM-dd') : r?.from ? format(r.from, 'yyyy-MM-dd') : null)}
+          numberOfMonths={2}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+        <div className="flex justify-end p-2 border-t border-border">
+          <Button variant="ghost" size="sm" onClick={() => onChange(null, null)}>Limpar</Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
