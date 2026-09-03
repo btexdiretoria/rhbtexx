@@ -1187,8 +1187,12 @@ export type Database = {
           id: string
           month: number
           payment1_date: string | null
+          payment1_ref_end: string | null
+          payment1_ref_start: string | null
           payment1_value: number
           payment2_date: string | null
+          payment2_ref_end: string | null
+          payment2_ref_start: string | null
           payment2_value: number
           year: number
         }
@@ -1198,8 +1202,12 @@ export type Database = {
           id?: string
           month: number
           payment1_date?: string | null
+          payment1_ref_end?: string | null
+          payment1_ref_start?: string | null
           payment1_value?: number
           payment2_date?: string | null
+          payment2_ref_end?: string | null
+          payment2_ref_start?: string | null
           payment2_value?: number
           year: number
         }
@@ -1209,8 +1217,12 @@ export type Database = {
           id?: string
           month?: number
           payment1_date?: string | null
+          payment1_ref_end?: string | null
+          payment1_ref_start?: string | null
           payment1_value?: number
           payment2_date?: string | null
+          payment2_ref_end?: string | null
+          payment2_ref_start?: string | null
           payment2_value?: number
           year?: number
         }
