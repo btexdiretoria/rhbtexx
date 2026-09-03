@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Trash2, CalendarIcon, Search, Bus } from 'lucide-react';
 import { format } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTransportVoucherEntries, useCreateTransportVoucherEntry, useDeleteTransportVoucher, useUpsertTransportVoucher } from '@/hooks/useFinancial';
@@ -167,6 +168,37 @@ function DatePickerCell({ value, onChange }: { value: string; onChange: (v: stri
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar mode="single" selected={date} onSelect={d => d && onChange(d.toISOString())} initialFocus className={cn("p-3 pointer-events-auto")} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DateRangeCell({ start, end, onChange }: { start?: string | null; end?: string | null; onChange: (start: string | null, end: string | null) => void }) {
+  const range: DateRange | undefined = start ? { from: new Date(start + 'T00:00:00'), to: end ? new Date(end + 'T00:00:00') : undefined } : undefined;
+  const label = range?.from
+    ? range.to && range.to.getTime() !== range.from.getTime()
+      ? `${format(range.from, 'dd/MM')} - ${format(range.to, 'dd/MM/yyyy')}`
+      : format(range.from, 'dd/MM/yyyy')
+    : 'Selecionar';
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn("w-[170px] justify-start text-left text-xs font-normal", !range?.from && "text-muted-foreground")}>
+          <CalendarIcon className="mr-1 h-3 w-3" />{label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          selected={range}
+          onSelect={r => onChange(r?.from ? format(r.from, 'yyyy-MM-dd') : null, r?.to ? format(r.to, 'yyyy-MM-dd') : r?.from ? format(r.from, 'yyyy-MM-dd') : null)}
+          numberOfMonths={2}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+        <div className="flex justify-end p-2 border-t border-border">
+          <Button variant="ghost" size="sm" onClick={() => onChange(null, null)}>Limpar</Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
