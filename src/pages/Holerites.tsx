@@ -214,8 +214,8 @@ export default function Holerites() {
           <span className="font-heading text-xl font-bold text-primary">{brl(liquido)}</span>
         </div>
 
-        <div className="grid gap-10 sm:grid-cols-2 pt-10">
-          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground">Assinatura do Funcionário</div>
+        <div className="grid gap-10 sm:grid-cols-1 max-w-xs mx-auto pt-10">
+          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground text-center">Assinatura do Funcionário</div>
         </div>
       </div>
     </div>
