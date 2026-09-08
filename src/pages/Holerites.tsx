@@ -70,7 +70,6 @@ export default function Holerites() {
     doc.text(employee ? brl(Number(employee.salario ?? 0)) : '—', M + 60, y + 18);
     y += 28;
 
-    const colItem = M + 12;
     const colDesc = M + 18;
     const colVal = W - M - 3;
 
