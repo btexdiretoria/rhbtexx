@@ -20,15 +20,15 @@ export default function Holerites() {
   const { data: employees = [] } = useEmployees();
   const [employeeId, setEmployeeId] = useState<string>('');
   const [competencia, setCompetencia] = useState<string>(() => new Date().toISOString().slice(0, 7));
-  const [proventos, setProventos] = useState<Linha[]>([{ id: uid(), descricao: 'Salário Base', valor: '' }]);
+  const [proventos, setProventos] = useState<Linha[]>([{ id: uid(), descricao: '', valor: '' }]);
   const [descontos, setDescontos] = useState<Linha[]>([{ id: uid(), descricao: 'INSS', valor: '' }]);
 
   const employee = employees.find(e => e.id === employeeId);
 
   const handleSelectEmployee = (id: string) => {
     setEmployeeId(id);
-    const emp = employees.find(e => e.id === id);
-    setProventos([{ id: uid(), descricao: 'Salário Base', valor: emp ? String(Number(emp.salario ?? 0).toFixed(2)).replace('.', ',') : '' }]);
+    setProventos([{ id: uid(), descricao: '', valor: '' }]);
+    setDescontos([{ id: uid(), descricao: 'INSS', valor: '' }]);
   };
 
   const totalProventos = useMemo(() => proventos.reduce((s, l) => s + num(l.valor), 0), [proventos]);
