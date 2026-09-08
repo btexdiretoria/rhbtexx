@@ -20,15 +20,15 @@ export default function Holerites() {
   const { data: employees = [] } = useEmployees();
   const [employeeId, setEmployeeId] = useState<string>('');
   const [competencia, setCompetencia] = useState<string>(() => new Date().toISOString().slice(0, 7));
-  const [proventos, setProventos] = useState<Linha[]>([{ id: uid(), descricao: 'Salário Base', valor: '' }]);
+  const [proventos, setProventos] = useState<Linha[]>([{ id: uid(), descricao: '', valor: '' }]);
   const [descontos, setDescontos] = useState<Linha[]>([{ id: uid(), descricao: 'INSS', valor: '' }]);
 
   const employee = employees.find(e => e.id === employeeId);
 
   const handleSelectEmployee = (id: string) => {
     setEmployeeId(id);
-    const emp = employees.find(e => e.id === id);
-    setProventos([{ id: uid(), descricao: 'Salário Base', valor: emp ? String(Number(emp.salario ?? 0).toFixed(2)).replace('.', ',') : '' }]);
+    setProventos([{ id: uid(), descricao: '', valor: '' }]);
+    setDescontos([{ id: uid(), descricao: 'INSS', valor: '' }]);
   };
 
   const totalProventos = useMemo(() => proventos.reduce((s, l) => s + num(l.valor), 0), [proventos]);
@@ -59,14 +59,16 @@ export default function Holerites() {
     doc.text(`Competência: ${competenciaLabel}`, W / 2, y, { align: 'center' });
     y += 8;
 
-    doc.rect(M, y, W - 2 * M, 16);
+    doc.rect(M, y, W - 2 * M, 22);
     doc.setFont('helvetica', 'bold');
     doc.text('Funcionário:', M + 3, y + 6);
     doc.text('Cargo:', M + 3, y + 12);
+    doc.text('Salário base (referência):', M + 3, y + 18);
     doc.setFont('helvetica', 'normal');
     doc.text(employee?.nome ?? '—', M + 30, y + 6);
     doc.text(employee?.cargo ?? '—', M + 30, y + 12);
-    y += 22;
+    doc.text(employee ? brl(Number(employee.salario ?? 0)) : '—', M + 60, y + 18);
+    y += 28;
 
     const section = (title: string, rows: Linha[], total: number) => {
       doc.setFont('helvetica', 'bold');
@@ -103,9 +105,7 @@ export default function Holerites() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.line(M, y, M + 70, y);
-    doc.line(W - M - 70, y, W - M, y);
     doc.text('Assinatura do Funcionário', M, y + 5);
-    doc.text('Assinatura do Responsável', W - M - 70, y + 5);
 
     doc.save(`holerite-${(employee?.nome ?? 'funcionario').replace(/\s+/g, '-').toLowerCase()}-${competenciaLabel.replace('/', '-')}.pdf`);
   };
@@ -191,7 +191,7 @@ export default function Holerites() {
           <p className="text-sm text-muted-foreground">Competência: {competenciaLabel}</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 border border-border rounded-lg p-4">
+        <div className="grid gap-3 sm:grid-cols-3 border border-border rounded-lg p-4">
           <div>
             <p className="text-xs text-muted-foreground">Funcionário</p>
             <p className="font-semibold text-foreground">{employee?.nome ?? '—'}</p>
@@ -199,6 +199,10 @@ export default function Holerites() {
           <div>
             <p className="text-xs text-muted-foreground">Cargo</p>
             <p className="font-semibold text-foreground">{employee?.cargo ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Salário base (referência)</p>
+            <p className="font-semibold text-foreground">{employee ? brl(Number(employee.salario ?? 0)) : '—'}</p>
           </div>
         </div>
 
@@ -210,9 +214,8 @@ export default function Holerites() {
           <span className="font-heading text-xl font-bold text-primary">{brl(liquido)}</span>
         </div>
 
-        <div className="grid gap-10 sm:grid-cols-2 pt-10">
-          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground">Assinatura do Funcionário</div>
-          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground">Assinatura do Responsável</div>
+        <div className="grid gap-10 sm:grid-cols-1 max-w-xs mx-auto pt-10">
+          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground text-center">Assinatura do Funcionário</div>
         </div>
       </div>
     </div>
