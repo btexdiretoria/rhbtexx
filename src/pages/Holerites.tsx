@@ -127,8 +127,10 @@ export default function Holerites() {
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
+    const hoje = new Date().toLocaleDateString('pt-BR');
     doc.line(M, y, M + 70, y);
     doc.text('Assinatura do Funcionário', M, y + 5);
+    doc.text(`Data: ${hoje}`, M + 75, y + 5);
 
     doc.save(`holerite-${(employee?.nome ?? 'funcionario').replace(/\s+/g, '-').toLowerCase()}-${competenciaLabel.replace('/', '-')}.pdf`);
   };
