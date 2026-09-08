@@ -44,6 +44,7 @@ const sidebarGroups: SidebarGroup[] = [
 
 const standaloneItems: SidebarItem[] = [
   { label: 'Resumo Diário', icon: ClipboardCheck, path: '/resumo-diario' },
+  { label: 'Holerites PS', icon: FileText, path: '/holerites-ps' },
   { label: 'Relatórios', icon: FileText, path: '/relatorios' },
   { label: 'Histórico', icon: ClipboardList, path: '/historico' },
 ];
