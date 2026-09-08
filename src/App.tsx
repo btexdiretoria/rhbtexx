@@ -30,6 +30,7 @@ import Resultados from "@/pages/Resultados";
 import FinanceDashboard from "@/pages/FinanceDashboard";
 import FinanceCalendar from "@/pages/FinanceCalendar";
 import ResumoDiario from "@/pages/ResumoDiario";
+import Holerites from "@/pages/Holerites";
 import DreCaixa from "@/pages/DreCaixa";
 
 import NotFound from "@/pages/NotFound";
@@ -76,6 +77,7 @@ const App = () => (
 
               <Route path="/configuracoes" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
               <Route path="/resumo-diario" element={<ProtectedPage><ResumoDiario /></ProtectedPage>} />
+              <Route path="/holerites-ps" element={<ProtectedPage><Holerites /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppProvider>
