@@ -189,7 +189,7 @@ export default function Holerites() {
           <p className="text-sm text-muted-foreground">Competência: {competenciaLabel}</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 border border-border rounded-lg p-4">
+        <div className="grid gap-3 sm:grid-cols-3 border border-border rounded-lg p-4">
           <div>
             <p className="text-xs text-muted-foreground">Funcionário</p>
             <p className="font-semibold text-foreground">{employee?.nome ?? '—'}</p>
@@ -197,6 +197,10 @@ export default function Holerites() {
           <div>
             <p className="text-xs text-muted-foreground">Cargo</p>
             <p className="font-semibold text-foreground">{employee?.cargo ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Salário base (referência)</p>
+            <p className="font-semibold text-foreground">{employee ? brl(Number(employee.salario ?? 0)) : '—'}</p>
           </div>
         </div>
 
