@@ -70,24 +70,47 @@ export default function Holerites() {
     doc.text(employee ? brl(Number(employee.salario ?? 0)) : '—', M + 60, y + 18);
     y += 28;
 
+    const colItem = M + 12;
+    const colDesc = M + 18;
+    const colVal = W - M - 3;
+
     const section = (title: string, rows: Linha[], total: number) => {
       doc.setFont('helvetica', 'bold');
-      doc.setFillColor(240, 240, 240);
+      doc.setFillColor(230, 230, 230);
+      doc.rect(M, y, W - 2 * M, 8, 'F');
+      doc.setFontSize(11);
+      doc.text(title.toUpperCase(), M + 3, y + 5.5);
+      y += 8;
+
+      doc.setFillColor(245, 245, 245);
       doc.rect(M, y, W - 2 * M, 7, 'F');
-      doc.text(title, M + 3, y + 5);
-      doc.text('Valor', W - M - 3, y + 5, { align: 'right' });
+      doc.setFontSize(9);
+      doc.text('Item', M + 4, y + 5);
+      doc.text('Descrição', colDesc, y + 5);
+      doc.text('Valor', colVal, y + 5, { align: 'right' });
       y += 7;
+
       doc.setFont('helvetica', 'normal');
-      rows.forEach(l => {
-        doc.rect(M, y, W - 2 * M, 7);
-        doc.text(l.descricao || '-', M + 3, y + 5);
-        doc.text(brl(num(l.valor)), W - M - 3, y + 5, { align: 'right' });
+      rows.forEach((l, i) => {
+        doc.setDrawColor(220, 220, 220);
+        doc.line(M, y, W - M, y);
+        doc.text(`${i + 1}`, M + 5, y + 5);
+        doc.text(l.descricao || '-', colDesc, y + 5);
+        doc.text(brl(num(l.valor)), colVal, y + 5, { align: 'right' });
         y += 7;
       });
+      if (rows.length === 0) {
+        doc.text('—', M + 5, y + 5);
+        doc.text('Nenhum lançamento', colDesc, y + 5);
+        y += 7;
+      }
+
+      doc.setDrawColor(0, 0, 0);
       doc.setFont('helvetica', 'bold');
-      doc.rect(M, y, W - 2 * M, 7);
-      doc.text(`Total de ${title}`, M + 3, y + 5);
-      doc.text(brl(total), W - M - 3, y + 5, { align: 'right' });
+      doc.setFillColor(240, 240, 240);
+      doc.rect(M, y, W - 2 * M, 8, 'F');
+      doc.text(`Total de ${title.toLowerCase()}`, colDesc, y + 5.5);
+      doc.text(brl(total), colVal, y + 5.5, { align: 'right' });
       y += 12;
     };
 
