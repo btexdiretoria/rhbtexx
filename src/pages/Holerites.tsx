@@ -216,7 +216,6 @@ export default function Holerites() {
 
         <div className="grid gap-10 sm:grid-cols-2 pt-10">
           <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground">Assinatura do Funcionário</div>
-          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground">Assinatura do Responsável</div>
         </div>
       </div>
     </div>
