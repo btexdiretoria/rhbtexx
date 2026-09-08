@@ -59,14 +59,16 @@ export default function Holerites() {
     doc.text(`Competência: ${competenciaLabel}`, W / 2, y, { align: 'center' });
     y += 8;
 
-    doc.rect(M, y, W - 2 * M, 16);
+    doc.rect(M, y, W - 2 * M, 22);
     doc.setFont('helvetica', 'bold');
     doc.text('Funcionário:', M + 3, y + 6);
     doc.text('Cargo:', M + 3, y + 12);
+    doc.text('Salário base (referência):', M + 3, y + 18);
     doc.setFont('helvetica', 'normal');
     doc.text(employee?.nome ?? '—', M + 30, y + 6);
     doc.text(employee?.cargo ?? '—', M + 30, y + 12);
-    y += 22;
+    doc.text(employee ? brl(Number(employee.salario ?? 0)) : '—', M + 60, y + 18);
+    y += 28;
 
     const section = (title: string, rows: Linha[], total: number) => {
       doc.setFont('helvetica', 'bold');
