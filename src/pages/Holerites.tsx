@@ -103,9 +103,7 @@ export default function Holerites() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.line(M, y, M + 70, y);
-    doc.line(W - M - 70, y, W - M, y);
     doc.text('Assinatura do Funcionário', M, y + 5);
-    doc.text('Assinatura do Responsável', W - M - 70, y + 5);
 
     doc.save(`holerite-${(employee?.nome ?? 'funcionario').replace(/\s+/g, '-').toLowerCase()}-${competenciaLabel.replace('/', '-')}.pdf`);
   };
