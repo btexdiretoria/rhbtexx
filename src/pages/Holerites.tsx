@@ -240,7 +240,10 @@ export default function Holerites() {
         </div>
 
         <div className="grid gap-10 sm:grid-cols-1 max-w-xs mx-auto pt-10">
-          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground text-center">Assinatura do Funcionário</div>
+          <div className="border-t border-foreground/40 pt-1 text-xs text-muted-foreground text-center">
+            Assinatura do Funcionário
+            <span className="block mt-0.5">Data: {new Date().toLocaleDateString('pt-BR')}</span>
+          </div>
         </div>
       </div>
     </div>
