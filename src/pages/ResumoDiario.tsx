@@ -274,7 +274,7 @@ export default function ResumoDiario() {
       if (isComp) update(i === 0 ? { resultado_comp_inicio: v } : i === 1 ? { resultado_comp_ontem: v } : { resultado_comp_hoje: v });
       else update(i === 0 ? { resultado_inicio: v } : i === 1 ? { resultado_ontem: v } : { resultado_hoje: v });
     };
-    const labels = ['Início do mês', 'Ontem', 'Hoje'];
+    const labels = ['Início do mês', 'Última Reunião', 'Hoje'];
     return (
       <div className="space-y-4">
         <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${isComp ? 'border-primary/30 bg-primary/5' : 'border-warning/30 bg-warning/5'}`}>
