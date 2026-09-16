@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DailySummary } from '@/hooks/useDailySummary';
+import companyLogoAsset from '@/assets/btex-logo.png.asset.json';
 
 /* ── Paleta executiva ─────────────────────────────────────── */
 const NAVY: [number, number, number] = [30, 58, 138];
@@ -42,6 +43,18 @@ const money = (v?: string | number) => {
 
 const notEmpty = (v?: string) => !!v && String(v).trim() !== '';
 
+const loadImageDataUrl = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Não foi possível carregar a logo (${response.status})`);
+  const blob = await response.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+};
+
 export function dateExtenso(dateStr: string) {
   try {
     return format(parse(dateStr, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
@@ -52,6 +65,12 @@ export function dateExtenso(dateStr: string) {
 
 export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta) {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  let companyLogo: string | undefined;
+  try {
+    companyLogo = await loadImageDataUrl(companyLogoAsset.url);
+  } catch (error) {
+    console.warn('Logo da empresa indisponível para o PDF:', error);
+  }
   const titulo = meta.relatorio || 'Resumo Diário';
   let y = 0;
 
@@ -63,22 +82,19 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setFillColor(...BLUE);
       pdf.rect(0, 18, PAGE_W, 0.9, 'F');
 
-      // "Logo" — monograma
+      // Logo institucional em tamanho compacto.
       pdf.setFillColor(255, 255, 255);
-      pdf.roundedRect(M, 4, 9, 9, 1.8, 1.8, 'F');
-      pdf.setTextColor(...NAVY);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(9);
-      pdf.text((meta.empresa || 'R').trim().charAt(0).toUpperCase(), M + 4.5, 10.3, { align: 'center' });
+      pdf.roundedRect(M, 3.5, 18, 11, 1.5, 1.5, 'F');
+      if (companyLogo) pdf.addImage(companyLogo, 'PNG', M + 1.2, 4.2, 15.6, 9.6);
 
       pdf.setTextColor(...WHITE);
       pdf.setFontSize(11);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(titulo.toUpperCase(), M + 13, 8);
+      pdf.text(titulo.toUpperCase(), M + 22, 8);
       pdf.setFontSize(7.2);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(205, 219, 245);
-      pdf.text(`${meta.empresa || ''}`, M + 13, 12.5);
+      pdf.text(`${meta.empresa || ''}`, M + 22, 12.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11.5);
       pdf.setTextColor(...WHITE);
