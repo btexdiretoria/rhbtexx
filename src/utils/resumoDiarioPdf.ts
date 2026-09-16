@@ -382,7 +382,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   ) => {
     const resultCols = [
       { label: 'Início do mês', value: vals.inicio },
-      { label: 'Ontem', value: vals.ontem },
+      { label: 'Última Reunião', value: vals.ontem },
       { label: 'Hoje', value: vals.hoje },
     ];
     const hasResult = resultCols.some((r) => notEmpty(r.value));
