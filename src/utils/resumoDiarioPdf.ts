@@ -82,8 +82,8 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setFillColor(...BLUE);
       pdf.rect(0, 18, PAGE_W, 0.9, 'F');
 
-      // Logo institucional em tamanho compacto.
-      pdf.setFillColor(255, 255, 255);
+      // Logo institucional em tamanho compacto, fundo na mesma tonalidade da barra.
+      pdf.setFillColor(...NAVY);
       pdf.roundedRect(M, 3.5, 18, 11, 1.5, 1.5, 'F');
       if (companyLogo) pdf.addImage(companyLogo, 'PNG', M + 1.2, 4.2, 15.6, 9.6);
 
