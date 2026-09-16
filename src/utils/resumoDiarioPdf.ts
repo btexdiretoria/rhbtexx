@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DailySummary } from '@/hooks/useDailySummary';
-import companyLogoAsset from '@/assets/btex-logo.png.asset.json';
+import companyLogoUrl from '@/assets/btex-logo-white.png';
 
 /* ── Paleta executiva ─────────────────────────────────────── */
 const NAVY: [number, number, number] = [30, 58, 138];
@@ -67,7 +67,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   let companyLogo: string | undefined;
   try {
-    companyLogo = await loadImageDataUrl(companyLogoAsset.url);
+    companyLogo = await loadImageDataUrl(companyLogoUrl);
   } catch (error) {
     console.warn('Logo da empresa indisponível para o PDF:', error);
   }
