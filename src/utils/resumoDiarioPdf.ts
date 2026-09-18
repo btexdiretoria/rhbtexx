@@ -337,21 +337,47 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
   };
 
   /* ── Conteúdo — seções vazias são omitidas ── */
-  const semanas = (s.controle_semanal || []).filter((w) => notEmpty(w.periodo) || notEmpty(w.objetivo));
+  /* ── Linha de total (faixa destacada ao fim de uma tabela) ── */
+  const totalRow = (label: string, cells: { value: string; width: number; color?: [number, number, number] }[], labelWidth: number) => {
+    ensure(10);
+    pdf.setFillColor(...GRAY_LIGHT);
+    pdf.setDrawColor(...GRAY_LINE);
+    pdf.roundedRect(M, y, CONTENT_W, 9, 1.6, 1.6, 'FD');
+    pdf.setTextColor(...GRAY_SOFT);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8.5);
+    pdf.text(label, M + 4, y + 6);
+    let cx = M + labelWidth;
+    cells.forEach((c) => {
+      pdf.setTextColor(...(c.color || NAVY));
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9.5);
+      pdf.text(c.value, cx + c.width - 3, y + 6, { align: 'right' });
+      cx += c.width;
+    });
+    y += 14;
+  };
+
+  /* ── Conteúdo — seções vazias são omitidas ── */
+  const semanas = (s.controle_semanal || []).filter((w) => notEmpty(w.periodo) || notEmpty(w.objetivo) || notEmpty(w.projecao));
   if (semanas.length) {
-    ensureBlock(SECTION_H + tableH(semanas.length));
+    ensureBlock(SECTION_H + tableH(semanas.length) + 12);
     section('Controle Semanal');
+    const wNome = CONTENT_W - 130;
     table(
-      ['Semana', 'Período', 'Objetivo', 'Concluída'],
-      semanas.map((w) => [w.nome, w.periodo, money(w.objetivo), w.done ? 'Sim' : '—']),
-      [CONTENT_W - 110, 55, 30, 25],
-      ['left', 'left', 'right', 'right'],
+      ['Semana', 'Período', 'Objetivo', 'Projeção', 'Concluída'],
+      semanas.map((w) => [w.nome, w.periodo, money(w.objetivo), w.done ? '—' : (notEmpty(w.projecao) ? money(w.projecao) : '—'), w.done ? 'Sim' : '—']),
+      [wNome, 48, 28, 28, 26],
+      ['left', 'left', 'right', 'right', 'right'],
     );
+    /* Saldo total da projeção: campos preenchidos + objetivo das semanas concluídas */
+    const totalProj = semanas.reduce((acc, w) => acc + (w.done ? parseMoney(w.objetivo) : parseMoney(w.projecao)), 0);
+    totalRow('SALDO TOTAL DA PROJEÇÃO', [{ value: money(totalProj), width: 54, color: totalProj < 0 ? RED : GREEN }], CONTENT_W - 54);
   }
 
   const despesas = s.despesas.filter((d) => notEmpty(d.descricao) || notEmpty(d.gasto) || notEmpty(d.orcado));
   if (despesas.length) {
-    ensureBlock(SECTION_H + tableH(despesas.length));
+    ensureBlock(SECTION_H + tableH(despesas.length) + 12);
     section('Controle de Despesas');
     table(
       ['Descrição', 'Previsão', 'Gasto', '% Consumida', ''],
@@ -363,6 +389,19 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       }),
       [CONTENT_W - 112, 34, 34, 32, 12],
       ['left', 'right', 'right', 'right', 'right'],
+    );
+    const totPrev = despesas.reduce((acc, d) => acc + parseMoney(d.orcado), 0);
+    const totGasto = despesas.reduce((acc, d) => acc + parseMoney(d.gasto), 0);
+    const totPct = totPrev > 0 ? `${((totGasto / totPrev) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%` : '—';
+    totalRow(
+      'TOTAL',
+      [
+        { value: money(totPrev), width: 34 },
+        { value: money(totGasto), width: 34, color: totGasto > totPrev && totPrev > 0 ? RED : undefined },
+        { value: totPct, width: 32 },
+        { value: '', width: 12 },
+      ],
+      CONTENT_W - 112,
     );
   }
 
