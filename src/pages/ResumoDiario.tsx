@@ -354,6 +354,7 @@ export default function ResumoDiario() {
               <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Semana</th>
               <th className="px-3 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider">Período</th>
               <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Objetivo</th>
+              <th className="px-3 py-2 text-right text-[0.68rem] font-semibold uppercase tracking-wider">Projeção</th>
               <th className="px-3 py-2 text-center text-[0.68rem] font-semibold uppercase tracking-wider">Concluída</th>
             </tr>
           </thead>
@@ -375,6 +376,16 @@ export default function ResumoDiario() {
                     <MoneyInput value={sem.objetivo} className="w-32 ml-auto" inputClass="!font-semibold"
                       onChange={(v) => setSem({ objetivo: v })} />
                   </td>
+                  <td className="p-1.5">
+                    {sem.done ? (
+                      <div className="w-32 ml-auto text-right text-sm font-semibold text-muted-foreground">
+                        R$ {fmtMoney(parseMoney(sem.objetivo))}
+                      </div>
+                    ) : (
+                      <MoneyInput value={sem.projecao || ''} className="w-32 ml-auto" inputClass="!font-semibold"
+                        onChange={(v) => setSem({ projecao: v })} />
+                    )}
+                  </td>
                   <td className="p-1.5 text-center">
                     <Checkbox checked={sem.done} onCheckedChange={(c) => setSem({ done: !!c })} aria-label={`${sem.nome} concluída`} />
                   </td>
@@ -382,6 +393,17 @@ export default function ResumoDiario() {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-border bg-muted/60">
+              <td className="px-3 py-2 text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground" colSpan={3}>
+                Saldo total da projeção
+              </td>
+              <td className="px-3 py-2 text-right text-sm font-bold text-primary">
+                R$ {fmtMoney((state.controle_semanal || []).reduce((s, sem) => s + parseMoney(sem.done ? sem.objetivo : (sem.projecao || '')), 0))}
+              </td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       </div>
     ),
