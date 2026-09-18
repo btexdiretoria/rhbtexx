@@ -298,19 +298,19 @@ export default function ResumoDiario() {
           {res.map((v, i) => (
             <div key={labels[i]} className="flex items-end gap-3">
               {i === 2 && <ArrowRight className="mb-2 h-4 w-4 shrink-0 text-muted-foreground" />}
-              <div className={i === 0 ? 'min-w-[92px] opacity-60 mr-4' : 'min-w-[110px]'}>
-                <p className={`mb-1 font-semibold uppercase tracking-wider text-muted-foreground ${i === 0 ? 'text-[0.58rem]' : 'text-[0.66rem]'}`}>{labels[i]}</p>
-                <MoneyInput value={v} onChange={(nv) => setRes(i, nv)}
-                  inputClass={`${i === 0 ? '!text-xs font-semibold' : '!font-bold'} ${signClass(parseMoney(v))}`} />
-                {i === 2 && !isComp && (
-                  <div className="mt-1.5 opacity-60">
-                    <p className="mb-0.5 text-[0.58rem] font-semibold uppercase tracking-wider text-muted-foreground">Acumulado</p>
-                    <MoneyInput value={state.resultado_acumulado} onChange={(nv) => update({ resultado_acumulado: nv })} inputClass="!text-xs font-semibold" />
-                  </div>
-                )}
+              <div className="min-w-[92px] opacity-60">
+                <p className="mb-1 text-[0.58rem] font-semibold uppercase tracking-wider text-muted-foreground">{labels[i]}</p>
+                <MoneyInput value={v} onChange={(nv) => setRes(i, nv)} inputClass="!text-xs font-semibold" />
               </div>
             </div>
           ))}
+          {!isComp && (
+            <div className="min-w-[140px] rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 shadow-sm">
+              <p className="mb-1 text-[0.64rem] font-bold uppercase tracking-wider text-primary">Acumulado</p>
+              <MoneyInput value={state.resultado_acumulado} onChange={(nv) => update({ resultado_acumulado: nv })}
+                inputClass={`!text-base font-bold ${signClass(parseMoney(state.resultado_acumulado))}`} />
+            </div>
+          )}
         </div>
         <div className="border-t border-border pt-3">
           <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">Alterações</p>
