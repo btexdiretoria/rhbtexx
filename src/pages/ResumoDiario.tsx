@@ -145,16 +145,65 @@ export default function ResumoDiario() {
   });
   const allExportChecked = Object.values(exportChecklist).every(Boolean);
 
+  /* ── Automações (data atual — America/Sao_Paulo) ── */
+  const refDate = useMemo(() => {
+    try { return parse(date, 'yyyy-MM-dd', new Date()); } catch { return todaySaoPaulo(); }
+  }, [date]);
+  const diasUteisAuto = useMemo(() => String(remainingBusinessDays(refDate)), [refDate]);
+  const feriadosRestantes = useMemo(() => remainingHolidayLabels(refDate), [refDate]);
+  const periodosAuto = useMemo(() => monthWeekPeriods(refDate), [refDate]);
+
+  const applyAutomations = useCallback((base: DailySummary): DailySummary => {
+    const prev = base.controle_semanal || [];
+    const controle_semanal = periodosAuto.map((periodo, i) => ({
+      id: prev[i]?.id || `semana-${i + 1}`,
+      nome: `Semana ${i + 1}`,
+      periodo,
+      objetivo: prev[i]?.objetivo || '',
+      projecao: prev[i]?.projecao || '',
+      done: prev[i]?.done || false,
+    }));
+    return {
+      ...base,
+      dias_uteis_restante: diasUteisAuto,
+      controle_semanal: controle_semanal.length ? controle_semanal : prev,
+      assinaturas: DEFAULT_ASSINATURAS(),
+    };
+  }, [diasUteisAuto, periodosAuto]);
+
   useEffect(() => {
-    if (loaded?.id) {
-      setState(loaded);
-    } else if (loaded && lastSummary) {
-      // nenhum resumo salvo nesta data: mantém as informações do último resumo salvo
-      setState({ ...lastSummary, summary_date: date });
-    } else if (loaded) {
-      setState(loaded);
+    if (!loaded) return;
+    if (loaded.id) {
+      setState(applyAutomations(loaded));
+      return;
     }
-  }, [loaded, lastSummary, date]);
+    // virada de mês: folha em branco; dentro do mês, mantém o último resumo salvo
+    const sameMonth = !!lastSummary?.source_date && lastSummary.source_date.slice(0, 7) === date.slice(0, 7);
+    setState(applyAutomations(sameMonth && lastSummary ? { ...lastSummary, summary_date: date } : emptySummary(date)));
+  }, [loaded, lastSummary, date, applyAutomations]);
+
+  /* Objetivo das semanas: divide o objetivo restante entre as semanas não concluídas */
+  useEffect(() => {
+    const semanas = state.controle_semanal || [];
+    if (!semanas.length) return;
+    const perdas = parseMoney(state.possiveis_perdas);
+    const objetivo = parseMoney(state.objetivo_faturamento);
+    const base = perdas !== 0 ? objetivo - perdas : objetivo;
+    const pendentes = semanas.filter((s) => !s.done);
+    if (!pendentes.length) return;
+    const doneSum = semanas.filter((s) => s.done).reduce((acc, s) => acc + parseMoney(s.objetivo), 0);
+    const each = (base - doneSum) / pendentes.length;
+    const target = base === 0 ? '' : fmtMoney(each);
+    if (pendentes.every((s) => (s.objetivo || '') === target)) return;
+    update({ controle_semanal: semanas.map((s) => (s.done ? s : { ...s, objetivo: target })) });
+  }, [state.objetivo_faturamento, state.possiveis_perdas, state.controle_semanal]);
+
+  /* Saldo final do dia = saldo inicial + receitas do dia - despesas do dia */
+  const saldoFinalAuto = parseMoney(state.saldo_inicial_dia) + parseMoney(state.receitas_dia) - parseMoney(state.despesas_dia);
+  useEffect(() => {
+    const value = fmtMoney(saldoFinalAuto);
+    if (state.saldo_final_dia !== value) update({ saldo_final_dia: value });
+  }, [saldoFinalAuto, state.saldo_final_dia]);
 
   const dateLabel = useMemo(() => {
     try { return format(parse(date, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR }); }
