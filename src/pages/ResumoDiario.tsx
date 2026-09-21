@@ -632,7 +632,7 @@ export default function ResumoDiario() {
   };
 
   const kpis = [
-    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false },
+    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false, readOnly: true },
     { label: 'Faturamento Atual', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary', money: true },
     { label: 'Objetivo de Faturamento', icon: TrendingUp, value: state.objetivo_faturamento, onChange: (v: string) => update({ objetivo_faturamento: v }), accent: 'text-primary', money: true },
     { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success', money: true },
