@@ -13,8 +13,16 @@ export interface SemanaItem { id: string; nome: string; periodo: string; objetiv
 export const DEFAULT_SEMANAS = (): SemanaItem[] =>
   [1, 2, 3, 4, 5].map((n) => ({ id: `semana-${n}`, nome: `Semana ${n}`, periodo: '', objetivo: '', projecao: '', done: false }));
 
+/** Assinantes padrão fixos do Resumo Diário. */
+export const DEFAULT_ASSINATURAS = (): AssinaturaItem[] => [
+  { id: 'assinatura-alex-britto', nome: 'Alex Britto' },
+  { id: 'assinatura-deivid-brito', nome: 'Deivid Brito' },
+];
+
 export interface DailySummary {
   id?: string;
+  /** data do registro de origem (quando os dados vêm do último resumo salvo) */
+  source_date?: string;
   summary_date: string;
   dias_uteis_restante: string;
   faturamento_necessario: string;
