@@ -183,7 +183,7 @@ export function useLastDailySummary(date: string) {
         alteracoes_comp: d.alteracoes_comp || [],
         avisos: d.avisos || [],
         checklist: d.checklist || [],
-        assinaturas: d.assinaturas || [],
+        assinaturas: d.assinaturas?.length ? d.assinaturas : DEFAULT_ASSINATURAS(),
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
     },
