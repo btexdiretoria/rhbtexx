@@ -723,8 +723,17 @@ export default function ResumoDiario() {
             </div>
             {k.money ? (
               <MoneyInput value={k.value} onChange={k.onChange} inputClass={`!text-xl !font-bold ${k.accent}`} />
+            ) : (k as any).readOnly ? (
+              <p className={`px-1 text-xl font-bold ${k.accent}`}>{k.value || '—'}</p>
             ) : (
               <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+            )}
+            {k.label === 'Dias Úteis Restantes' && feriadosRestantes.length > 0 && (
+              <div className="mt-1.5 space-y-0.5">
+                {feriadosRestantes.map((f) => (
+                  <p key={f} className="text-[0.58rem] leading-tight text-muted-foreground">{f}</p>
+                ))}
+              </div>
             )}
             {k.label === 'Objetivo de Faturamento' && (
               <div className="mt-2 space-y-1 border-t border-border pt-2">
