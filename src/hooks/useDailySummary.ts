@@ -92,7 +92,7 @@ export function emptySummary(date: string): DailySummary {
     avisos: [],
     anotacoes: '',
     checklist: [],
-    assinaturas: [],
+    assinaturas: DEFAULT_ASSINATURAS(),
     card_order: [...DEFAULT_CARD_ORDER],
   };
 }
