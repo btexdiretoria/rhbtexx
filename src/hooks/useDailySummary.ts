@@ -196,6 +196,7 @@ export function useSaveDailySummary() {
     mutationFn: async (summary: DailySummary) => {
       const payload = { ...summary };
       delete (payload as any).id;
+      delete (payload as any).source_date;
       const { error } = await (supabase
         .from('daily_summary' as any)
         .upsert(payload, { onConflict: 'summary_date' }) as any);
