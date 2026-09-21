@@ -788,24 +788,13 @@ export default function ResumoDiario() {
           <h3 className="font-heading text-[0.78rem] font-bold uppercase tracking-[0.08em] text-foreground">Assinaturas</h3>
           <span className="h-px flex-1 bg-border" />
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-          {state.assinaturas.map((s, i) => (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+          {DEFAULT_ASSINATURAS().map((s) => (
             <div key={s.id} className="text-center">
               <div className="h-8 border-b-2 border-foreground/70" />
-              <div className="mt-2 flex items-center justify-center gap-1">
-                <InlineText value={s.nome} placeholder="Nome" className="w-full text-center"
-                  onChange={(v) => { const arr = [...state.assinaturas]; arr[i] = { ...arr[i], nome: v }; update({ assinaturas: arr }); }} />
-                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ assinaturas: state.assinaturas.filter((_, j) => j !== i) })}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
+              <p className="mt-2 text-sm font-semibold text-foreground">{s.nome}</p>
             </div>
           ))}
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Button variant="outline" size="sm" onClick={() => update({ assinaturas: [...state.assinaturas, { id: uid(), nome: '' }] })}>
-            <Plus className="mr-1 h-4 w-4" /> Adicionar assinante
-          </Button>
         </div>
       </section>
 
