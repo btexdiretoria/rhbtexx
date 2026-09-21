@@ -142,7 +142,7 @@ export function useDailySummary(date: string) {
 
         avisos: d.avisos || [],
         checklist: d.checklist || [],
-        assinaturas: d.assinaturas || [],
+        assinaturas: d.assinaturas?.length ? d.assinaturas : DEFAULT_ASSINATURAS(),
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
 
