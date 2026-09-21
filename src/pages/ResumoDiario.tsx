@@ -759,7 +759,11 @@ export default function ResumoDiario() {
         </div>
         <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
           <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo final do dia</p>
-          <MoneyInput value={state.saldo_final_dia} onChange={(v) => update({ saldo_final_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+          <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1">
+            <span className="shrink-0 text-xs font-semibold text-muted-foreground">R$</span>
+            <span className={`w-full text-right text-lg font-bold ${signClass(saldoFinalAuto)}`}>{fmtMoney(saldoFinalAuto)}</span>
+          </div>
+          <p className="mt-1 text-[0.58rem] text-muted-foreground">Calculado: saldo inicial + receitas do dia − despesas do dia</p>
         </div>
       </div>
 
