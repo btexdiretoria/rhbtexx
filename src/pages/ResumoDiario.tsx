@@ -124,7 +124,7 @@ function SortableCard({ id, children }: { id: string; children: React.ReactNode 
 
 export default function ResumoDiario() {
   const { toast } = useToast();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = ymd(todaySaoPaulo());
   const [date, setDate] = useState(today);
   const { data: loaded } = useDailySummary(date);
   const prevDate = useMemo(() => {
