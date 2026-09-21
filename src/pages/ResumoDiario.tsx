@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Calendar as CalendarIcon, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
   AlertTriangle, PenLine, Building2, User, Layers,
