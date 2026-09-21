@@ -174,6 +174,7 @@ export function useLastDailySummary(date: string) {
         ...d,
         id: undefined,
         summary_date: date,
+        source_date: d.summary_date,
         despesas: d.despesas || [],
         controle_semanal: (d.controle_semanal?.length ? d.controle_semanal : DEFAULT_SEMANAS()),
         alteracoes: d.alteracoes || [],
