@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Calendar as CalendarIcon, Plus, Trash2, Printer, GripVertical, Save, Wallet, TrendingUp,
   AlertTriangle, PenLine, Building2, User, Layers,
@@ -22,8 +22,9 @@ import { supabase } from '@/integrations/supabase/client';
 import type { AlteracaoItem } from '@/components/AlteracoesPanel';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanySettings } from '@/hooks/useFinancial';
-import { DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
+import { DEFAULT_ASSINATURAS, DEFAULT_CARD_ORDER, DailySummary, emptySummary, useDailySummary, useLastDailySummary, useSaveDailySummary } from '@/hooks/useDailySummary';
 import { exportResumoDiarioPDF } from '@/utils/resumoDiarioPdf';
+import { monthWeekPeriods, remainingBusinessDays, remainingHolidayLabels, todaySaoPaulo, ymd } from '@/lib/holidays';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -123,7 +124,7 @@ function SortableCard({ id, children }: { id: string; children: React.ReactNode 
 
 export default function ResumoDiario() {
   const { toast } = useToast();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = ymd(todaySaoPaulo());
   const [date, setDate] = useState(today);
   const { data: loaded } = useDailySummary(date);
   const prevDate = useMemo(() => {
@@ -144,16 +145,65 @@ export default function ResumoDiario() {
   });
   const allExportChecked = Object.values(exportChecklist).every(Boolean);
 
+  /* ── Automações (data atual — America/Sao_Paulo) ── */
+  const refDate = useMemo(() => {
+    try { return parse(date, 'yyyy-MM-dd', new Date()); } catch { return todaySaoPaulo(); }
+  }, [date]);
+  const diasUteisAuto = useMemo(() => String(remainingBusinessDays(refDate)), [refDate]);
+  const feriadosRestantes = useMemo(() => remainingHolidayLabels(refDate), [refDate]);
+  const periodosAuto = useMemo(() => monthWeekPeriods(refDate), [refDate]);
+
+  const applyAutomations = useCallback((base: DailySummary): DailySummary => {
+    const prev = base.controle_semanal || [];
+    const controle_semanal = periodosAuto.map((periodo, i) => ({
+      id: prev[i]?.id || `semana-${i + 1}`,
+      nome: `Semana ${i + 1}`,
+      periodo,
+      objetivo: prev[i]?.objetivo || '',
+      projecao: prev[i]?.projecao || '',
+      done: prev[i]?.done || false,
+    }));
+    return {
+      ...base,
+      dias_uteis_restante: diasUteisAuto,
+      controle_semanal: controle_semanal.length ? controle_semanal : prev,
+      assinaturas: DEFAULT_ASSINATURAS(),
+    };
+  }, [diasUteisAuto, periodosAuto]);
+
   useEffect(() => {
-    if (loaded?.id) {
-      setState(loaded);
-    } else if (loaded && lastSummary) {
-      // nenhum resumo salvo nesta data: mantém as informações do último resumo salvo
-      setState({ ...lastSummary, summary_date: date });
-    } else if (loaded) {
-      setState(loaded);
+    if (!loaded) return;
+    if (loaded.id) {
+      setState(applyAutomations(loaded));
+      return;
     }
-  }, [loaded, lastSummary, date]);
+    // virada de mês: folha em branco; dentro do mês, mantém o último resumo salvo
+    const sameMonth = !!lastSummary?.source_date && lastSummary.source_date.slice(0, 7) === date.slice(0, 7);
+    setState(applyAutomations(sameMonth && lastSummary ? { ...lastSummary, summary_date: date } : emptySummary(date)));
+  }, [loaded, lastSummary, date, applyAutomations]);
+
+  /* Objetivo das semanas: divide o objetivo restante entre as semanas não concluídas */
+  useEffect(() => {
+    const semanas = state.controle_semanal || [];
+    if (!semanas.length) return;
+    const perdas = parseMoney(state.possiveis_perdas);
+    const objetivo = parseMoney(state.objetivo_faturamento);
+    const base = perdas !== 0 ? objetivo - perdas : objetivo;
+    const pendentes = semanas.filter((s) => !s.done);
+    if (!pendentes.length) return;
+    const doneSum = semanas.filter((s) => s.done).reduce((acc, s) => acc + parseMoney(s.objetivo), 0);
+    const each = (base - doneSum) / pendentes.length;
+    const target = base === 0 ? '' : fmtMoney(each);
+    if (pendentes.every((s) => (s.objetivo || '') === target)) return;
+    update({ controle_semanal: semanas.map((s) => (s.done ? s : { ...s, objetivo: target })) });
+  }, [state.objetivo_faturamento, state.possiveis_perdas, state.controle_semanal]);
+
+  /* Saldo final do dia = saldo inicial + receitas do dia - despesas do dia */
+  const saldoFinalAuto = parseMoney(state.saldo_inicial_dia) + parseMoney(state.receitas_dia) - parseMoney(state.despesas_dia);
+  useEffect(() => {
+    const value = fmtMoney(saldoFinalAuto);
+    if (state.saldo_final_dia !== value) update({ saldo_final_dia: value });
+  }, [saldoFinalAuto, state.saldo_final_dia]);
 
   const dateLabel = useMemo(() => {
     try { return format(parse(date, 'yyyy-MM-dd', new Date()), "d 'de' MMMM 'de' yyyy", { locale: ptBR }); }
@@ -582,7 +632,7 @@ export default function ResumoDiario() {
   };
 
   const kpis = [
-    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false },
+    { label: 'Dias Úteis Restantes', icon: CalendarDays, value: state.dias_uteis_restante, onChange: (v: string) => update({ dias_uteis_restante: v }), accent: 'text-primary', money: false, readOnly: true },
     { label: 'Faturamento Atual', icon: Banknote, value: state.faturamento_necessario, onChange: (v: string) => update({ faturamento_necessario: v }), accent: 'text-primary', money: true },
     { label: 'Objetivo de Faturamento', icon: TrendingUp, value: state.objetivo_faturamento, onChange: (v: string) => update({ objetivo_faturamento: v }), accent: 'text-primary', money: true },
     { label: 'Receitas do Dia', icon: TrendingUp, value: state.receitas_dia, onChange: (v: string) => update({ receitas_dia: v }), accent: 'text-success', money: true },
@@ -673,8 +723,17 @@ export default function ResumoDiario() {
             </div>
             {k.money ? (
               <MoneyInput value={k.value} onChange={k.onChange} inputClass={`!text-xl !font-bold ${k.accent}`} />
+            ) : (k as any).readOnly ? (
+              <p className={`px-1 text-xl font-bold ${k.accent}`}>{k.value || '—'}</p>
             ) : (
               <InlineText value={k.value} onChange={k.onChange} className={`w-full !text-xl !font-bold ${k.accent}`} placeholder="—" />
+            )}
+            {k.label === 'Dias Úteis Restantes' && feriadosRestantes.length > 0 && (
+              <div className="mt-1.5 space-y-0.5">
+                {feriadosRestantes.map((f) => (
+                  <p key={f} className="text-[0.58rem] leading-tight text-muted-foreground">{f}</p>
+                ))}
+              </div>
             )}
             {k.label === 'Objetivo de Faturamento' && (
               <div className="mt-2 space-y-1 border-t border-border pt-2">
@@ -700,7 +759,11 @@ export default function ResumoDiario() {
         </div>
         <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
           <p className="mb-1 text-[0.64rem] font-semibold uppercase tracking-wider text-primary">Saldo final do dia</p>
-          <MoneyInput value={state.saldo_final_dia} onChange={(v) => update({ saldo_final_dia: v })} inputClass="!font-bold !text-lg text-primary" />
+          <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1">
+            <span className="shrink-0 text-xs font-semibold text-muted-foreground">R$</span>
+            <span className={`w-full text-right text-lg font-bold ${signClass(saldoFinalAuto)}`}>{fmtMoney(saldoFinalAuto)}</span>
+          </div>
+          <p className="mt-1 text-[0.58rem] text-muted-foreground">Calculado: saldo inicial + receitas do dia − despesas do dia</p>
         </div>
       </div>
 
@@ -725,24 +788,13 @@ export default function ResumoDiario() {
           <h3 className="font-heading text-[0.78rem] font-bold uppercase tracking-[0.08em] text-foreground">Assinaturas</h3>
           <span className="h-px flex-1 bg-border" />
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-          {state.assinaturas.map((s, i) => (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+          {DEFAULT_ASSINATURAS().map((s) => (
             <div key={s.id} className="text-center">
               <div className="h-8 border-b-2 border-foreground/70" />
-              <div className="mt-2 flex items-center justify-center gap-1">
-                <InlineText value={s.nome} placeholder="Nome" className="w-full text-center"
-                  onChange={(v) => { const arr = [...state.assinaturas]; arr[i] = { ...arr[i], nome: v }; update({ assinaturas: arr }); }} />
-                <button className="text-muted-foreground transition-colors hover:text-destructive" onClick={() => update({ assinaturas: state.assinaturas.filter((_, j) => j !== i) })}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
+              <p className="mt-2 text-sm font-semibold text-foreground">{s.nome}</p>
             </div>
           ))}
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Button variant="outline" size="sm" onClick={() => update({ assinaturas: [...state.assinaturas, { id: uid(), nome: '' }] })}>
-            <Plus className="mr-1 h-4 w-4" /> Adicionar assinante
-          </Button>
         </div>
       </section>
 

@@ -13,8 +13,16 @@ export interface SemanaItem { id: string; nome: string; periodo: string; objetiv
 export const DEFAULT_SEMANAS = (): SemanaItem[] =>
   [1, 2, 3, 4, 5].map((n) => ({ id: `semana-${n}`, nome: `Semana ${n}`, periodo: '', objetivo: '', projecao: '', done: false }));
 
+/** Assinantes padrão fixos do Resumo Diário. */
+export const DEFAULT_ASSINATURAS = (): AssinaturaItem[] => [
+  { id: 'assinatura-alex-britto', nome: 'Alex Britto' },
+  { id: 'assinatura-deivid-brito', nome: 'Deivid Brito' },
+];
+
 export interface DailySummary {
   id?: string;
+  /** data do registro de origem (quando os dados vêm do último resumo salvo) */
+  source_date?: string;
   summary_date: string;
   dias_uteis_restante: string;
   faturamento_necessario: string;
@@ -84,7 +92,7 @@ export function emptySummary(date: string): DailySummary {
     avisos: [],
     anotacoes: '',
     checklist: [],
-    assinaturas: [],
+    assinaturas: DEFAULT_ASSINATURAS(),
     card_order: [...DEFAULT_CARD_ORDER],
   };
 }
@@ -134,7 +142,7 @@ export function useDailySummary(date: string) {
 
         avisos: d.avisos || [],
         checklist: d.checklist || [],
-        assinaturas: d.assinaturas || [],
+        assinaturas: d.assinaturas?.length ? d.assinaturas : DEFAULT_ASSINATURAS(),
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
 
@@ -166,6 +174,7 @@ export function useLastDailySummary(date: string) {
         ...d,
         id: undefined,
         summary_date: date,
+        source_date: d.summary_date,
         despesas: d.despesas || [],
         controle_semanal: (d.controle_semanal?.length ? d.controle_semanal : DEFAULT_SEMANAS()),
         alteracoes: d.alteracoes || [],
@@ -174,7 +183,7 @@ export function useLastDailySummary(date: string) {
         alteracoes_comp: d.alteracoes_comp || [],
         avisos: d.avisos || [],
         checklist: d.checklist || [],
-        assinaturas: d.assinaturas || [],
+        assinaturas: d.assinaturas?.length ? d.assinaturas : DEFAULT_ASSINATURAS(),
         card_order: normalizeOrder(d.card_order),
       } as DailySummary;
     },
@@ -187,6 +196,7 @@ export function useSaveDailySummary() {
     mutationFn: async (summary: DailySummary) => {
       const payload = { ...summary };
       delete (payload as any).id;
+      delete (payload as any).source_date;
       const { error } = await (supabase
         .from('daily_summary' as any)
         .upsert(payload, { onConflict: 'summary_date' }) as any);
