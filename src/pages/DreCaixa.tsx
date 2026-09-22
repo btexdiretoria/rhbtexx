@@ -175,7 +175,7 @@ export default function DreCaixa() {
             <Settings2 className="h-4 w-4 mr-2" /> Parametrizar Categorias
           </Button>
           <Button
-            onClick={() => exportDreCaixaPDF(model, company?.company_name ?? "")}
+            onClick={() => exportDreCaixaPDF(model, company?.company_name ?? "", hideDetails)}
             disabled={!model.months.length}
           >
             <FileDown className="h-4 w-4 mr-2" /> Exportar PDF
