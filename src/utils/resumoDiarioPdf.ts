@@ -153,10 +153,13 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     { label: 'Despesas do Dia', value: notEmpty(s.despesas_dia) ? money(s.despesas_dia) : '', color: RED },
   ].filter((k) => notEmpty(k.value));
 
+  const feriados = (meta.feriados || []).filter(notEmpty);
+  const feriadosH = feriados.length ? feriados.length * 3.2 + 2 : 0;
+
   if (kpis.length) {
     const gap = 4;
     const w = (CONTENT_W - gap * (kpis.length - 1)) / kpis.length;
-    ensure(24);
+    ensure(24 + feriadosH);
     kpis.forEach((k, i) => {
       const x = M + i * (w + gap);
       pdf.setFillColor(...GRAY_LIGHT);
