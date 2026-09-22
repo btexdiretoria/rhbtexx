@@ -162,6 +162,15 @@ export default function DreCaixa() {
           <Button variant="outline" asChild>
             <Link to="/fluxo"><ChevronLeft className="h-4 w-4 mr-1" /> Fluxo</Link>
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setHideDetails((v) => !v)}
+            title={hideDetails ? "Mostrar categorias" : "Ocultar categorias"}
+          >
+            {hideDetails ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {hideDetails ? " Mostrar categorias" : " Ocultar categorias"}
+          </Button>
           <Button variant="outline" onClick={() => setParamOpen(true)}>
             <Settings2 className="h-4 w-4 mr-2" /> Parametrizar Categorias
           </Button>
