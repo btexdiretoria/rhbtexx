@@ -27,6 +27,8 @@ export interface ResumoPdfMeta {
   responsavel?: string;
   relatorio?: string;
   despesasAnteriores?: { descricao: string; gasto: string }[];
+  /** Feriados do período restante do mês (ex.: "07/09 – Independência do Brasil") */
+  feriados?: string[];
 }
 
 const parseMoney = (v?: string) => {
@@ -151,10 +153,13 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     { label: 'Despesas do Dia', value: notEmpty(s.despesas_dia) ? money(s.despesas_dia) : '', color: RED },
   ].filter((k) => notEmpty(k.value));
 
+  const feriados = (meta.feriados || []).filter(notEmpty);
+  const feriadosH = feriados.length ? feriados.length * 3.2 + 2 : 0;
+
   if (kpis.length) {
     const gap = 4;
     const w = (CONTENT_W - gap * (kpis.length - 1)) / kpis.length;
-    ensure(24);
+    ensure(24 + feriadosH);
     kpis.forEach((k, i) => {
       const x = M + i * (w + gap);
       pdf.setFillColor(...GRAY_LIGHT);
@@ -175,7 +180,13 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setFontSize(kpis.length >= 5 ? 9.5 : 12);
       pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 7.5 + labelH);
     });
-    y += 26;
+    if (feriados.length) {
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(5.8);
+      feriados.forEach((f, fi) => pdf.text(f, M + 4.5, y + 23.5 + fi * 3.2));
+    }
+    y += 26 + feriadosH;
   }
 
   /* ── Objetivo de faturamento com possíveis perdas ── */

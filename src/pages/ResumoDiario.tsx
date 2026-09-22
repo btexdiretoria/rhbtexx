@@ -226,7 +226,7 @@ export default function ResumoDiario() {
   const handleExportPDF = async () => {
     try {
       await exportResumoDiarioPDF(state, {
-        empresa, responsavel, relatorio: 'Resumo Diário',
+        empresa, responsavel, relatorio: 'Resumo Diário', feriados: feriadosRestantes,
         despesasAnteriores: (prevSummary?.despesas || []).map((d) => ({ descricao: d.descricao, gasto: d.gasto })),
       });
     } catch (e: any) {
