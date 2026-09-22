@@ -242,7 +242,7 @@ export default function DreCaixa() {
                       {g.group}
                     </td>
                   </tr>
-                  {g.rows.map((r) => (
+                  {!hideDetails && g.rows.map((r) => (
                     <tr key={`${g.group}-${r.categoria}`} className="border-t hover:bg-muted/40">
                       <td className="sticky left-0 z-10 bg-background px-3 py-1.5">{r.categoria}</td>
                       {model.months.flatMap((m) => {
@@ -250,7 +250,7 @@ export default function DreCaixa() {
                         return [
                           <td key={`${m}-d`} className={`px-3 py-1.5 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                           <td key={`${m}-c`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                          <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums font-medium ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                          <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums font-medium bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
                         ];
                       })}
                     </tr>
@@ -262,7 +262,7 @@ export default function DreCaixa() {
                       return [
                         <td key={`${m}-d`} className={`px-3 py-1.5 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                         <td key={`${m}-c`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
                       ];
                     })}
                   </tr>
@@ -276,7 +276,7 @@ export default function DreCaixa() {
                     return [
                       <td key={`${m}-d`} className={`px-3 py-2 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                       <td key={`${m}-c`} className={`px-3 py-2 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
                     ];
                   })}
                 </tr>
