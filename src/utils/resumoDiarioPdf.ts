@@ -180,7 +180,13 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       pdf.setFontSize(kpis.length >= 5 ? 9.5 : 12);
       pdf.text(pdf.splitTextToSize(String(k.value), w - 8)[0], x + 4.5, y + 7.5 + labelH);
     });
-    y += 26;
+    if (feriados.length) {
+      pdf.setTextColor(...GRAY_SOFT);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(5.8);
+      feriados.forEach((f, fi) => pdf.text(f, M + 4.5, y + 23.5 + fi * 3.2));
+    }
+    y += 26 + feriadosH;
   }
 
   /* ── Objetivo de faturamento com possíveis perdas ── */
