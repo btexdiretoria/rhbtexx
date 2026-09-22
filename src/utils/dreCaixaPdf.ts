@@ -6,7 +6,11 @@ import { UNMAPPED_GROUP } from "@/lib/dreCompare";
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function exportDreCaixaPDF(model: CompareModel, companyName: string) {
+export function exportDreCaixaPDF(
+  model: CompareModel,
+  companyName: string,
+  hideCategories = false
+) {
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
 
@@ -61,6 +65,7 @@ export function exportDreCaixaPDF(model: CompareModel, companyName: string) {
         },
       },
     ]);
+    if (hideCategories) return;
     g.rows.forEach((r) => {
       body.push([
         r.categoria,
