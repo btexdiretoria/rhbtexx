@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, FileDown, Settings2, Trash2, Pencil, Plus, AlertTriangle, ChevronLeft } from "lucide-react";
+import { FileSpreadsheet, FileDown, Settings2, Trash2, Pencil, Plus, AlertTriangle, ChevronLeft, EyeOff, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -81,6 +81,7 @@ export default function DreCaixa() {
   const deleteCategory = useDeleteDreCategory();
 
   const [paramOpen, setParamOpen] = useState(false);
+  const [hideDetails, setHideDetails] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [catName, setCatName] = useState("");
   const [groupName, setGroupName] = useState("");
@@ -161,6 +162,15 @@ export default function DreCaixa() {
           <Button variant="outline" asChild>
             <Link to="/fluxo"><ChevronLeft className="h-4 w-4 mr-1" /> Fluxo</Link>
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setHideDetails((v) => !v)}
+            title={hideDetails ? "Mostrar categorias" : "Ocultar categorias"}
+          >
+            {hideDetails ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {hideDetails ? " Mostrar categorias" : " Ocultar categorias"}
+          </Button>
           <Button variant="outline" onClick={() => setParamOpen(true)}>
             <Settings2 className="h-4 w-4 mr-2" /> Parametrizar Categorias
           </Button>
@@ -232,7 +242,7 @@ export default function DreCaixa() {
                       {g.group}
                     </td>
                   </tr>
-                  {g.rows.map((r) => (
+                  {!hideDetails && g.rows.map((r) => (
                     <tr key={`${g.group}-${r.categoria}`} className="border-t hover:bg-muted/40">
                       <td className="sticky left-0 z-10 bg-background px-3 py-1.5">{r.categoria}</td>
                       {model.months.flatMap((m) => {
@@ -240,7 +250,7 @@ export default function DreCaixa() {
                         return [
                           <td key={`${m}-d`} className={`px-3 py-1.5 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                           <td key={`${m}-c`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                          <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums font-medium ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                          <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums font-medium bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
                         ];
                       })}
                     </tr>
@@ -252,7 +262,7 @@ export default function DreCaixa() {
                       return [
                         <td key={`${m}-d`} className={`px-3 py-1.5 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                         <td key={`${m}-c`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums bg-muted/70 ${cls(c.diff)}`}>{money(c.diff)}</td>,
                       ];
                     })}
                   </tr>
@@ -266,7 +276,7 @@ export default function DreCaixa() {
                     return [
                       <td key={`${m}-d`} className={`px-3 py-2 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                       <td key={`${m}-c`} className={`px-3 py-2 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums bg-primary/20 ${cls(c.diff)}`}>{money(c.diff)}</td>,
                     ];
                   })}
                 </tr>
