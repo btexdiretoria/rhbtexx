@@ -27,6 +27,8 @@ export interface ResumoPdfMeta {
   responsavel?: string;
   relatorio?: string;
   despesasAnteriores?: { descricao: string; gasto: string }[];
+  /** Feriados do período restante do mês (ex.: "07/09 – Independência do Brasil") */
+  feriados?: string[];
 }
 
 const parseMoney = (v?: string) => {
