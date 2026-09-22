@@ -262,7 +262,7 @@ export default function DreCaixa() {
                       return [
                         <td key={`${m}-d`} className={`px-3 py-1.5 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                         <td key={`${m}-c`} className={`px-3 py-1.5 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                        <td key={`${m}-x`} className={`px-3 py-1.5 text-right tabular-nums bg-muted/70 ${cls(c.diff)}`}>{money(c.diff)}</td>,
                       ];
                     })}
                   </tr>
@@ -276,7 +276,7 @@ export default function DreCaixa() {
                     return [
                       <td key={`${m}-d`} className={`px-3 py-2 text-right border-l tabular-nums ${cls(c.dre)}`}>{money(c.dre)}</td>,
                       <td key={`${m}-c`} className={`px-3 py-2 text-right tabular-nums ${cls(c.caixa)}`}>{money(c.caixa)}</td>,
-                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums bg-black/[0.04] ${cls(c.diff)}`}>{money(c.diff)}</td>,
+                      <td key={`${m}-x`} className={`px-3 py-2 text-right tabular-nums bg-primary/20 ${cls(c.diff)}`}>{money(c.diff)}</td>,
                     ];
                   })}
                 </tr>
