@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, FileDown, Settings2, Trash2, Pencil, Plus, AlertTriangle, ChevronLeft } from "lucide-react";
+import { FileSpreadsheet, FileDown, Settings2, Trash2, Pencil, Plus, AlertTriangle, ChevronLeft, EyeOff, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -81,6 +81,7 @@ export default function DreCaixa() {
   const deleteCategory = useDeleteDreCategory();
 
   const [paramOpen, setParamOpen] = useState(false);
+  const [hideDetails, setHideDetails] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [catName, setCatName] = useState("");
   const [groupName, setGroupName] = useState("");
