@@ -98,9 +98,17 @@ export default function FinanceDashboard() {
     setOpen(true);
   };
 
+  // Automatizações: média de preços e média diária de produção calculadas a partir dos dias úteis do mês
+  const autoAvgPrice = formData.working_days > 0 ? formData.revenue_billed / formData.working_days : 0;
+  const autoDailyProd = formData.working_days > 0 ? formData.total_pieces / formData.working_days : 0;
+
   const handleSave = () => {
     upsert.mutate(
-      { year: formYear, month: formMonth, ...formData },
+      {
+        year: formYear, month: formMonth, ...formData,
+        average_price: Number(autoAvgPrice.toFixed(2)),
+        daily_production_avg: Number(autoDailyProd.toFixed(2)),
+      },
       {
         onSuccess: () => { toast({ title: 'Dados salvos com sucesso!' }); setOpen(false); },
         onError: () => toast({ title: 'Erro ao salvar', variant: 'destructive' }),
@@ -172,12 +180,18 @@ export default function FinanceDashboard() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Média de Preços (R$)</Label>
-                  <Input type="number" step="0.01" value={formData.average_price} onChange={e => setFormData(p => ({ ...p, average_price: Number(e.target.value) }))} />
+                  <Label>
+                    Média de Preços (R$)
+                    <span className="block text-[10px] font-normal text-muted-foreground">Automático: Faturamento Atual ÷ Dias Úteis do mês</span>
+                  </Label>
+                  <Input readOnly type="number" step="0.01" value={autoAvgPrice.toFixed(2)} className="[appearance:textfield] bg-muted/40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                 </div>
                 <div>
-                  <Label>Média Diária Produção</Label>
-                  <Input type="number" step="0.01" value={formData.daily_production_avg} onChange={e => setFormData(p => ({ ...p, daily_production_avg: Number(e.target.value) }))} />
+                  <Label>
+                    Média Diária Produção
+                    <span className="block text-[10px] font-normal text-muted-foreground">Automático: Total Peças ÷ Dias Úteis do mês</span>
+                  </Label>
+                  <Input readOnly type="number" step="0.01" value={autoDailyProd.toFixed(2)} className="[appearance:textfield] bg-muted/40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                 </div>
                 <div>
                   <Label>Total Peças Produzidas</Label>
