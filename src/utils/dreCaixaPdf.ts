@@ -65,6 +65,7 @@ export function exportDreCaixaPDF(
         },
       },
     ]);
+    if (hideCategories) return;
     g.rows.forEach((r) => {
       body.push([
         r.categoria,
