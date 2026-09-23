@@ -460,7 +460,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     if (!hasResult && !alteracoes.length && !mesBoxes.length) return;
 
     ensureBlock(
-      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? 24 : 0) +
+      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? (notEmpty(vals.acumulado) ? 32 : 24) : 0) +
       (alteracoes.length ? 5 + tableH(alteracoes.length) + 15 : 0),
     );
     section(title);
