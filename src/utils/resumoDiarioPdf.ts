@@ -460,7 +460,7 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
     if (!hasResult && !alteracoes.length && !mesBoxes.length) return;
 
     ensureBlock(
-      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? 24 : 0) +
+      SECTION_H + (mesBoxes.length ? 22 : 0) + (hasResult ? (notEmpty(vals.acumulado) ? 32 : 24) : 0) +
       (alteracoes.length ? 5 + tableH(alteracoes.length) + 15 : 0),
     );
     section(title);
@@ -487,21 +487,42 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
       y += 22;
     }
     const drawResultRow = () => {
-      ensure(24);
-      const boxH = notEmpty(vals.acumulado) ? 24 : 18;
+      ensure(32);
+      const hasAcum = notEmpty(vals.acumulado);
+      const boxH = hasAcum ? 26 : 18;
       pdf.setFillColor(...GRAY_LIGHT);
       pdf.roundedRect(M, y, CONTENT_W, boxH, 2, 2, 'F');
       pdf.setTextColor(...GRAY_DARK);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(9.5);
       pdf.text('Resultado esperado', M + 4, y + 11);
-      const colW = 34;
-      let cx = PAGE_W - M - (colW * 3 + 14);
+      // Acumulado em quadro próprio, destacado e maior
+      const acW = 50;
+      if (hasAcum) {
+        const ax = PAGE_W - M - acW - 3;
+        pdf.setFillColor(224, 236, 255);
+        pdf.setDrawColor(...BLUE);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(ax, y + 3, acW, boxH - 6, 2, 2, 'FD');
+        const n = parseMoney(vals.acumulado);
+        pdf.setTextColor(...BLUE);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(6);
+        pdf.text('ACUMULADO', ax + acW - 4, y + 9, { align: 'right' });
+        pdf.setTextColor(...(n < 0 ? RED : n > 0 ? GREEN : GRAY_DARK));
+        pdf.setFontSize(13);
+        pdf.text(money(vals.acumulado), ax + acW - 4, y + 18, { align: 'right' });
+      }
+      // Três campos do período iguais, discretos
+      const endX = hasAcum ? PAGE_W - M - acW - 9 : PAGE_W - M - 4;
+      const startX = M + 48;
+      const colW = (endX - startX) / 3;
+      let cx = startX;
       resultCols.forEach((r, i) => {
         if (i === 1) cx += 8;
         if (i === 2) {
           // seta indicando evolução de Ontem para Hoje
-          pdf.setDrawColor(...GRAY_SOFT);
+          pdf.setDrawColor(156, 163, 175);
           pdf.setLineWidth(0.4);
           pdf.line(cx + 1, y + 11, cx + 5, y + 11);
           pdf.line(cx + 3.4, y + 9.4, cx + 5, y + 11);
@@ -509,24 +530,14 @@ export async function exportResumoDiarioPDF(s: DailySummary, meta: ResumoPdfMeta
           cx += 6;
         }
         const n = parseMoney(r.value);
-        const small = i === 0;
-        pdf.setTextColor(...(small ? [156, 163, 175] as [number, number, number] : GRAY_SOFT));
+        pdf.setTextColor(156, 163, 175);
         pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(small ? 5.8 : 6.8);
+        pdf.setFontSize(5.8);
         pdf.text(r.label.toUpperCase(), cx + colW, y + 6.5, { align: 'right' });
-        pdf.setTextColor(...(small ? [156, 163, 175] as [number, number, number] : n < 0 ? RED : n > 0 ? GREEN : GRAY_DARK));
+        pdf.setTextColor(...(n < 0 ? RED : n > 0 ? GREEN : GRAY_SOFT));
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(small ? 8 : 10);
+        pdf.setFontSize(8);
         pdf.text(notEmpty(r.value) ? money(n) : '—', cx + colW, y + 13.5, { align: 'right' });
-        if (i === 2 && notEmpty(vals.acumulado)) {
-          pdf.setTextColor(156, 163, 175);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(5.8);
-          pdf.text('ACUMULADO', cx + colW, y + 17.8, { align: 'right' });
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(8);
-          pdf.text(money(vals.acumulado), cx + colW, y + 22, { align: 'right' });
-        }
         cx += colW;
       });
       y += boxH + 6;
