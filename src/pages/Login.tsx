@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,29 +9,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, LogIn, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-const TURNSTILE_SITEKEY = '0x4AAAAAADX2AhLwvnTONx4r';
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (el: HTMLElement, opts: Record<string, unknown>) => string;
-      reset: (id?: string) => void;
-      remove: (id?: string) => void;
-    };
-    onTurnstileLoad?: () => void;
-  }
-}
-
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [captchaError, setCaptchaError] = useState('');
-  const turnstileRef = useRef<HTMLDivElement>(null);
-  const widgetIdRef = useRef<string | null>(null);
 
   const { data: companySettings } = useQuery({
     queryKey: ['company_settings_public'],
@@ -44,74 +27,22 @@ export default function Login() {
 
   const companyName = companySettings?.company_name || 'BTEX INDUSTRIA TEXTIL';
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const renderWidget = () => {
-      if (cancelled || !window.turnstile || !turnstileRef.current || widgetIdRef.current) return;
-      try {
-        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
-          sitekey: TURNSTILE_SITEKEY,
-          callback: (token: string) => {
-            setCaptchaToken(token);
-            setCaptchaError('');
-          },
-          'expired-callback': () => {
-            setCaptchaToken('');
-            setCaptchaError('A verificação expirou. Faça a validação novamente.');
-          },
-          'error-callback': () => {
-            setCaptchaToken('');
-            setCaptchaError('Não foi possível carregar a verificação de segurança. Verifique a sitekey do Cloudflare Turnstile.');
-          },
-        });
-      } catch (e) {
-        console.error('Turnstile render error:', e);
-        setCaptchaError('Não foi possível iniciar a verificação de segurança.');
-      }
-    };
-
-    const interval = setInterval(() => {
-      if (window.turnstile) {
-        renderWidget();
-        if (widgetIdRef.current) clearInterval(interval);
-      }
-    }, 150);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      if (widgetIdRef.current && window.turnstile) {
-        try { window.turnstile.remove(widgetIdRef.current); } catch { /* noop */ }
-        widgetIdRef.current = null;
-      }
-    };
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (!captchaToken) {
-      setError('Por favor, complete a verificação de segurança.');
-      return;
-    }
 
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { captchaToken },
     });
 
     if (error) {
-      setError('Email ou senha inválidos. Verifique suas credenciais e tente novamente.');
+      setError(/captcha|turnstile/i.test(error.message)
+        ? 'A verificação de segurança ainda está exigida pelo servidor. Contate o administrador.'
+        : 'Email ou senha inválidos. Verifique suas credenciais e tente novamente.');
       setLoading(false);
-      setCaptchaToken('');
-      if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.reset(widgetIdRef.current);
-      }
     } else {
       navigate('/');
     }
@@ -143,11 +74,7 @@ export default function Login() {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <div className="flex min-h-[65px] items-center justify-center">
-              <div ref={turnstileRef} />
-            </div>
-            {captchaError && <p className="text-sm text-destructive">{captchaError}</p>}
-            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
+            <Button type="submit" className="w-full" disabled={loading}>
               <LogIn className="w-4 h-4 mr-2" />
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
